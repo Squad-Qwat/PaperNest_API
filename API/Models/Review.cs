@@ -24,5 +24,7 @@ namespace API.Models
         [Required]
         public DateTime CreatedAt { get; protected set; } = DateTime.Now;
 
+        public DateTime UpdateAt { get; set; } = DateTime.Now;
+
     }
 }

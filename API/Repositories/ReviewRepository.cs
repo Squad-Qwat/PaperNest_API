@@ -1,4 +1,5 @@
-﻿using API.Models;
+﻿using API.Helpers.Enums;
+using API.Models;
 
 namespace API.Repositories
 {
@@ -21,12 +22,16 @@ namespace API.Repositories
         {
             return _reviews.FirstOrDefault(r => r.Id == id);
         }
-        public static void AddReview(Review review)
+        public static void AddReview(Guid documentBodyId, Guid userId, string comment, ReviewStatus status)
         {
-            if (review != null)
+            var review = new Review
             {
-                _reviews.Add(review);
-            }
+                FK_DocumentBodyId = documentBodyId,
+                FK_UserId = userId,
+                Comment = comment,
+                Status = status
+            };
+            _reviews.Add(review);
         }
     }
 }

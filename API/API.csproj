@@ -13,7 +13,7 @@
   <ItemGroup>
     <Folder Include="Controllers\" />
     <Folder Include="Helpers\Globals\" />
-    <Folder Include="Repositories\" />
+    <Folder Include="Controllers\" />
   </ItemGroup>
 
   <ItemGroup>

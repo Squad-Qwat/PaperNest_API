@@ -19,5 +19,8 @@ namespace API.Models
         public bool IsCurrentVersion { get; set; }
 
         public bool IsReviewed { get; set; } = false;
+
+        [Required]
+        public DateTime CreatedAt { get; protected set; } = DateTime.Now;
     }
 }
