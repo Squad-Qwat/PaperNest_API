@@ -12,10 +12,8 @@
 
   <ItemGroup>
     <Folder Include="Controllers\" />
-    <Folder Include="Helpers\Enums\" />
     <Folder Include="Helpers\Globals\" />
-    <Folder Include="Models\" />
-    <Folder Include="Services\" />
+    <Folder Include="Repositories\" />
   </ItemGroup>
 
   <ItemGroup>
