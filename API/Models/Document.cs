@@ -4,7 +4,7 @@ namespace API.Models
 {
     public class Document
     {
-        [Key]
+        [Key, Required]
         public Guid Id { get; set; } = Guid.NewGuid();
 
         [Required, MaxLength(200)]

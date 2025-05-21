@@ -9,16 +9,16 @@ namespace API.Models
         public Guid Id { get; protected set; } = Guid.NewGuid();
 
         [Required, MaxLength(100)]
-        public string Name { get; set; }
+        public string? Name { get; set; }
 
         [Required, MaxLength(255)]
-        public string Email { get; set; }
+        public string? Email { get; set; }
 
         [Required, MaxLength(12)]
-        public string Password { get; set; }
+        public string? Password { get; set; }
 
         [MaxLength(15)]
-        public string Username { get; set; }
+        public string? Username { get; set; }
 
         // one to many
         public ICollection<UserWorkspace> UserWorkspace = new List<UserWorkspace>();

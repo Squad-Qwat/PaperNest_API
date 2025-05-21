@@ -6,7 +6,7 @@ namespace API.Models
 {
     public class UserWorkspace
     {
-        [Key]
+        [Key, Required]
         public Guid Id { get; protected set; } = Guid.NewGuid();
 
         [Required]
