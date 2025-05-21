@@ -8,7 +8,7 @@ namespace API.Models
         public Guid Id { get; set; } = Guid.NewGuid();
 
         [Required, MaxLength(200)]
-        public string Title { get; set; }
+        public string? Title { get; set; }
 
         public string? SavedContent { get; set; }
 

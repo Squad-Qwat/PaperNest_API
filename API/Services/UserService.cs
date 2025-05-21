@@ -6,7 +6,7 @@ namespace API.Services
 {
     public class UserService
     {
-        public static void Add(User newUser)
+        public static void Create(User newUser)
         {
             Debug.Assert(newUser != null, "New User can not null here");
 
