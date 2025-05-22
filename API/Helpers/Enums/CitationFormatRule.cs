@@ -5,6 +5,6 @@ namespace API.Helpers.Enums
     public class CitationFormatRule
     {
         public CitationType Type { get; set; }
-        public Func<Citation, string> Formatter { get; set; }
+        public required Func<Citation, string> Formatter { get; set; }
     }
 }
