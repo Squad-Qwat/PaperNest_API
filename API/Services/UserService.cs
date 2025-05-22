@@ -51,35 +51,45 @@ namespace API.Services
             }
         }
 
-        public static void ResetPassword(string userEmail, string newUserPassword)
+        public static bool ResetPassword(string userEmail, string newUserPassword)
         {
-            Debug.Assert(userEmail != string.Empty, "User email can not be empty");
-
-            Debug.Assert(newUserPassword != string.Empty, "New password can not be empty");
-
             var existingUser = UserRepository.userRepository.FirstOrDefault(u => u.Email == userEmail);
-
-            Debug.Assert(existingUser != null, "Filtered User should be not empty");
 
             if (existingUser != null)
             {
                 existingUser.Password = newUserPassword;
 
                 existingUser.UpdateAt = DateTime.Now;
+                return true;
             }
+
+            return false;
         }
 
-        public static void ChangeEmail(String newUserEmail)
+        public static void ChangeEmail(string oldUserEmail, string newUserEmail)
         {
             Debug.Assert(newUserEmail != string.Empty, "User email can not be empty");
 
-            var existingUser = UserRepository.userRepository.FirstOrDefault(u => u.Email == newUserEmail);
+            var existingUser = UserRepository.userRepository.FirstOrDefault(u => u.Email == oldUserEmail);
 
             Debug.Assert(existingUser != null, "Filtered User should be not empty");
 
             if (existingUser != null)
             {
-                existingUser.Email = newUserEmail;
+                var emailExists = UserRepository.userRepository.Any(u => u.Email == newUserEmail);
+
+                if (!emailExists)
+                {
+                    existingUser.Email = newUserEmail;
+                }
+                else
+                {
+                    throw new InvalidOperationException("New email has been used another user");
+                }
+            }
+            else
+            {
+                throw new InvalidOperationException("Your email is empty");
             }
         }
 
