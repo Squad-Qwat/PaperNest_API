@@ -5,34 +5,38 @@ namespace API.Services
 {
     public class DocumentService
     {
-        public static void Create(Document document)
+        public void Create(Document document)
         {
             DocumentRepository.documentRepository.Add(document);
         }
 
-        public static IEnumerable<Document> GetAll()
+        public IEnumerable<Document> GetAll()
         {
             return DocumentRepository.documentRepository;
         }
 
-        public static Document? GetById(Guid documentId)
+        public Document? GetById(Guid documentId)
         {
             return DocumentRepository.documentRepository.FirstOrDefault(d => d.Id == documentId);
         }
 
-        public static IEnumerable<Document> GetByUserId(Guid userId)
+        public IEnumerable<Document> GetByUserId(Guid userId)
         {
+            // Dapatkan semua workspace yang dimiliki user
+            var userWorkspaces = UserWorkspaceRepository.GetUserWorkspacesByUserId(userId);
+            var workspaceIds = userWorkspaces.Select(uw => uw.FK_WorkspaceId).ToList();
+
+            // Kembalikan semua dokumen yang berada di workspace-workspace tersebut
             return DocumentRepository.documentRepository
-                .Where(d => d.Workspace?.UserWorkspaces?.Any(uw => uw.User?.Id == userId)
-                   ?? false);
+                .Where(d => workspaceIds.Contains(d.FK_WorkspaceId));
         }
 
-        public static IEnumerable<Document> GetByWorkspaceId(Guid workspaceId)
+        public IEnumerable<Document> GetByWorkspaceId(Guid workspaceId)
         {
-            return DocumentRepository.documentRepository.Where(d => d.Workspace?.Id == workspaceId);
+            return DocumentRepository.documentRepository.Where(d => d.FK_WorkspaceId == workspaceId);
         }
 
-        public static void Update(Guid id, Document document)
+        public void Update(Guid id, Document document)
         {
             var existingDocument = GetById(id);
 
@@ -45,9 +49,9 @@ namespace API.Services
             }
         }
 
-        public static void Delete(Guid id)
+        public void Delete(Guid deletedDocumentId)
         {
-            var existingDocument = GetById(id);
+            var existingDocument = GetById(deletedDocumentId);
 
             if (existingDocument != null)
             {

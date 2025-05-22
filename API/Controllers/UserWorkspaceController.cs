@@ -45,5 +45,25 @@ namespace API.Controllers
             _userWorkspaceService.AddUserWorkspaceAsLecturer(userId, workspaceId);
             return CreatedAtAction(nameof(GetUserWorkspaces), new { userId }, null);
         }
+
+        [HttpDelete("{userId}/{workspaceId}")]
+        public IActionResult RemoveUserWorkspace(Guid userId, Guid workspaceId)
+        {
+            var isRemoved = _userWorkspaceService.RemoveUserWorkspace(userId, workspaceId);
+            if (isRemoved)
+            {
+                return Ok(new
+                {
+                    message = "Berhasil menghapus user dari workspace"
+                });
+            }
+            else
+            {
+                return BadRequest(new
+                {
+                    message = "Gagal menghapus user dari workspace"
+                });
+            }
+        }
     }
 }
