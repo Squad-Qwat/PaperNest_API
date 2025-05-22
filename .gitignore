@@ -482,3 +482,19 @@ $RECYCLE.BIN/
 
 # Vim temporary swap files
 *.swp
+
+# Abaikan saat 'git push' selnjutnya
+.github/
+API/bin/
+API/obj/
+API/API.http
+API/API.csproj
+API/API.csproj.user
+API/appsettings.json
+API/appsettings.Development.json
+UnitTesting/bin/
+UnitTesting/obj/
+UnitTesting/UnitTesting.csproj
+View/bin/
+View/obj/
+View/View.csproj
