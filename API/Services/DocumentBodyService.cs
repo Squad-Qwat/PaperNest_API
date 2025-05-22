@@ -20,27 +20,7 @@ namespace API.Services
             return DocumentBodyRepository.GetDocumentBodyById(documentBodyId);
         }
 
-        public DocumentBody CreateVersion(Guid documentId, string content)
-        {
-            if (documentId == Guid.Empty)
-            {
-                throw new ArgumentException("DocumentId tidak boleh kosong");
-            }
-            if (string.IsNullOrWhiteSpace(content))
-            {
-                throw new ArgumentException("Content tidak boleh kosong");
-            }
-            var documentBody = new DocumentBody
-            {
-                Content = content,
-                FK_DocumentId = documentId,
-                IsCurrentVersion = true
-            };
-            DocumentBodyRepository.AddDocumentBody(documentBody);
-            return documentBody;
-        }
-
-        public IEnumerable<DocumentBody> GetVersions(Guid documentId)
+        public IEnumerable<DocumentBody> GetDocumentBodiesByDocumentId(Guid documentId)
         {
             if (documentId == Guid.Empty)
             {
@@ -49,12 +29,12 @@ namespace API.Services
             return DocumentBodyRepository.GetDocumentBodiesByDocumentId(documentId);
         }
 
-        public void AddDocumentBody(
-            string content,
+        public DocumentBody CreateDocumentBody(
             Guid documentId,
-            bool isCurrentVersion = false
+            string content
             )
         {
+            bool isCurrentVersion = true;
             if (string.IsNullOrWhiteSpace(content))
             {
                 throw new ArgumentException("Content tidak boleh kosong");
@@ -75,6 +55,7 @@ namespace API.Services
                 IsCurrentVersion = isCurrentVersion
             };
             DocumentBodyRepository.AddDocumentBody(documentBody);
+            return documentBody;
         }
 
         public DocumentBody? GetCurrentVersion(Guid documentId)

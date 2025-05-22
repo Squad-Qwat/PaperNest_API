@@ -31,5 +31,10 @@ namespace API.Repositories
                 _userWorkspace.Add(userWorkspace);
             }
         }
+
+        public static IEnumerable<UserWorkspace> GetUserWorkspacesByUserId(Guid userId)
+        {
+            return _userWorkspace.Where(uw => uw.FK_UserId == userId);
+        }
     }
 }

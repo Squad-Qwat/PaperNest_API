@@ -21,6 +21,15 @@ namespace API.Services
             return UserWorkspaceRepository.GetUserWorkspaceById(id);
         }
 
+        public IEnumerable<UserWorkspace> GetUserWorkspacesByUserId(Guid userId)
+        {
+            if (userId == Guid.Empty)
+            {
+                throw new ArgumentException("UserId tidak boleh kosong", nameof(userId));
+            }
+            return UserWorkspaceRepository.GetUserWorkspacesByUserId(userId);
+        }
+
         public void AddUserWorkspaceAsOwner(Guid userId, Guid workspaceId)
         {
             if (userId == Guid.Empty)
