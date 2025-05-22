@@ -66,5 +66,23 @@ namespace API.Services
             }
             return DocumentBodyRepository.GetCurrentVersion(documentId);
         }
+
+        public bool RemoveDocumentBody(Guid documentId, Guid documentBodyId)
+        {
+            if (documentId == Guid.Empty)
+            {
+                throw new ArgumentException("DocumentId tidak boleh kosong");
+            }
+            if (documentBodyId == Guid.Empty)
+            {
+                throw new ArgumentException("DocumentBodyId tidak boleh kosong");
+            }
+            var documentBody = DocumentBodyRepository.GetDocumentBodyById(documentId, documentBodyId);
+            if (documentBody != null)
+            {
+                return DocumentBodyRepository.DeleteDocumentBody(documentId, documentBodyId);
+            }
+            return false;
+        }
     }
 }

@@ -302,6 +302,37 @@ namespace UnitTesting
             
             _documentBodyService.GetCurrentVersion(Guid.Empty);
         }
+
+        [TestMethod]
+        public void RemoveDocumentBody_WhenExists_ReturnsTrue()
+        {
+            var documentBody = new DocumentBody { Content = "Test Content", FK_DocumentId = Guid.NewGuid() };
+            DocumentBodyRepository.AddDocumentBody(documentBody);
+            var documentBodyId = documentBody.Id;
+            var documentId = documentBody.FK_DocumentId;
+
+            var result = _documentBodyService.RemoveDocumentBody(documentId, documentBodyId);
+
+            Assert.IsTrue(result);
+            Assert.AreEqual(0, DocumentBodyRepository.DocumentBodies.Count);
+        }
+
+        [TestMethod]
+        public void RemoveDocumentBody_WhenNotExists_ReturnsFalse()
+        {
+            var documentBodyId = Guid.NewGuid();
+            var documentId = Guid.NewGuid();
+            var result = _documentBodyService.RemoveDocumentBody(documentId, documentBodyId);
+            Assert.IsFalse(result);
+            Assert.AreEqual(0, DocumentBodyRepository.DocumentBodies.Count);
+        }
+
+        [TestMethod]
+        [ExpectedException(typeof(ArgumentException))]
+        public void RemoveDocumentBody_WithEmptyGuid_ThrowsArgumentException()
+        {
+            _documentBodyService.RemoveDocumentBody(Guid.Empty, Guid.Empty);
+        }
         #endregion
     }
 }

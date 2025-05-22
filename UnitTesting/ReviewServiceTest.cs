@@ -212,6 +212,40 @@ namespace UnitTesting
             
             _reviewService.GetReviewByDocumentBodyId(Guid.Empty);
         }
+
+        [TestMethod]
+        public void RemoveReview_WhenExists_ReturnsTrue()
+        {
+
+            var review = new Review
+            {
+                FK_DocumentBodyId = Guid.NewGuid(),
+                FK_UserId = Guid.NewGuid(),
+                Comment = "Test Comment",
+                Status = ReviewStatus.Approved
+            };
+            ReviewRepository.Reviews.Add(review);
+
+            var result = _reviewService.RemoveReview(review.Id);
+
+            Assert.IsTrue(result);
+            Assert.AreEqual(0, ReviewRepository.Reviews.Count);
+        }
+
+        [TestMethod]
+        [ExpectedException(typeof(ArgumentException))]
+        public void RemoveReview_WithEmptyGuid_ThrowsArgumentException()
+        {
+            _reviewService.RemoveReview(Guid.Empty);
+        }
+
+        [TestMethod]
+        [ExpectedException(typeof(InvalidOperationException))]
+        public void RemoveReview_WithNonExistentId_ThrowsInvalidOperationException()
+        {
+            var nonExistentReviewId = Guid.NewGuid();
+            _reviewService.RemoveReview(nonExistentReviewId);
+        }
         #endregion
     }
 }

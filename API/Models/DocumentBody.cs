@@ -16,6 +16,10 @@ namespace API.Models
         public Document Document { get; set; }
 
         [Required]
+        public Guid FK_UserCreaotorId { get; set; }
+        public User UserCreator { get; set; }
+
+        [Required]
         public bool IsCurrentVersion { get; set; }
 
         public bool IsReviewed { get; set; } = false;

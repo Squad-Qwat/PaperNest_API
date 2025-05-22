@@ -55,6 +55,18 @@ namespace API.Repositories
                 .FirstOrDefault();
         }
 
+        public static bool DeleteDocumentBody(Guid documentId,Guid documentBodyId)
+        {
+            var documentBody = GetDocumentBodyById(documentId, documentBodyId);
+            if (documentBody != null)
+            {
+                _documentBodies.Remove(documentBody);
+                return true;
+            }
+            return false;
+        }
+
+
         //UnitTest only
         public static void ClearAllDocumentBodies()
         {

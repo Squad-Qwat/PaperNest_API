@@ -28,5 +28,33 @@ namespace API.Controllers
             _reviewService.AddReview(documentBodyId, UserLecturerId, comment, status);
             return CreatedAtAction(nameof(GetReviews), new { documentBodyId }, null);
         }
+
+        [HttpDelete("{reviewId}")]
+        public IActionResult RemoveReview(Guid reviewId)
+        {
+            var review = _reviewService.GetReviewById(reviewId);
+            if (review == null)
+            {
+                return NotFound(new
+                {
+                    message = "Review tidak ditemukan"
+                });
+            }
+            var isRemoved = _reviewService.RemoveReview(reviewId);
+            if (isRemoved)
+            {
+                return Ok(new
+                {
+                    message = "Sukses menghapus review"
+                });
+            }
+            else
+            {
+                return BadRequest(new
+                {
+                    message = "Gagal menghapus review"
+                });
+            }
+        }
     }
 }

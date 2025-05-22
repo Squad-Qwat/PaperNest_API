@@ -252,6 +252,42 @@ namespace UnitTesting
         {
             _userWorkspaceService.AddUserWorkspaceAsLecturer(Guid.NewGuid(), Guid.Empty);
         }
+
+        [TestMethod]
+        public void RemoveUserWorkspace_ValidIds_ReturnsTrue()
+        {
+            var userId = Guid.NewGuid();
+            var workspaceId = Guid.NewGuid();
+            var userWorkspace = new UserWorkspace
+            {
+                FK_UserId = userId,
+                FK_WorkspaceId = workspaceId,
+                WorkspaceRole = WorkspaceRole.Member
+            };
+            UserWorkspaceRepository.AddUserWorkspace(userWorkspace);
+            
+            var result = _userWorkspaceService.RemoveUserWorkspace(userId, workspaceId);
+         
+            Assert.IsTrue(result);
+            Assert.IsFalse(UserWorkspaceRepository.UserWorkspace.Contains(userWorkspace));
+        }
+
+        [TestMethod]
+        public void RemoveUserWorkspace_InvalidIds_ReturnsFalse()
+        {
+            var userId = Guid.NewGuid();
+            var workspaceId = Guid.NewGuid();
+            var result = _userWorkspaceService.RemoveUserWorkspace(userId, workspaceId);
+            Assert.IsFalse(result);
+        }
+
+        [TestMethod]
+        [ExpectedException(typeof(ArgumentException))]
+        public void RemoveUserWorkspace_WithEmptyUserId_ThrowsArgumentException()
+        {
+            _userWorkspaceService.RemoveUserWorkspace(Guid.Empty, Guid.NewGuid());
+        }
+
         #endregion
     }
 }

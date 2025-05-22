@@ -86,5 +86,18 @@ namespace API.Services
             };
             UserWorkspaceRepository.AddUserWorkspace(userWorkspace);
         }
+
+        public bool RemoveUserWorkspace(Guid userId, Guid workspaceId)
+        {
+            if (userId == Guid.Empty)
+            {
+                throw new ArgumentException("UserId tidak boleh kosong", nameof(userId));
+            }
+            if (workspaceId == Guid.Empty)
+            {
+                throw new ArgumentException("WorkspaceId tidak boleh kosong", nameof(workspaceId));
+            }
+            return UserWorkspaceRepository.RemoveUserWorkspace(userId, workspaceId);
+        }
     }
 }

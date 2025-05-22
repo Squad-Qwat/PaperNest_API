@@ -22,12 +22,12 @@ namespace API.Repositories
         {
             return _reviews.FirstOrDefault(r => r.Id == id);
         }
-        public static void AddReview(Guid documentBodyId, Guid userId, string comment, ReviewStatus status)
+        public static void AddReview(Guid documentBodyId, Guid userLecturerId, string comment, ReviewStatus status)
         {
             var review = new Review
             {
                 FK_DocumentBodyId = documentBodyId,
-                FK_UserId = userId,
+                FK_UserLecturerId = userLecturerId,
                 Comment = comment,
                 Status = status
             };
@@ -38,6 +38,17 @@ namespace API.Repositories
             Guid documentBodyId)
         {
             return _reviews.FirstOrDefault(r => r.FK_DocumentBodyId == documentBodyId);
+        }
+
+        public static bool RemoveReview(Guid reviewId)
+        {
+            var review = _reviews.FirstOrDefault(r => r.Id == reviewId);
+            if (review != null)
+            {
+                _reviews.Remove(review);
+                return true;
+            }
+            return false;
         }
     }
 }

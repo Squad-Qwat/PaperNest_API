@@ -36,5 +36,16 @@ namespace API.Repositories
         {
             return _userWorkspace.Where(uw => uw.FK_UserId == userId);
         }
+
+        public static bool RemoveUserWorkspace(Guid userId, Guid workspaceId)
+        {
+            var userWorkspace = _userWorkspace.FirstOrDefault(uw => uw.FK_UserId == userId && uw.FK_WorkspaceId == workspaceId);
+            if (userWorkspace != null)
+            {
+                _userWorkspace.Remove(userWorkspace);
+                return true;
+            }
+            return false;
+        }
     }
 }

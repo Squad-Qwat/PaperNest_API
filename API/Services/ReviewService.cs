@@ -55,5 +55,23 @@ namespace API.Services
             }
             return review;
         }
+
+        public bool RemoveReview(Guid reviewId)
+        {
+            if (reviewId == Guid.Empty)
+            {
+                throw new ArgumentException("ReviewId tidak boleh kosong", nameof(reviewId));
+            }
+
+            var review = ReviewRepository.GetReviewById(reviewId);
+            
+            if (review == null)
+            {
+                throw new InvalidOperationException("Review tidak ditemukan untuk ReviewId yang diberikan");
+            }
+            ReviewRepository.RemoveReview(reviewId);
+            return true;
+            
+        }
     }
 }
