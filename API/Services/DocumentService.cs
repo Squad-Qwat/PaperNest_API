@@ -45,9 +45,9 @@ namespace API.Services
             }
         }
 
-        public static void Delete(Guid id)
+        public static void Delete(Guid deletedDocumentId)
         {
-            var existingDocument = GetById(id);
+            var existingDocument = GetById(deletedDocumentId);
 
             if (existingDocument != null)
             {

@@ -20,9 +20,9 @@ namespace PaperNest_API.Controllers
         }
 
         [HttpGet("{id}")]
-        public IActionResult GetDocumentById(Guid id)
+        public IActionResult GetDocumentById(Guid documentId)
         {
-            var document = DocumentService.GetById(id);
+            var document = DocumentService.GetById(documentId);
 
             if (document == null)
             {
@@ -64,19 +64,19 @@ namespace PaperNest_API.Controllers
         }
 
         [HttpPost]
-        public IActionResult CreateDocument([FromBody] Document document)
+        public IActionResult CreateDocument([FromBody] Document newDocument)
         {
-            DocumentService.Create(document);
+            DocumentService.Create(newDocument);
 
-            return CreatedAtAction(nameof(GetDocumentById), new { id = document.Id }, new
+            return CreatedAtAction(nameof(GetDocumentById), new { id = newDocument.Id }, new
             {
                 message = "Success create new document",
-                data = document
+                data = newDocument
             });
         }
 
         [HttpPut("{id}")]
-        public IActionResult UpdateDocument(Guid id, [FromBody] Document document)
+        public IActionResult UpdateDocument(Guid id, [FromBody] Document updatedDocument)
         {
             var existingDocument = DocumentService.GetById(id);
 
@@ -88,7 +88,7 @@ namespace PaperNest_API.Controllers
                 });
             }
 
-            DocumentService.Update(id, document);
+            DocumentService.Update(id, updatedDocument);
 
             return Ok(new
             {
@@ -98,9 +98,9 @@ namespace PaperNest_API.Controllers
         }
 
         [HttpDelete("{id}")]
-        public IActionResult DeleteDocument(Guid id)
+        public IActionResult DeleteDocument(Guid documentId)
         {
-            var existingDocument = DocumentService.GetById(id);
+            var existingDocument = DocumentService.GetById(documentId);
 
             if (existingDocument == null)
             {
@@ -110,11 +110,11 @@ namespace PaperNest_API.Controllers
                 });
             }
 
-            DocumentService.Delete(id);
+            DocumentService.Delete(documentId);
 
             return Ok(new
             {
-                message = "Success delete document"
+                message = "Document has been deleted"
             });
         }
     }

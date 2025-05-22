@@ -62,7 +62,7 @@ namespace PaperNest_API.Controllers
 
             return Ok(new
             {
-                message = "Berhasil menghapus user dengan id " + id
+                message = "User has been deleted"
             });
         }
     }
