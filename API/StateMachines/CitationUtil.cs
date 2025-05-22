@@ -29,15 +29,12 @@ namespace API.StateMachines
             string retrievedFromUrlPart = string.IsNullOrWhiteSpace(finalUrl) ? "" : $"Diakses dari {finalUrl}";
 
             // Use the table to get the appropriate formatter (call the delegate)
-            if (_formatters.TryGetValue(citation.Type, out FormatCitationDelegate? formatter))
-            {
-                string apaString = formatter(citation, finalUrl, retrievedFromUrlPart);
-                return CleanUpApaString(apaString);
-            }
-            else
+            if (!_formatters.TryGetValue(citation.Type, out FormatCitationDelegate? formatter))
             {
                 return "Format sitasi tidak didukung.";
             }
+            string apaString = formatter(citation, finalUrl, retrievedFromUrlPart);
+            return CleanUpApaString(apaString);
         }
 
         private static string GetFinalUrl(Citation citation)

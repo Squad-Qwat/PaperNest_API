@@ -38,10 +38,11 @@
         {
             foreach (var transition in transitions)
             {
-                if (transition.PrevState == prevState && transition.Trigger == trigger)
+                if (transition.PrevState != prevState && transition.Trigger != trigger)
                 {
-                    return transition.NextState;
+                    continue;
                 }
+                return transition.NextState;
             }
             return prevState;
         }

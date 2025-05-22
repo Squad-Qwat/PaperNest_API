@@ -1,4 +1,5 @@
 ﻿using API.Models;
+// using System.Diagnostics;
 
 namespace API.Repositories
 {
@@ -167,7 +168,58 @@ namespace API.Repositories
             }
         }
 
-        public static bool UpdateCitation(Citation updatedCitation)
+        /*
+         * Only needed if you want to return a boolean indicating success or failure, or the if-else requires a boolean return type.
+            public static bool UpdateCitation(Citation updatedCitation)
+            {
+                try
+                {
+                    if (updatedCitation == null)
+                    {
+                        throw new ArgumentNullException(nameof(updatedCitation), "Updated citation cannot be null.");
+                    }
+                    if (updatedCitation.Id == Guid.Empty)
+                    {
+                        throw new ArgumentException("Updated citation ID cannot be empty.", nameof(updatedCitation));
+                    }
+
+                    var existingCitation = _citations.FirstOrDefault(c => c.Id == updatedCitation.Id);
+
+                    if (existingCitation == null)
+                    {
+                        throw new Exception($"Citation with ID {updatedCitation.Id} not found.");
+                    }
+                
+                    {Update all modifiable properties}
+                    existingCitation.Type = updatedCitation.Type;
+                    existingCitation.Title = updatedCitation.Title;
+                    existingCitation.Author = updatedCitation.Author;
+                    existingCitation.Pages = updatedCitation.Pages; <- New
+                    existingCitation.Volume = updatedCitation.Volume; <- New
+                    existingCitation.Issue = updatedCitation.Issue; <- New
+                    existingCitation.URL = updatedCitation.URL; <- New
+                    existingCitation.AccessURL = updatedCitation.AccessURL; <- New
+                    existingCitation.AccessLocation = updatedCitation.AccessLocation; <- New
+                    existingCitation.PublicationInfo = updatedCitation.PublicationInfo;
+                    existingCitation.Publisher = updatedCitation.Publisher; <- New
+                    existingCitation.PublicationDate = updatedCitation.PublicationDate;
+                    existingCitation.PublisherLocation = updatedCitation.PublisherLocation; <- New
+                    existingCitation.AccessDate = updatedCitation.AccessDate;
+                    existingCitation.DOI = updatedCitation.DOI;
+                    {existingCitation.FK_DocumentId = updatedCitation.FK_DocumentId;} <- Uncomment if FK_DocumentId can be updated
+                    existingCitation.UpdatedAt = DateTime.Now; <- Set update timestamp
+
+                    return true;
+                }
+                catch (ArgumentNullException ex)
+                {
+                    Console.WriteLine($"Error updating citation: {ex.Message}");
+                    return false;
+                }
+            }
+        */
+
+        public static Citation? UpdateCitation(Citation updatedCitation)
         {
             try
             {
@@ -186,7 +238,7 @@ namespace API.Repositories
                 {
                     throw new Exception($"Citation with ID {updatedCitation.Id} not found.");
                 }
-                
+
                 // Update all modifiable properties
                 existingCitation.Type = updatedCitation.Type;
                 existingCitation.Title = updatedCitation.Title;
@@ -206,12 +258,12 @@ namespace API.Repositories
                 // existingCitation.FK_DocumentId = updatedCitation.FK_DocumentId; // Uncomment if FK_DocumentId can be updated
                 existingCitation.UpdatedAt = DateTime.Now; // Set update timestamp
 
-                return true;
+                return existingCitation;
             }
             catch (ArgumentNullException ex)
             {
                 Console.WriteLine($"Error updating citation: {ex.Message}");
-                return false;
+                return null;
             }
         }
 

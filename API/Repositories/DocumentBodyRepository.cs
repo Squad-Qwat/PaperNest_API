@@ -1,4 +1,5 @@
 ﻿using API.Models;
+// using System.Diagnostics;
 
 namespace API.Repositories
 {
@@ -156,11 +157,15 @@ namespace API.Repositories
                     throw new ArgumentException("DocumentBodyId tidak boleh kosong");
                 }
 
-                var documentBody = GetDocumentBodyById(documentId, documentBodyId);
-                if (documentBody == null)
-                {
+                var documentBody = GetDocumentBodyById(documentId, documentBodyId) ?? 
                     throw new ArgumentException("DocumentBody tidak ditemukan");
-                }
+                /*
+                 * Setara dengan:
+                 * 'if (documentBody == null)
+                 * {
+                 *    throw new ArgumentException("DocumentBody tidak ditemukan");
+                 * }'
+                 */
                 _documentBodies.Remove(documentBody);
                 return true;
             }
@@ -176,6 +181,5 @@ namespace API.Repositories
         {
             _documentBodies.Clear();
         }
-
     }
 }

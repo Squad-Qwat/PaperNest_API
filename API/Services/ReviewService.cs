@@ -1,7 +1,7 @@
 ﻿using API.Helpers.Enums;
 using API.Models;
 using API.Repositories;
-using System.Diagnostics;
+// using System.Diagnostics;
 
 namespace API.Services
 {
@@ -9,16 +9,40 @@ namespace API.Services
     {
         public List<Review> GetAllReviews()
         {
-            return ReviewRepository.Reviews;
+            try
+            {
+                if (ReviewRepository.Reviews == null)
+                {
+                    throw new InvalidOperationException("Tidak ada data review yang tersedia");
+                }
+                if (ReviewRepository.Reviews.Count == 0)
+                {
+                    throw new InvalidOperationException("Tidak ada data review yang tersedia");
+                }
+                return ReviewRepository.Reviews;
+            }
+            catch (InvalidOperationException ex)
+            {
+                Console.WriteLine($"Error retrieving reviews: {ex.Message}");
+                return []; // Setara dengan 'Enumerable.Empty<Review>()'
+            }
         }
         public Review? GetReviewById(Guid id)
         {
-            if (id == Guid.Empty)
+            try
             {
-                throw new ArgumentException("Id tidak boleh kosong", nameof(id));
-            }
+                if (id == Guid.Empty)
+                {
+                    throw new ArgumentException("Id tidak boleh kosong", nameof(id));
+                }
 
-            return ReviewRepository.GetReviewById(id);
+                return ReviewRepository.GetReviewById(id);
+            }
+            catch (ArgumentException ex)
+            {
+                Console.WriteLine($"Error retrieving review by ID: {ex.Message}");
+                return null; // Setara dengan 'default(Review?)'
+            }
         }
         public void AddReview(
             Guid documentBodyId,
@@ -27,51 +51,95 @@ namespace API.Services
             ReviewStatus status
             )
         {
-            if (documentBodyId == Guid.Empty)
+            try
             {
-                throw new ArgumentException("DocumentBodyId tidak boleh kosong", nameof(documentBodyId));
+                if (documentBodyId == Guid.Empty)
+                {
+                    throw new ArgumentException("DocumentBodyId tidak boleh kosong", nameof(documentBodyId));
+                }
+                if (userId == Guid.Empty)
+                {
+                    throw new ArgumentException("UserId tidak boleh kosong", nameof(userId));
+                }
+                if (string.IsNullOrWhiteSpace(comment))
+                {
+                    throw new ArgumentException("Comment tidak boleh kosong", nameof(comment));
+                }
+                if (!Enum.IsDefined(typeof(ReviewStatus), status))
+                {
+                    throw new ArgumentException("Status tidak valid", nameof(status));
+                }
+                ReviewRepository.AddReview(documentBodyId, userId, comment, status);
             }
-            if (userId == Guid.Empty)
+            catch (ArgumentException ex)
             {
-                throw new ArgumentException("UserId tidak boleh kosong", nameof(userId));
+                Console.WriteLine($"Error adding review: {ex.Message}");
+                return; // Rethrow the exception to be handled by the caller
             }
-            if (string.IsNullOrWhiteSpace(comment))
-            {
-                throw new ArgumentException("Comment tidak boleh kosong", nameof(comment));
-            }
-            ReviewRepository.AddReview(documentBodyId, userId, comment, status);
         }
 
-        public Review GetReviewByDocumentBodyId(Guid documentBodyId)
+        public Review? GetReviewByDocumentBodyId(Guid documentBodyId)
         {
-            if (documentBodyId == Guid.Empty)
+            try
             {
-                throw new ArgumentException("DocumentBodyId tidak boleh kosong", nameof(documentBodyId));
+                if (documentBodyId == Guid.Empty)
+                {
+                    throw new ArgumentException("DocumentBodyId tidak boleh kosong", nameof(documentBodyId));
+                }
+                var review = ReviewRepository.GetReviewByDocumentBodyId(documentBodyId) ??
+                    throw new InvalidOperationException("Review tidak ditemukan untuk DocumentBodyId yang diberikan");
+                /*
+                 * Setara dengan:
+                    if (review == null)
+                    {
+                        throw new InvalidOperationException("Review tidak ditemukan untuk DocumentBodyId yang diberikan");
+                    }
+                */
+                return review;
             }
-            var review = ReviewRepository.GetReviewByDocumentBodyId(documentBodyId);
-            if (review == null)
+            catch (ArgumentException ex)
             {
-                throw new InvalidOperationException("Review tidak ditemukan untuk DocumentBodyId yang diberikan");
+                Console.WriteLine($"Error retrieving review by DocumentBodyId: {ex.Message}");
+                return null; // Setara dengan 'default(Review?)'
             }
-            return review;
+            catch (InvalidOperationException ex)
+            {
+                Console.WriteLine($"Error retrieving review by DocumentBodyId: {ex.Message}");
+                return null; // Setara dengan 'default(Review?)'
+            }
         }
 
         public bool RemoveReview(Guid reviewId)
         {
-            if (reviewId == Guid.Empty)
+            try
             {
-                throw new ArgumentException("ReviewId tidak boleh kosong", nameof(reviewId));
+                if (reviewId == Guid.Empty)
+                {
+                    throw new ArgumentException("ReviewId tidak boleh kosong", nameof(reviewId));
+                }
+
+                var review = ReviewRepository.GetReviewById(reviewId) ??
+                    throw new InvalidOperationException("Review tidak ditemukan untuk ReviewId yang diberikan");
+                /*
+                 * Setara dengan:
+                    if (review == null)
+                    {
+                        throw new InvalidOperationException("Review tidak ditemukan untuk ReviewId yang diberikan");
+                    }
+                */
+                ReviewRepository.RemoveReview(reviewId);
+                return true;
             }
-
-            var review = ReviewRepository.GetReviewById(reviewId);
-
-            if (review == null)
+            catch (ArgumentException ex)
             {
-                throw new InvalidOperationException("Review tidak ditemukan untuk ReviewId yang diberikan");
+                Console.WriteLine($"Error removing review: {ex.Message}");
+                return false; // Setara dengan 'default(bool)'
             }
-            ReviewRepository.RemoveReview(reviewId);
-            return true;
-
+            catch (InvalidOperationException ex)
+            {
+                Console.WriteLine($"Error removing review: {ex.Message}");
+                return false; // Setara dengan 'default(bool)'
+            }
         }
     }
 }

@@ -17,11 +17,18 @@ namespace API.StateMachines
 
         public void AddReviewRequest(Review request)
         {
-            if (request == null)
+            try
             {
-                throw new ArgumentNullException(nameof(request), "Review request cannot be null.");
+                if (request == null)
+                {
+                    throw new ArgumentNullException(nameof(request), "Review request cannot be null.");
+                }
+                _reviewRequest.Add(request);
             }
-            _reviewRequest.Add(request);
+            catch (ArgumentNullException ex)
+            {
+                Console.WriteLine($"Error adding review request: {ex.Message}");
+            }
         }
         /*
         public ReviewRequest? GetResearchRequestById(Guid id)

@@ -80,7 +80,7 @@ namespace API.Services
             return UserRepository.userRepository.FirstOrDefault(u => (u.Email == userEmailOrUsername || u.Username == userEmailOrUsername) && u.Password == userPassword);
         }
 
-        public User Login(string userEmailOrUsername, string userPassword)
+        public User? Login(string userEmailOrUsername, string userPassword)
         {
             Debug.Assert(userEmailOrUsername != string.Empty, "User email or username can not be empty");
             Debug.Assert(userPassword != string.Empty, "User password can not be empty");
@@ -107,57 +107,80 @@ namespace API.Services
 
         public bool ResetPassword(string userEmail, string newUserPassword)
         {
-            var existingUser = UserRepository.userRepository.FirstOrDefault(u => u.Email == userEmail);
-
-            if (existingUser != null)
+            try
             {
+                var existingUser = UserRepository.userRepository.FirstOrDefault(u => u.Email == userEmail) ??
+                throw new InvalidOperationException("User with this email does not exist");
+                /*
+                 * Setara dengan:
+                 * if (existingUser == null)
+                 * {
+                 *    throw new InvalidOperationException("User with this email does not exist");
+                 * }
+                 */
                 existingUser.Password = newUserPassword;
 
                 existingUser.UpdateAt = DateTime.Now;
                 return true;
             }
-
-            return false;
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"Error resetting password: {ex.Message}");
+                return false;
+            }
         }
 
         public void ChangeEmail(string oldUserEmail, string newUserEmail)
         {
-            Debug.Assert(newUserEmail != string.Empty, "User email can not be empty");
-
-            var existingUser = UserRepository.userRepository.FirstOrDefault(u => u.Email == oldUserEmail);
-
-            Debug.Assert(existingUser != null, "Filtered User should be not empty");
-
-            if (existingUser != null)
+            try
             {
+                Debug.Assert(newUserEmail != string.Empty, "User email can not be empty");
+
+                var existingUser = UserRepository.userRepository.FirstOrDefault(u => u.Email == oldUserEmail) ?? 
+                    throw new InvalidOperationException("Your email is empty");
+                /*
+                 * Setara dengan:
+                    if (existingUser == null)
+                    {
+                        throw new InvalidOperationException("Your email is empty");
+                    }
+                */
+
+                Debug.Assert(existingUser != null, "Filtered User should be not empty");
+
                 var emailExists = UserRepository.userRepository.Any(u => u.Email == newUserEmail);
 
-                if (!emailExists)
-                {
-                    existingUser.Email = newUserEmail;
-                }
-                else
+                if (emailExists)
                 {
                     throw new InvalidOperationException("New email has been used another user");
                 }
+                existingUser.Email = newUserEmail;
             }
-            else
+            catch (InvalidOperationException ex)
             {
-                throw new InvalidOperationException("Your email is empty");
+                Console.WriteLine($"Error changing email: {ex.Message}");
             }
         }
 
         public void Delete(Guid deletedUserId)
         {
-            Debug.Assert(deletedUserId != Guid.Empty, "User Id can not be empty");
-
-            var existingUser = GetById(deletedUserId);
-
-            Debug.Assert(existingUser != null, "Filtered User should be not empty");
-
-            if (existingUser != null)
+            try
             {
+                Debug.Assert(deletedUserId != Guid.Empty, "User Id can not be empty");
+
+                var existingUser = GetById(deletedUserId);
+
+                Debug.Assert(existingUser != null, "Filtered User should be not empty");
+
+                if (existingUser == null)
+                {
+                    throw new InvalidOperationException("User not found");
+                }
                 UserRepository.userRepository.Remove(existingUser);
+            }
+            catch (InvalidOperationException ex)
+            {
+                Console.WriteLine($"Error deleting user: {ex.Message}");
             }
         }
     }
