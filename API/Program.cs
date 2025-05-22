@@ -11,6 +11,12 @@ builder.Services.AddSwaggerGen();
 
 // Service Scope
 builder.Services.AddScoped<DocumentBodyService>();
+builder.Services.AddScoped<ReviewService>();
+builder.Services.AddScoped<DocumentService>();
+builder.Services.AddScoped<UserService>();
+builder.Services.AddScoped<UserWorkspaceService>();
+builder.Services.AddScoped<WorkspaceService>();
+
 
 var app = builder.Build();
 

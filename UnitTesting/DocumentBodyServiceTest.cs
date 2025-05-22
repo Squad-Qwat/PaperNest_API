@@ -162,10 +162,11 @@ namespace UnitTesting
         {
             
             var documentId = Guid.NewGuid();
+            var userCreatorId = Guid.NewGuid();
             var content = "New Content";
 
             
-            var result = _documentBodyService.CreateDocumentBody(documentId, content);
+            var result = _documentBodyService.CreateDocumentBody(documentId,userCreatorId, content);
 
             
             Assert.IsNotNull(result);
@@ -180,6 +181,7 @@ namespace UnitTesting
         {
             
             var documentId = Guid.NewGuid();
+            var userCreatorId = Guid.NewGuid();
             var existingDocumentBody = new DocumentBody
             {
                 FK_DocumentId = documentId,
@@ -189,7 +191,7 @@ namespace UnitTesting
             DocumentBodyRepository.AddDocumentBody(existingDocumentBody);
 
             
-            var result = _documentBodyService.CreateDocumentBody(documentId, "New Content");
+            var result = _documentBodyService.CreateDocumentBody(documentId, userCreatorId ,"New Content");
 
             
             Assert.IsNotNull(result);
@@ -203,7 +205,7 @@ namespace UnitTesting
         public void CreateDocumentBody_WithEmptyContent_ThrowsArgumentException()
         {
             
-            _documentBodyService.CreateDocumentBody(Guid.NewGuid(), "");
+            _documentBodyService.CreateDocumentBody(Guid.NewGuid(), Guid.NewGuid() ,"");
         }
 
         [TestMethod]
@@ -211,7 +213,7 @@ namespace UnitTesting
         public void CreateDocumentBody_WithNullContent_ThrowsArgumentException()
         {
             
-            _documentBodyService.CreateDocumentBody(Guid.NewGuid(), null);
+            _documentBodyService.CreateDocumentBody(Guid.NewGuid(), Guid.NewGuid() ,null);
         }
 
         [TestMethod]
@@ -219,7 +221,7 @@ namespace UnitTesting
         public void CreateDocumentBody_WithWhitespaceContent_ThrowsArgumentException()
         {
             
-            _documentBodyService.CreateDocumentBody(Guid.NewGuid(), "   ");
+            _documentBodyService.CreateDocumentBody(Guid.NewGuid(), Guid.NewGuid() ,"   ");
         }
 
         [TestMethod]
@@ -227,7 +229,7 @@ namespace UnitTesting
         public void CreateDocumentBody_WithEmptyGuid_ThrowsArgumentException()
         {
             
-            _documentBodyService.CreateDocumentBody(Guid.Empty, "Content");
+            _documentBodyService.CreateDocumentBody(Guid.Empty, Guid.Empty, "Content");
         }
         #endregion
 

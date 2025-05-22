@@ -20,9 +20,9 @@ namespace API.Controllers
         }
 
         [HttpPost("{documentId}/version")]
-        public IActionResult CreateVersion(Guid documentId, [FromBody] string content)
+        public IActionResult CreateVersion(Guid documentId,[FromQuery] Guid userCreatorId, [FromBody] string content)
         {
-            var version = _documentBodyService.CreateDocumentBody(documentId, content);
+            var version = _documentBodyService.CreateDocumentBody(documentId, userCreatorId, content);
             return CreatedAtAction(nameof(GetVersions), new { documentId }, version);
         }
 

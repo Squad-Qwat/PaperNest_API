@@ -31,14 +31,14 @@ namespace UnitTesting
             var review1 = new Review
             {
                 FK_DocumentBodyId = Guid.NewGuid(),
-                FK_UserId = Guid.NewGuid(),
+                FK_UserLecturerId = Guid.NewGuid(),
                 Comment = "Comment 1",
                 Status = ReviewStatus.Approved
             };
             var review2 = new Review
             {
                 FK_DocumentBodyId = Guid.NewGuid(),
-                FK_UserId = Guid.NewGuid(),
+                FK_UserLecturerId = Guid.NewGuid(),
                 Comment = "Comment 2",
                 Status = ReviewStatus.NeedsRevision
             };
@@ -70,7 +70,7 @@ namespace UnitTesting
             var review = new Review
             {
                 FK_DocumentBodyId = Guid.NewGuid(),
-                FK_UserId = Guid.NewGuid(),
+                FK_UserLecturerId = Guid.NewGuid(),
                 Comment = "Test Comment",
                 Status = ReviewStatus.Approved
             };
@@ -123,7 +123,7 @@ namespace UnitTesting
             Assert.AreEqual(1, ReviewRepository.Reviews.Count);
             var addedReview = ReviewRepository.Reviews.First();
             Assert.AreEqual(documentBodyId, addedReview.FK_DocumentBodyId);
-            Assert.AreEqual(userId, addedReview.FK_UserId);
+            Assert.AreEqual(userId, addedReview.FK_UserLecturerId);
             Assert.AreEqual(comment, addedReview.Comment);
             Assert.AreEqual(status, addedReview.Status);
         }
@@ -178,7 +178,7 @@ namespace UnitTesting
             var review = new Review
             {
                 FK_DocumentBodyId = documentBodyId,
-                FK_UserId = Guid.NewGuid(),
+                FK_UserLecturerId = Guid.NewGuid(),
                 Comment = "Document Body Review",
                 Status = ReviewStatus.Approved
             };
@@ -220,7 +220,7 @@ namespace UnitTesting
             var review = new Review
             {
                 FK_DocumentBodyId = Guid.NewGuid(),
-                FK_UserId = Guid.NewGuid(),
+                FK_UserLecturerId = Guid.NewGuid(),
                 Comment = "Test Comment",
                 Status = ReviewStatus.Approved
             };
