@@ -74,23 +74,30 @@ namespace API.Controllers
         {
             try
             {
-                // Note: The service method takes individual parameters, not the full object directly.
-                // We map the request body properties to the service method parameters.
-                if (newCitationRequest.Title == null || newCitationRequest.Author == null || newCitationRequest.PublicationInfo == null)
+                // Basic validation for required fields
+                if (string.IsNullOrWhiteSpace(newCitationRequest.Title) ||
+                    string.IsNullOrWhiteSpace(newCitationRequest.Author))
                 {
-                    return BadRequest(new { message = "Title, Author, and PublicationInfo are required." });
+                    return BadRequest(new { message = "Title and Author are required." });
                 }
-
 
                 var createdCitation = _citationService.CreateCitation(
                     newCitationRequest.Type,
                     newCitationRequest.Title,
                     newCitationRequest.Author,
+                    newCitationRequest.Pages,          // New
+                    newCitationRequest.Volume,         // New
+                    newCitationRequest.Issue,          // New
+                    newCitationRequest.URL,            // New
+                    newCitationRequest.AccessURL,      // New
+                    newCitationRequest.AccessLocation, // New
                     newCitationRequest.PublicationInfo,
-                    newCitationRequest.FK_DocumentId,
+                    newCitationRequest.Publisher,      // New
                     newCitationRequest.PublicationDate,
+                    newCitationRequest.PublisherLocation, // New
                     newCitationRequest.AccessDate,
-                    newCitationRequest.DOI
+                    newCitationRequest.DOI,
+                    newCitationRequest.FK_DocumentId // documentId is now optional in service, but still passed from request
                 );
 
                 return CreatedAtAction(nameof(GetCitationById), new { id = createdCitation.Id }, new
@@ -120,9 +127,11 @@ namespace API.Controllers
                     return BadRequest(new { message = "Mismatched ID in route and request body." });
                 }
 
-                if (updatedCitationRequest.Title == null || updatedCitationRequest.Author == null || updatedCitationRequest.PublicationInfo == null)
+                // Basic validation for required fields
+                if (string.IsNullOrWhiteSpace(updatedCitationRequest.Title) ||
+                    string.IsNullOrWhiteSpace(updatedCitationRequest.Author))
                 {
-                    return BadRequest(new { message = "Title, Author, and PublicationInfo are required." });
+                    return BadRequest(new { message = "Title and Author are required." });
                 }
 
                 var updatedCitation = _citationService.UpdateCitation(
@@ -130,8 +139,16 @@ namespace API.Controllers
                     updatedCitationRequest.Type,
                     updatedCitationRequest.Title,
                     updatedCitationRequest.Author,
+                    updatedCitationRequest.Pages,          // New
+                    updatedCitationRequest.Volume,         // New
+                    updatedCitationRequest.Issue,          // New
+                    updatedCitationRequest.URL,            // New
+                    updatedCitationRequest.AccessURL,      // New
+                    updatedCitationRequest.AccessLocation, // New
                     updatedCitationRequest.PublicationInfo,
+                    updatedCitationRequest.Publisher,      // New
                     updatedCitationRequest.PublicationDate,
+                    updatedCitationRequest.PublisherLocation, // New
                     updatedCitationRequest.AccessDate,
                     updatedCitationRequest.DOI
                 );

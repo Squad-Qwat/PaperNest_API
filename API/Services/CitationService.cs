@@ -24,23 +24,32 @@ namespace API.Services
             return CitationRepository.GetCitationById(citationId);
         }
 
-        public IEnumerable<Citation> GetCitationsByDocumentId(Guid documentBodyId)
+        public IEnumerable<Citation> GetCitationsByDocumentId(Guid documentId)
         {
-            if (documentBodyId == Guid.Empty)
+            if (documentId == Guid.Empty)
             {
-                throw new ArgumentException("DocumentBody ID cannot be empty.", nameof(documentBodyId));
+                throw new ArgumentException("Document ID cannot be empty.", nameof(documentId));
             }
-            return CitationRepository.GetCitationsByDocumentId(documentBodyId);
+            return CitationRepository.GetCitationsByDocumentId(documentId);
         }
 
-        public Citation CreateCitation(CitationType type,
+        public Citation CreateCitation(
+            CitationType type,
             string title,
             string author,
-            string publicationInfo,
-            Guid documentId,
+            string? pages = null,
+            string? volume = null,
+            string? issue = null,
+            string? url = null,
+            string? accessURL = null,
+            string? accessLocation = null,
+            string? publicationInfo = null,
+            string? publisher = null,
             DateTime? publicationDate = null,
+            string? publisherLocation = null,
             string? accessDate = null,
-            string? doi = null)
+            string? doi = null,
+            Guid? documentId = null)
         {
             if (string.IsNullOrWhiteSpace(title))
             {
@@ -50,27 +59,40 @@ namespace API.Services
             {
                 throw new ArgumentException("Citation author cannot be null or empty.", nameof(author));
             }
-            if (string.IsNullOrWhiteSpace(publicationInfo))
-            {
-                throw new ArgumentException("Citation publication info cannot be null or empty.", nameof(publicationInfo));
-            }
+            // PublicationInfo is now optional based on the Citation class, so no validation here.
             if (documentId == Guid.Empty)
             {
                 throw new ArgumentException("Document ID cannot be empty.", nameof(documentId));
             }
-
-            var newCitation = new Citation
+            else if (documentId == null) 
             {
-                Type = type,
-                Title = title,
-                Author = author,
-                PublicationInfo = publicationInfo,
-                FK_DocumentId = documentId,
-                PublicationDate = publicationDate,
-                AccessDate = accessDate,
-                DOI = doi,
-                // Id and Created_at are set by the Citation model's default constructor
-            };
+                throw new ArgumentNullException(nameof(documentId), "Document ID cannot be null.");
+            }
+            else if (CitationRepository.GetCitationsByDocumentId((Guid)documentId).Count() == 0)
+            {
+                throw new ArgumentException("Document ID does not exist.", nameof(documentId));
+            }
+
+                var newCitation = new Citation
+                {
+                    Type = type,
+                    Title = title,
+                    Author = author,
+                    Pages = pages, // New
+                    Volume = volume, // New
+                    Issue = issue, // New
+                    URL = url, // New
+                    AccessURL = accessURL, // New
+                    AccessLocation = accessLocation, // New
+                    PublicationInfo = publicationInfo,
+                    Publisher = publisher, // New
+                    PublicationDate = publicationDate,
+                    PublisherLocation = publisherLocation, // New
+                    AccessDate = accessDate,
+                    DOI = doi,
+                    FK_DocumentId = (Guid)documentId,
+                    // Id and CreatedAt are set by the Citation model's default constructor
+                };
 
             // Add the new citation using the repository
             CitationRepository.AddCitation(newCitation);
@@ -83,8 +105,16 @@ namespace API.Services
             CitationType type,
             string title,
             string author,
-            string publicationInfo,
+            string? pages = null,
+            string? volume = null,
+            string? issue = null,
+            string? url = null,
+            string? accessURL = null,
+            string? accessLocation = null,
+            string? publicationInfo = null,
+            string? publisher = null,
             DateTime? publicationDate = null,
+            string? publisherLocation = null,
             string? accessDate = null,
             string? doi = null)
         {
@@ -100,10 +130,7 @@ namespace API.Services
             {
                 throw new ArgumentException("Citation author cannot be null or empty.", nameof(author));
             }
-            if (string.IsNullOrWhiteSpace(publicationInfo))
-            {
-                throw new ArgumentException("Citation publication info cannot be null or empty.", nameof(publicationInfo));
-            }
+            // PublicationInfo is now optional, so no validation here.
 
             var existingCitation = CitationRepository.GetCitationById(citationId);
 
@@ -113,8 +140,16 @@ namespace API.Services
                 existingCitation.Type = type;
                 existingCitation.Title = title;
                 existingCitation.Author = author;
+                existingCitation.Pages = pages; // New
+                existingCitation.Volume = volume; // New
+                existingCitation.Issue = issue; // New
+                existingCitation.URL = url; // New
+                existingCitation.AccessURL = accessURL; // New
+                existingCitation.AccessLocation = accessLocation; // New
                 existingCitation.PublicationInfo = publicationInfo;
+                existingCitation.Publisher = publisher; // New
                 existingCitation.PublicationDate = publicationDate;
+                existingCitation.PublisherLocation = publisherLocation; // New
                 existingCitation.AccessDate = accessDate;
                 existingCitation.DOI = doi;
                 existingCitation.UpdatedAt = DateTime.Now; // Set update timestamp

@@ -14,12 +14,13 @@ namespace UnitTesting
     [DoNotParallelize] // Ensures tests run sequentially, important for static repositories
     public class CitationServiceTests
     {
-        private CitationService? _citationService;
+        private CitationService _citationService;
 
         [TestInitialize]
         public void Setup()
         {
             _citationService = new CitationService();
+            // Clear the static repository before each test to ensure isolation
             CitationRepository.ClearAllCitations();
         }
 
@@ -115,7 +116,7 @@ namespace UnitTesting
             Assert.IsTrue(result.Contains(citation1));
             Assert.IsTrue(result.Contains(citation2));
             Assert.IsFalse(result.Contains(otherCitation));
-            // Verify ordering by Created_at (newest first)
+            // Verify ordering by CreatedAt (newest first)
             Assert.AreEqual(citation2.Id, result[0].Id);
             Assert.AreEqual(citation1.Id, result[1].Id);
         }
@@ -157,11 +158,19 @@ namespace UnitTesting
                 CitationType.Book,
                 "New Book Title",
                 "New Book Author",
-                "New Book Pub Info",
-                documentId,
-                new DateTime(2023, 1, 1),
-                null,
-                "10.1234/new.book"
+                pages: "10-20",
+                volume: "1",
+                issue: "2",
+                url: "http://example.com/book",
+                accessURL: null,
+                accessLocation: "Library",
+                publicationInfo: "Book Series",
+                publisher: "New Publisher",
+                publicationDate: new DateTime(2023, 1, 1),
+                publisherLocation: "New York",
+                accessDate: "2024-01-01",
+                doi: "10.1234/new.book",
+                documentId: documentId
             );
 
             // Assert
@@ -170,11 +179,19 @@ namespace UnitTesting
             Assert.AreEqual(CitationType.Book, newCitation.Type);
             Assert.AreEqual("New Book Title", newCitation.Title);
             Assert.AreEqual("New Book Author", newCitation.Author);
-            Assert.AreEqual("New Book Pub Info", newCitation.PublicationInfo);
-            Assert.AreEqual(documentId, newCitation.FK_DocumentId);
+            Assert.AreEqual("10-20", newCitation.Pages);
+            Assert.AreEqual("1", newCitation.Volume);
+            Assert.AreEqual("2", newCitation.Issue);
+            Assert.AreEqual("http://example.com/book", newCitation.URL);
+            Assert.IsNull(newCitation.AccessURL);
+            Assert.AreEqual("Library", newCitation.AccessLocation);
+            Assert.AreEqual("Book Series", newCitation.PublicationInfo);
+            Assert.AreEqual("New Publisher", newCitation.Publisher);
             Assert.AreEqual(new DateTime(2023, 1, 1), newCitation.PublicationDate);
-            Assert.IsNull(newCitation.AccessDate);
+            Assert.AreEqual("New York", newCitation.PublisherLocation);
+            Assert.AreEqual("2024-01-01", newCitation.AccessDate);
             Assert.AreEqual("10.1234/new.book", newCitation.DOI);
+            Assert.AreEqual(documentId, newCitation.FK_DocumentId);
             Assert.AreEqual(initialCount + 1, CitationRepository.Citations.Count);
             Assert.IsNotNull(CitationRepository.GetCitationById(newCitation.Id));
         }
@@ -183,28 +200,32 @@ namespace UnitTesting
         [ExpectedException(typeof(ArgumentException))]
         public void CreateCitation_WithEmptyTitle_ThrowsArgumentException()
         {
-            _citationService.CreateCitation(CitationType.Book, "", "Author", "Pub Info", Guid.NewGuid());
+            _citationService.CreateCitation(CitationType.Book, "", "Author", publicationInfo: "Pub Info", documentId: Guid.NewGuid());
         }
 
         [TestMethod]
         [ExpectedException(typeof(ArgumentException))]
         public void CreateCitation_WithNullAuthor_ThrowsArgumentException()
         {
-            _citationService.CreateCitation(CitationType.Book, "Title", null, "Pub Info", Guid.NewGuid());
+            _citationService.CreateCitation(CitationType.Book, "Title", null, publicationInfo: "Pub Info", documentId: Guid.NewGuid());
         }
 
-        [TestMethod]
-        [ExpectedException(typeof(ArgumentException))]
-        public void CreateCitation_WithWhitespacePublicationInfo_ThrowsArgumentException()
-        {
-            _citationService.CreateCitation(CitationType.Book, "Title", "Author", "   ", Guid.NewGuid());
-        }
+        // Removed CreateCitation_WithWhitespacePublicationInfo_ThrowsArgumentException
+        // as PublicationInfo is now optional and can be null/whitespace.
 
         [TestMethod]
         [ExpectedException(typeof(ArgumentException))]
         public void CreateCitation_WithEmptyDocumentId_ThrowsArgumentException()
         {
-            _citationService.CreateCitation(CitationType.Book, "Title", "Author", "Pub Info", Guid.Empty);
+            // Now documentId is nullable, so we test with both null and Guid.Empty
+            _citationService.CreateCitation(CitationType.Book, "Title", "Author", documentId: Guid.Empty);
+        }
+
+        [TestMethod]
+        [ExpectedException(typeof(ArgumentException))]
+        public void CreateCitation_WithNullDocumentId_ThrowsArgumentException()
+        {
+            _citationService.CreateCitation(CitationType.Book, "Title", "Author", documentId: null);
         }
         #endregion
 
@@ -219,11 +240,20 @@ namespace UnitTesting
                 Type = CitationType.Book,
                 Title = "Original Title",
                 Author = "Original Author",
+                Pages = "1-5",
+                Volume = "V1",
+                Issue = "I1",
+                URL = "http://original.com",
+                AccessURL = null,
+                AccessLocation = "Old Place",
                 PublicationInfo = "Original Pub Info",
-                FK_DocumentId = documentId,
+                Publisher = "Original Publisher",
                 PublicationDate = new DateTime(2020, 1, 1),
+                PublisherLocation = "Old City",
                 AccessDate = "2020-01-01",
-                DOI = "original.doi"
+                DOI = "original.doi",
+                FK_DocumentId = documentId,
+                CreatedAt = DateTime.Now.AddDays(-10) // Set an older CreatedAt for UpdatedAt comparison
             };
             CitationRepository.AddCitation(existingCitation);
 
@@ -233,10 +263,18 @@ namespace UnitTesting
                 CitationType.JournalArticle,
                 "Updated Title",
                 "Updated Author",
-                "Updated Pub Info",
-                new DateTime(2022, 2, 2),
-                "2022-02-02",
-                "updated.doi"
+                pages: "6-10",
+                volume: "V2",
+                issue: "I2",
+                url: null,
+                accessURL: "http://updated.com",
+                accessLocation: "New Place",
+                publicationInfo: "Updated Pub Info",
+                publisher: "Updated Publisher",
+                publicationDate: new DateTime(2022, 2, 2),
+                publisherLocation: "New City",
+                accessDate: "2022-02-02",
+                doi: "updated.doi"
             );
 
             // Assert
@@ -245,11 +283,19 @@ namespace UnitTesting
             Assert.AreEqual(CitationType.JournalArticle, updatedCitation.Type);
             Assert.AreEqual("Updated Title", updatedCitation.Title);
             Assert.AreEqual("Updated Author", updatedCitation.Author);
+            Assert.AreEqual("6-10", updatedCitation.Pages);
+            Assert.AreEqual("V2", updatedCitation.Volume);
+            Assert.AreEqual("I2", updatedCitation.Issue);
+            Assert.IsNull(updatedCitation.URL); // Changed to null
+            Assert.AreEqual("http://updated.com", updatedCitation.AccessURL); // Changed from null
+            Assert.AreEqual("New Place", updatedCitation.AccessLocation);
             Assert.AreEqual("Updated Pub Info", updatedCitation.PublicationInfo);
+            Assert.AreEqual("Updated Publisher", updatedCitation.Publisher);
             Assert.AreEqual(new DateTime(2022, 2, 2), updatedCitation.PublicationDate);
+            Assert.AreEqual("New City", updatedCitation.PublisherLocation);
             Assert.AreEqual("2022-02-02", updatedCitation.AccessDate);
             Assert.AreEqual("updated.doi", updatedCitation.DOI);
-            Assert.IsTrue(updatedCitation.UpdatedAt > existingCitation.CreatedAt); // Updated_at should be newer
+            Assert.IsTrue(updatedCitation.UpdatedAt > existingCitation.CreatedAt); // UpdatedAt should be newer
         }
 
         [TestMethod]
@@ -264,8 +310,7 @@ namespace UnitTesting
                 CitationType.Book,
                 "Title",
                 "Author",
-                "Pub Info",
-                null, null, null
+                publicationInfo: "Pub Info"
             );
 
             // Assert
@@ -276,7 +321,7 @@ namespace UnitTesting
         [ExpectedException(typeof(ArgumentException))]
         public void UpdateCitation_WithEmptyGuid_ThrowsArgumentException()
         {
-            _citationService.UpdateCitation(Guid.Empty, CitationType.Book, "Title", "Author", "Pub Info");
+            _citationService.UpdateCitation(Guid.Empty, CitationType.Book, "Title", "Author", publicationInfo: "Pub Info");
         }
 
         [TestMethod]
@@ -285,7 +330,7 @@ namespace UnitTesting
         {
             var existingCitation = new Citation { Type = CitationType.Book, Title = "Original", Author = "A", PublicationInfo = "P", FK_DocumentId = Guid.NewGuid() };
             CitationRepository.AddCitation(existingCitation);
-            _citationService.UpdateCitation(existingCitation.Id, CitationType.Book, "", "Author", "Pub Info");
+            _citationService.UpdateCitation(existingCitation.Id, CitationType.Book, "", "Author", publicationInfo: "Pub Info");
         }
         #endregion
 
@@ -341,17 +386,18 @@ namespace UnitTesting
                 Type = CitationType.Book,
                 Title = "The Great Book",
                 Author = "Doe, J.",
-                PublicationInfo = "Publisher Inc.",
+                PublicationInfo = "Book Series",
+                Publisher = "Publisher Inc.",
+                PublisherLocation = "New York",
                 FK_DocumentId = Guid.NewGuid(),
-                PublicationDate = new DateTime(2020, 5, 10)
+                PublicationDate = new DateTime(2020, 5, 10),
+                URL = "http://example.com/book-online"
             };
             CitationRepository.AddCitation(citation);
 
-            // Mock CitationFormatter.GenerateAPAStyle to return a predictable string
-            // For actual unit testing, you might mock the static method or use a wrapper.
-            // For simplicity here, we'll assume CitationFormatter works as expected and test the service's call to it.
-            // Expected format based on the provided CitationFormatter code for Book:
-            var expectedFormat = $"{citation.Author}. ({citation.PublicationDate?.Year}). *{citation.Title}*. {citation.PublicationInfo}.";
+            // Expected format based on the updated CitationFormatter code for Book:
+            // "Author. (Year). *Title*. Publisher Location: Publisher. Diakses dari URL."
+            var expectedFormat = $"{citation.Author}. ({citation.PublicationDate?.Year}). *{citation.Title}*. {citation.PublisherLocation}: {citation.Publisher}. Diakses dari {citation.URL}.";
 
 
             // Act
@@ -361,6 +407,67 @@ namespace UnitTesting
             Assert.IsNotNull(result);
             Assert.AreEqual(expectedFormat, result);
         }
+
+        [TestMethod]
+        public void GetFormattedCitationAPA_Website_ReturnsFormattedString()
+        {
+            // Arrange
+            var citation = new Citation
+            {
+                Type = CitationType.Website,
+                Title = "Article on Website",
+                Author = "Web Author, A.",
+                PublicationInfo = "Example Site",
+                AccessDate = "2024-05-23",
+                URL = "http://example.com/article",
+                FK_DocumentId = Guid.NewGuid(),
+                PublicationDate = new DateTime(2023, 10, 15)
+            };
+            CitationRepository.AddCitation(citation);
+
+            // Expected format based on the updated CitationFormatter code for Website:
+            // "Author. (Year). *Title*. Site Name. Diakses dari URL. Diakses dari AccessDate."
+            var expectedFormat = $"{citation.Author}. ({citation.PublicationDate?.Year}). *{citation.Title}*. {citation.PublicationInfo}. Diakses dari {citation.URL}. Diakses dari {citation.AccessDate}.";
+
+            // Act
+            var result = _citationService.GetFormattedCitationAPA(citation.Id);
+
+            // Assert
+            Assert.IsNotNull(result);
+            Assert.AreEqual(expectedFormat, result);
+        }
+
+        [TestMethod]
+        public void GetFormattedCitationAPA_JournalArticle_ReturnsFormattedString()
+        {
+            // Arrange
+            var citation = new Citation
+            {
+                Type = CitationType.JournalArticle,
+                Title = "Impact of AI",
+                Author = "Smith, J.",
+                PublicationInfo = "Journal of Technology",
+                Volume = "15",
+                Issue = "3",
+                Pages = "112-125",
+                DOI = "10.1000/xyz123",
+                FK_DocumentId = Guid.NewGuid(),
+                PublicationDate = new DateTime(2021, 7, 1)
+            };
+            CitationRepository.AddCitation(citation);
+
+            // Expected format based on the updated CitationFormatter code for JournalArticle:
+            // "Author. (Year). *Title*. *Title of Periodical, Volume*(Issue), pages. DOI"
+            var expectedFormat = $"{citation.Author}. ({citation.PublicationDate?.Year}). *{citation.Title}*. *{citation.PublicationInfo}*{citation.Volume}({citation.Issue}), {citation.Pages}. {citation.DOI}";
+
+            // Act
+            var result = _citationService.GetFormattedCitationAPA(citation.Id);
+
+            // Assert
+            Assert.IsNotNull(result);
+            Assert.AreEqual(expectedFormat, result);
+        }
+
 
         [TestMethod]
         public void GetFormattedCitationAPA_WhenNotExists_ReturnsNull()

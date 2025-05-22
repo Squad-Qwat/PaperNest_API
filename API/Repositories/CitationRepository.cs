@@ -6,7 +6,7 @@ namespace API.Repositories
     {
         // A static list to simulate a database collection for Citation objects.
         // This list will hold all Citation instances managed by this repository.
-        private static readonly List<Citation> _citations = []; // Setara dengan 'new List<Citation>()'
+        private static readonly List<Citation> _citations = new List<Citation>();
         private static Citation? citationForService; // A placeholder for a single Citation instance.
 
         // Default constructor. Initializes the repository.
@@ -16,7 +16,8 @@ namespace API.Repositories
         }
 
         // For first time initialization of the new Citation object.
-        public CitationRepository(Guid id, CitationType type, string title, string author, string publicationInfo, Guid documentID)
+        // Updated constructor to include new properties for initialization
+        public CitationRepository(Guid id, CitationType type, string title, string author, string pages, string volume, string issue, string url, string accessURL, string accessLocation, string publicationInfo, string publisher, DateTime? publicationDate, string publisherLocation, string accessDate, string doi, Guid documentID)
         {
             citationForService = new Citation
             {
@@ -24,13 +25,25 @@ namespace API.Repositories
                 Type = type,
                 Title = title,
                 Author = author,
+                Pages = pages,
+                Volume = volume,
+                Issue = issue,
+                URL = url,
+                AccessURL = accessURL,
+                AccessLocation = accessLocation,
                 PublicationInfo = publicationInfo,
+                Publisher = publisher,
+                PublicationDate = publicationDate,
+                PublisherLocation = publisherLocation,
+                AccessDate = accessDate,
+                DOI = doi,
                 FK_DocumentId = documentID
             };
         }
 
         // For updating the Citation Object.
-        public CitationRepository(Guid id, CitationType type, string title, string author, string publicationInfo, Guid documentID, DateTime updatedAt)
+        // Updated constructor to include new properties for initialization
+        public CitationRepository(Guid id, CitationType type, string title, string author, string pages, string volume, string issue, string url, string accessURL, string accessLocation, string publicationInfo, string publisher, DateTime? publicationDate, string publisherLocation, string accessDate, string doi, Guid documentID, DateTime updatedAt)
         {
             citationForService = new Citation
             {
@@ -38,7 +51,18 @@ namespace API.Repositories
                 Type = type,
                 Title = title,
                 Author = author,
+                Pages = pages,
+                Volume = volume,
+                Issue = issue,
+                URL = url,
+                AccessURL = accessURL,
+                AccessLocation = accessLocation,
                 PublicationInfo = publicationInfo,
+                Publisher = publisher,
+                PublicationDate = publicationDate,
+                PublisherLocation = publisherLocation,
+                AccessDate = accessDate,
+                DOI = doi,
                 FK_DocumentId = documentID,
                 UpdatedAt = updatedAt
             };
@@ -86,9 +110,9 @@ namespace API.Repositories
             {
                 throw new ArgumentException("Document ID cannot be empty.", nameof(documentId));
             }
-            // Order by Created_at for consistent retrieval, newest first
+            // Order by CreatedAt for consistent retrieval, newest first
             return _citations.Where(c => c.FK_DocumentId == documentId)
-                             .OrderByDescending(c => c.CreatedAt); // Ensure using Created_at property
+                             .OrderByDescending(c => c.CreatedAt); // Ensure using CreatedAt property
         }
 
         public static bool UpdateCitation(Citation updatedCitation)
@@ -110,8 +134,16 @@ namespace API.Repositories
                 existingCitation.Type = updatedCitation.Type;
                 existingCitation.Title = updatedCitation.Title;
                 existingCitation.Author = updatedCitation.Author;
+                existingCitation.Pages = updatedCitation.Pages; // New
+                existingCitation.Volume = updatedCitation.Volume; // New
+                existingCitation.Issue = updatedCitation.Issue; // New
+                existingCitation.URL = updatedCitation.URL; // New
+                existingCitation.AccessURL = updatedCitation.AccessURL; // New
+                existingCitation.AccessLocation = updatedCitation.AccessLocation; // New
                 existingCitation.PublicationInfo = updatedCitation.PublicationInfo;
+                existingCitation.Publisher = updatedCitation.Publisher; // New
                 existingCitation.PublicationDate = updatedCitation.PublicationDate;
+                existingCitation.PublisherLocation = updatedCitation.PublisherLocation; // New
                 existingCitation.AccessDate = updatedCitation.AccessDate;
                 existingCitation.DOI = updatedCitation.DOI;
                 // existingCitation.FK_DocumentId = updatedCitation.FK_DocumentId; // Uncomment if FK_DocumentId can be updated
