@@ -10,14 +10,14 @@ namespace API.Services
         {
             return DocumentBodyRepository.DocumentBodies;
         }
-        public DocumentBody? GetDocumentBodyById(Guid documentBodyId)
+        public DocumentBody? GetDocumentBodyById(Guid documentId, Guid documentBodyId)
         {
             if (documentBodyId == Guid.Empty)
             {
                 throw new ArgumentException("DocumentBodyId tidak boleh kosong");
             }
 
-            return DocumentBodyRepository.GetDocumentBodyById(documentBodyId);
+            return DocumentBodyRepository.GetDocumentBodyById(documentId ,documentBodyId);
         }
 
         public IEnumerable<DocumentBody> GetDocumentBodiesByDocumentId(Guid documentId)

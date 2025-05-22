@@ -19,9 +19,13 @@ namespace API.Repositories
             }
         }
 
-        public static DocumentBody? GetDocumentBodyById(Guid documentBodyId)
+        public static DocumentBody? GetDocumentBodyById(Guid documentId,Guid documentBodyId)
         {
-            return _documentBodies.FirstOrDefault(db => db.Id == documentBodyId);
+            if (documentBodyId == Guid.Empty)
+            {
+                throw new ArgumentException("DocumentBodyId tidak boleh kosong");
+            }
+            return _documentBodies.FirstOrDefault(db => db.Id == documentBodyId && db.FK_DocumentId == documentId);
         }
 
         public static void AddDocumentBody(DocumentBody documentBody)

@@ -26,10 +26,10 @@ namespace API.Controllers
             return CreatedAtAction(nameof(GetVersions), new { documentId }, version);
         }
 
-        [HttpGet("{documentId}/version")]
-        public IActionResult GetVersion(Guid documentId)
+        [HttpGet("{documentId}/version/{documentBodyId}")]
+        public IActionResult GetVersionInDocument(Guid documentId,Guid documentBodyId)
         {
-            var version = _documentBodyService.GetDocumentBodiesByDocumentId(documentId);
+            var version = _documentBodyService.GetDocumentBodyById(documentId, documentBodyId);
             if (version == null)
             {
                 return NotFound();

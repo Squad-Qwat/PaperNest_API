@@ -8,7 +8,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Folder Include="Lecturer\" />
+    <Folder Include="Student\" />
     <Folder Include="Student\" />
   </ItemGroup>
 

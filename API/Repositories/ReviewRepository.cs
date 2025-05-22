@@ -33,5 +33,11 @@ namespace API.Repositories
             };
             _reviews.Add(review);
         }
+
+        public static Review? GetReviewByDocumentBodyId(
+            Guid documentBodyId)
+        {
+            return _reviews.FirstOrDefault(r => r.FK_DocumentBodyId == documentBodyId);
+        }
     }
 }

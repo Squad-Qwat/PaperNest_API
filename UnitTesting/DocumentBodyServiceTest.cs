@@ -60,9 +60,10 @@ namespace UnitTesting
             var documentBody = new DocumentBody { Content = "Test Content" };
             DocumentBodyRepository.AddDocumentBody(documentBody);
             var documentBodyId = documentBody.Id;
+            var documentId = documentBody.FK_DocumentId;
 
-            
-            var result = _documentBodyService.GetDocumentBodyById(documentBodyId);
+
+            var result = _documentBodyService.GetDocumentBodyById(documentId,documentBodyId);
 
             
             Assert.IsNotNull(result);
@@ -74,10 +75,11 @@ namespace UnitTesting
         public void GetDocumentBodyById_WhenNotExists_ReturnsNull()
         {
             
-            var nonExistentId = Guid.NewGuid();
+            var nonExistentDocumentId = Guid.NewGuid();
+            var nonExistentDocumentBodyId = Guid.NewGuid();
 
-            
-            var result = _documentBodyService.GetDocumentBodyById(nonExistentId);
+
+            var result = _documentBodyService.GetDocumentBodyById(nonExistentDocumentId,nonExistentDocumentBodyId);
 
             
             Assert.IsNull(result);
@@ -88,7 +90,7 @@ namespace UnitTesting
         public void GetDocumentBodyById_WithEmptyGuid_ThrowsArgumentException()
         {
             
-            _documentBodyService.GetDocumentBodyById(Guid.Empty);
+            _documentBodyService.GetDocumentBodyById(Guid.Empty,Guid.Empty);
         }
         #endregion
 

@@ -48,7 +48,7 @@ namespace API.Services
             {
                 throw new ArgumentException("DocumentBodyId tidak boleh kosong", nameof(documentBodyId));
             }
-            var review = ReviewRepository.Reviews.FirstOrDefault(r => r.FK_DocumentBodyId == documentBodyId);
+            var review = ReviewRepository.GetReviewByDocumentBodyId(documentBodyId);
             if (review == null)
             {
                 throw new InvalidOperationException("Review tidak ditemukan untuk DocumentBodyId yang diberikan");
