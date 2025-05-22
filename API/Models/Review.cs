@@ -16,6 +16,10 @@ namespace API.Models
         public DocumentBody? DocumentBody { get; set; }
 
         [Required]
+        public Guid FK_UserLecturerId { get; set; }
+        public User? UserLecturer { get; set; }
+
+        [Required]
         public Guid FK_UserId { get; set; }
         public User? User { get; set; }
 

@@ -31,6 +31,8 @@ namespace API.Services
 
         public DocumentBody CreateDocumentBody(
             Guid documentId,
+            Guid userCreatorId,
+            string comment,
             string content
             )
         {
@@ -39,9 +41,9 @@ namespace API.Services
             {
                 throw new ArgumentException("Content tidak boleh kosong");
             }
-            if (documentId == Guid.Empty)
+            if (documentId == Guid.Empty || userCreatorId == Guid.Empty)
             {
-                throw new ArgumentException("DocumentId tidak boleh kosong");
+                throw new ArgumentException("DocumentId atau UserCreatorId tidak boleh kosong");
             }
             var currentVersion = DocumentBodyRepository.GetCurrentVersion(documentId);
             if (currentVersion != null)
@@ -51,7 +53,9 @@ namespace API.Services
             var documentBody = new DocumentBody
             {
                 Content = content,
+                Comment = comment,
                 FK_DocumentId = documentId,
+                FK_UserCreatorId = userCreatorId,
                 IsCurrentVersion = isCurrentVersion
             };
             DocumentBodyRepository.AddDocumentBody(documentBody);

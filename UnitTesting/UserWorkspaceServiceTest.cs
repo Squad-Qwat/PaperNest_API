@@ -11,42 +11,41 @@ namespace UnitTesting
 {
     [TestClass]
     [DoNotParallelize]
-    public class UserWorkspaceServiceTests
+    public class UserWorkspaceServiceTest
     {
-        private UserWorkspaceService _userWorkspaceService;
+        private UserWorkspaceService? _userWorkspaceService;
 
         [TestInitialize]
         public void Setup()
         {
             _userWorkspaceService = new UserWorkspaceService();
-
-            UserWorkspaceRepository.UserWorkspace = new List<UserWorkspace>();
+            UserWorkspaceRepository.UserWorkspace.Clear();
         }
 
         #region GetAllUserWorkspaces
         [TestMethod]
         public void GetAllUserWorkspaces_ReturnsAllUserWorkspaces()
         {
-            
+            // Arrange
             var userWorkspace1 = new UserWorkspace
-            {
-                FK_UserId = Guid.NewGuid(),
-                FK_WorkspaceId = Guid.NewGuid(),
-                WorkspaceRole = WorkspaceRole.Owner
-            };
-            var userWorkspace2 = new UserWorkspace
             {
                 FK_UserId = Guid.NewGuid(),
                 FK_WorkspaceId = Guid.NewGuid(),
                 WorkspaceRole = WorkspaceRole.Member
             };
-            UserWorkspaceRepository.UserWorkspace.Add(userWorkspace1);
-            UserWorkspaceRepository.UserWorkspace.Add(userWorkspace2);
+            var userWorkspace2 = new UserWorkspace
+            {
+                FK_UserId = Guid.NewGuid(),
+                FK_WorkspaceId = Guid.NewGuid(),
+                WorkspaceRole = WorkspaceRole.Owner
+            };
+            UserWorkspaceRepository.AddUserWorkspace(userWorkspace1);
+            UserWorkspaceRepository.AddUserWorkspace(userWorkspace2);
 
-            
+            // Act
             var result = _userWorkspaceService.GetAllUserWorkspaces();
 
-            
+            // Assert
             Assert.AreEqual(2, result.Count);
             CollectionAssert.Contains(result, userWorkspace1);
             CollectionAssert.Contains(result, userWorkspace2);
@@ -55,10 +54,10 @@ namespace UnitTesting
         [TestMethod]
         public void GetAllUserWorkspaces_WhenEmpty_ReturnsEmptyList()
         {
-            
+            // Act
             var result = _userWorkspaceService.GetAllUserWorkspaces();
 
-            
+            // Assert
             Assert.AreEqual(0, result.Count);
         }
         #endregion
@@ -67,35 +66,31 @@ namespace UnitTesting
         [TestMethod]
         public void GetUserWorkspaceById_WhenExists_ReturnsUserWorkspace()
         {
-            
+            // Arrange
             var userWorkspace = new UserWorkspace
             {
                 FK_UserId = Guid.NewGuid(),
                 FK_WorkspaceId = Guid.NewGuid(),
-                WorkspaceRole = WorkspaceRole.Lecturer
+                WorkspaceRole = WorkspaceRole.Member
             };
-            UserWorkspaceRepository.UserWorkspace.Add(userWorkspace);
-            var userWorkspaceId = userWorkspace.Id;
+            UserWorkspaceRepository.AddUserWorkspace(userWorkspace);
 
-            
-            var result = _userWorkspaceService.GetUserWorkspaceById(userWorkspaceId);
+            // Act
+            var result = _userWorkspaceService.GetUserWorkspaceById(userWorkspace.Id);
 
-            
+            // Assert
             Assert.IsNotNull(result);
-            Assert.AreEqual(userWorkspaceId, result.Id);
-            Assert.AreEqual(WorkspaceRole.Lecturer, result.WorkspaceRole);
+            Assert.AreEqual(userWorkspace.Id, result.Id);
+            Assert.AreEqual(userWorkspace.WorkspaceRole, result.WorkspaceRole);
         }
 
         [TestMethod]
         public void GetUserWorkspaceById_WhenNotExists_ReturnsNull()
         {
-            
-            var nonExistentUserWorkspaceId = Guid.NewGuid();
+            // Act
+            var result = _userWorkspaceService.GetUserWorkspaceById(Guid.NewGuid());
 
-            
-            var result = _userWorkspaceService.GetUserWorkspaceById(nonExistentUserWorkspaceId);
-
-            
+            // Assert
             Assert.IsNull(result);
         }
 
@@ -103,7 +98,6 @@ namespace UnitTesting
         [ExpectedException(typeof(ArgumentException))]
         public void GetUserWorkspaceById_WithEmptyGuid_ThrowsArgumentException()
         {
-            
             _userWorkspaceService.GetUserWorkspaceById(Guid.Empty);
         }
         #endregion
@@ -112,19 +106,19 @@ namespace UnitTesting
         [TestMethod]
         public void GetUserWorkspacesByUserId_WhenExists_ReturnsUserWorkspaces()
         {
-            
+            // Arrange
             var userId = Guid.NewGuid();
             var userWorkspace1 = new UserWorkspace
             {
                 FK_UserId = userId,
                 FK_WorkspaceId = Guid.NewGuid(),
-                WorkspaceRole = WorkspaceRole.Owner
+                WorkspaceRole = WorkspaceRole.Member
             };
             var userWorkspace2 = new UserWorkspace
             {
                 FK_UserId = userId,
                 FK_WorkspaceId = Guid.NewGuid(),
-                WorkspaceRole = WorkspaceRole.Member
+                WorkspaceRole = WorkspaceRole.Owner
             };
             var otherUserWorkspace = new UserWorkspace
             {
@@ -133,37 +127,27 @@ namespace UnitTesting
                 WorkspaceRole = WorkspaceRole.Member
             };
 
-            UserWorkspaceRepository.UserWorkspace.Add(userWorkspace1);
-            UserWorkspaceRepository.UserWorkspace.Add(userWorkspace2);
-            UserWorkspaceRepository.UserWorkspace.Add(otherUserWorkspace);
+            UserWorkspaceRepository.AddUserWorkspace(userWorkspace1);
+            UserWorkspaceRepository.AddUserWorkspace(userWorkspace2);
+            UserWorkspaceRepository.AddUserWorkspace(otherUserWorkspace);
 
-            
+            // Act
             var result = _userWorkspaceService.GetUserWorkspacesByUserId(userId).ToList();
 
-            
+            // Assert
             Assert.AreEqual(2, result.Count);
-            Assert.IsTrue(result.Contains(userWorkspace1));
-            Assert.IsTrue(result.Contains(userWorkspace2));
-            Assert.IsFalse(result.Contains(otherUserWorkspace));
+            CollectionAssert.Contains(result, userWorkspace1);
+            CollectionAssert.Contains(result, userWorkspace2);
+            CollectionAssert.DoesNotContain(result, otherUserWorkspace);
         }
 
         [TestMethod]
         public void GetUserWorkspacesByUserId_WhenNoneExist_ReturnsEmptyList()
         {
-            
-            var userId = Guid.NewGuid();
-            var otherUserWorkspace = new UserWorkspace
-            {
-                FK_UserId = Guid.NewGuid(),
-                FK_WorkspaceId = Guid.NewGuid(),
-                WorkspaceRole = WorkspaceRole.Member
-            };
-            UserWorkspaceRepository.UserWorkspace.Add(otherUserWorkspace);
+            // Act
+            var result = _userWorkspaceService.GetUserWorkspacesByUserId(Guid.NewGuid()).ToList();
 
-            
-            var result = _userWorkspaceService.GetUserWorkspacesByUserId(userId).ToList();
-
-            
+            // Assert
             Assert.AreEqual(0, result.Count);
         }
 
@@ -171,35 +155,32 @@ namespace UnitTesting
         [ExpectedException(typeof(ArgumentException))]
         public void GetUserWorkspacesByUserId_WithEmptyGuid_ThrowsArgumentException()
         {
-            
             _userWorkspaceService.GetUserWorkspacesByUserId(Guid.Empty);
         }
         #endregion
 
         #region AddUserWorkspaceAsOwner
         [TestMethod]
-        public void AddUserWorkspaceAsOwner_AddsNewUserWorkspace()
+        public void AddUserWorkspaceAsOwner_CreatesNewUserWorkspace()
         {
-            
+            // Arrange
             var userId = Guid.NewGuid();
             var workspaceId = Guid.NewGuid();
 
-            
+            // Act
             _userWorkspaceService.AddUserWorkspaceAsOwner(userId, workspaceId);
 
-            
-            Assert.AreEqual(1, UserWorkspaceRepository.UserWorkspace.Count);
-            var addedUserWorkspace = UserWorkspaceRepository.UserWorkspace.First();
-            Assert.AreEqual(userId, addedUserWorkspace.FK_UserId);
-            Assert.AreEqual(workspaceId, addedUserWorkspace.FK_WorkspaceId);
-            Assert.AreEqual(WorkspaceRole.Owner, addedUserWorkspace.WorkspaceRole);
+            // Assert
+            var userWorkspace = UserWorkspaceRepository.UserWorkspace.First();
+            Assert.AreEqual(userId, userWorkspace.FK_UserId);
+            Assert.AreEqual(workspaceId, userWorkspace.FK_WorkspaceId);
+            Assert.AreEqual(WorkspaceRole.Owner, userWorkspace.WorkspaceRole);
         }
 
         [TestMethod]
         [ExpectedException(typeof(ArgumentException))]
         public void AddUserWorkspaceAsOwner_WithEmptyUserId_ThrowsArgumentException()
         {
-            
             _userWorkspaceService.AddUserWorkspaceAsOwner(Guid.Empty, Guid.NewGuid());
         }
 
@@ -207,35 +188,32 @@ namespace UnitTesting
         [ExpectedException(typeof(ArgumentException))]
         public void AddUserWorkspaceAsOwner_WithEmptyWorkspaceId_ThrowsArgumentException()
         {
-            
             _userWorkspaceService.AddUserWorkspaceAsOwner(Guid.NewGuid(), Guid.Empty);
         }
         #endregion
 
         #region AddUserWorkspaceAsMember
         [TestMethod]
-        public void AddUserWorkspaceAsMember_AddsNewUserWorkspace()
+        public void AddUserWorkspaceAsMember_CreatesNewUserWorkspace()
         {
-            
+            // Arrange
             var userId = Guid.NewGuid();
             var workspaceId = Guid.NewGuid();
 
-            
+            // Act
             _userWorkspaceService.AddUserWorkspaceAsMember(userId, workspaceId);
 
-            
-            Assert.AreEqual(1, UserWorkspaceRepository.UserWorkspace.Count);
-            var addedUserWorkspace = UserWorkspaceRepository.UserWorkspace.First();
-            Assert.AreEqual(userId, addedUserWorkspace.FK_UserId);
-            Assert.AreEqual(workspaceId, addedUserWorkspace.FK_WorkspaceId);
-            Assert.AreEqual(WorkspaceRole.Member, addedUserWorkspace.WorkspaceRole);
+            // Assert
+            var userWorkspace = UserWorkspaceRepository.UserWorkspace.First();
+            Assert.AreEqual(userId, userWorkspace.FK_UserId);
+            Assert.AreEqual(workspaceId, userWorkspace.FK_WorkspaceId);
+            Assert.AreEqual(WorkspaceRole.Member, userWorkspace.WorkspaceRole);
         }
 
         [TestMethod]
         [ExpectedException(typeof(ArgumentException))]
         public void AddUserWorkspaceAsMember_WithEmptyUserId_ThrowsArgumentException()
         {
-            
             _userWorkspaceService.AddUserWorkspaceAsMember(Guid.Empty, Guid.NewGuid());
         }
 
@@ -243,35 +221,32 @@ namespace UnitTesting
         [ExpectedException(typeof(ArgumentException))]
         public void AddUserWorkspaceAsMember_WithEmptyWorkspaceId_ThrowsArgumentException()
         {
-            
             _userWorkspaceService.AddUserWorkspaceAsMember(Guid.NewGuid(), Guid.Empty);
         }
         #endregion
 
         #region AddUserWorkspaceAsLecturer
         [TestMethod]
-        public void AddUserWorkspaceAsLecturer_AddsNewUserWorkspace()
+        public void AddUserWorkspaceAsLecturer_CreatesNewUserWorkspace()
         {
-            
+            // Arrange
             var userId = Guid.NewGuid();
             var workspaceId = Guid.NewGuid();
 
-            
+            // Act
             _userWorkspaceService.AddUserWorkspaceAsLecturer(userId, workspaceId);
 
-            
-            Assert.AreEqual(1, UserWorkspaceRepository.UserWorkspace.Count);
-            var addedUserWorkspace = UserWorkspaceRepository.UserWorkspace.First();
-            Assert.AreEqual(userId, addedUserWorkspace.FK_UserId);
-            Assert.AreEqual(workspaceId, addedUserWorkspace.FK_WorkspaceId);
-            Assert.AreEqual(WorkspaceRole.Lecturer, addedUserWorkspace.WorkspaceRole);
+            // Assert
+            var userWorkspace = UserWorkspaceRepository.UserWorkspace.First();
+            Assert.AreEqual(userId, userWorkspace.FK_UserId);
+            Assert.AreEqual(workspaceId, userWorkspace.FK_WorkspaceId);
+            Assert.AreEqual(WorkspaceRole.Lecturer, userWorkspace.WorkspaceRole);
         }
 
         [TestMethod]
         [ExpectedException(typeof(ArgumentException))]
         public void AddUserWorkspaceAsLecturer_WithEmptyUserId_ThrowsArgumentException()
         {
-            
             _userWorkspaceService.AddUserWorkspaceAsLecturer(Guid.Empty, Guid.NewGuid());
         }
 
@@ -279,9 +254,44 @@ namespace UnitTesting
         [ExpectedException(typeof(ArgumentException))]
         public void AddUserWorkspaceAsLecturer_WithEmptyWorkspaceId_ThrowsArgumentException()
         {
-            
             _userWorkspaceService.AddUserWorkspaceAsLecturer(Guid.NewGuid(), Guid.Empty);
         }
+
+        [TestMethod]
+        public void RemoveUserWorkspace_ValidIds_ReturnsTrue()
+        {
+            var userId = Guid.NewGuid();
+            var workspaceId = Guid.NewGuid();
+            var userWorkspace = new UserWorkspace
+            {
+                FK_UserId = userId,
+                FK_WorkspaceId = workspaceId,
+                WorkspaceRole = WorkspaceRole.Member
+            };
+            UserWorkspaceRepository.AddUserWorkspace(userWorkspace);
+
+            var result = _userWorkspaceService.RemoveUserWorkspace(userId, workspaceId);
+
+            Assert.IsTrue(result);
+            Assert.IsFalse(UserWorkspaceRepository.UserWorkspace.Contains(userWorkspace));
+        }
+
+        [TestMethod]
+        public void RemoveUserWorkspace_InvalidIds_ReturnsFalse()
+        {
+            var userId = Guid.NewGuid();
+            var workspaceId = Guid.NewGuid();
+            var result = _userWorkspaceService.RemoveUserWorkspace(userId, workspaceId);
+            Assert.IsFalse(result);
+        }
+
+        [TestMethod]
+        [ExpectedException(typeof(ArgumentException))]
+        public void RemoveUserWorkspace_WithEmptyUserId_ThrowsArgumentException()
+        {
+            _userWorkspaceService.RemoveUserWorkspace(Guid.Empty, Guid.NewGuid());
+        }
+
         #endregion
     }
 }

@@ -12,6 +12,7 @@ namespace API.StateMachines
         // In a real application, this would be an injected IResearchRequestRepository.
         //private static readonly List<ReviewRequest> _researchRequests = []; <- Setara dengan 'new List<ReviewRequest>()'
         private static readonly List<Review> _reviewRequest = []; // Setara dengan 'new List<Review>()'
+        private static readonly DocumentService ds = new(); // Setara dengan 'new DocumentService()'
         private static readonly DocumentBodyService dbs = new(); // Setara dengan 'new DocumentBodyService()'
 
         public void AddReviewRequest(Review request)
@@ -72,7 +73,7 @@ namespace API.StateMachines
                     return;
                 }
 
-                var document = DocumentService.GetById(request.DocumentBody.FK_DocumentId);
+                var document = ds.GetById(request.DocumentBody.FK_DocumentId);
                 if (document == null)
                 {
                     Console.WriteLine($"Document with ID {request.DocumentBody.FK_DocumentId} not found.");
