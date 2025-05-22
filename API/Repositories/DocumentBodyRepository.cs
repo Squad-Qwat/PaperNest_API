@@ -41,44 +41,101 @@ namespace API.Repositories
             get => _documentBodies;
             set
             {
-                if (value != null)
+                try
                 {
-                    _documentBodies.Clear();
-                    _documentBodies.AddRange(value);
+                    if (value == null)
+                    {
+                        Console.WriteLine("Setting new document body list.");
+                        return;
+                    }
+
+                    if (value.Count == 0)
+                    {
+                        Console.WriteLine("Setting empty document body list.");
+                    }
+                    else
+                    {
+                        Console.WriteLine($"Setting document body list with {value.Count} items.");
+                    }
+
+                    if (value.Any(c => c == null))
+                    {
+                        throw new ArgumentException("Document body list cannot contain null items.");
+                    }
+
+                    if (value.Any(c => c.Id == Guid.Empty))
+                    {
+                        throw new ArgumentException("Document body list cannot contain items with empty IDs.");
+                    }
+                    _documentBodies.Clear(); // Clear existing data
+                    _documentBodies.AddRange(value); // Add new data
+                }
+                catch (ArgumentException ex)
+                {
+                    Console.WriteLine($"Error setting document body: {ex.Message}");
                 }
             }
         }
 
-        public static DocumentBody? GetDocumentBodyById(Guid documentId,Guid documentBodyId)
+        public static DocumentBody? GetDocumentBodyById(Guid documentId, Guid documentBodyId)
         {
-            if (documentBodyId == Guid.Empty)
+            try
             {
-                throw new ArgumentException("DocumentBodyId tidak boleh kosong");
+                if (documentBodyId == Guid.Empty)
+                {
+                    throw new ArgumentException("DocumentBodyId tidak boleh kosong");
+                }
+                return _documentBodies.FirstOrDefault(db => db.Id == documentBodyId && db.FK_DocumentId == documentId);
             }
-            return _documentBodies.FirstOrDefault(db => db.Id == documentBodyId && db.FK_DocumentId == documentId);
+            catch (ArgumentException ex)
+            {
+                Console.WriteLine($"Error retrieving DocumentBody: {ex.Message}");
+                return null;
+            }
         }
 
         public static void AddDocumentBody(DocumentBody documentBody)
         {
-            if (documentBody != null)
+            if (documentBody == null)
             {
-                _documentBodies.Add(documentBody);
+                Console.WriteLine("DocumentBody tidak boleh null");
+                return; // Tidak menambahkan null
             }
+            _documentBodies.Add(documentBody);
         }
 
         public static IEnumerable<DocumentBody> GetDocumentBodiesByDocumentId(Guid documentId)
         {
+            // Mengambil semua DocumentBody yang terkait dengan documentId tertentu
+            if (documentId == Guid.Empty)
+            {
+                Console.WriteLine("DocumentId tidak boleh kosong");
+                return []; // Setara dengan 'Enumerable.Empty<DocumentBody>()'
+            }
+            
             return _documentBodies.Where(db => db.FK_DocumentId == documentId)
                 .OrderByDescending(db => db.IsCurrentVersion).ThenByDescending(db => db.CreatedAt);
         }
 
         public static DocumentBody? GetCurrentVersion(Guid documentId)
         {
+            if (documentId == Guid.Empty)
+            {
+                Console.WriteLine("DocumentId tidak boleh kosong");
+                return null; // Tidak ada versi terkini jika documentId kosong
+            }
+
             return _documentBodies.FirstOrDefault(db => db.FK_DocumentId == documentId && db.IsCurrentVersion);
         }
 
         public static DocumentBody? GetBeforeCurrentVersion(Guid documentId)
         {
+            if (documentId == Guid.Empty)
+            {
+                Console.WriteLine("DocumentId tidak boleh kosong");
+                return null; // Tidak ada versi sebelumnya jika documentId kosong
+            }
+
             return _documentBodies
                 .Where(db => db.FK_DocumentId == documentId && !db.IsCurrentVersion)
                 .OrderByDescending(db => db.CreatedAt)
@@ -87,13 +144,31 @@ namespace API.Repositories
 
         public static bool DeleteDocumentBody(Guid documentId, Guid documentBodyId)
         {
-            var documentBody = GetDocumentBodyById(documentId, documentBodyId);
-            if (documentBody != null)
+            try
             {
+                if (documentId == Guid.Empty)
+                {
+                    throw new ArgumentException("DocumentId tidak boleh kosong");
+                }
+
+                if (documentBodyId == Guid.Empty)
+                {
+                    throw new ArgumentException("DocumentBodyId tidak boleh kosong");
+                }
+
+                var documentBody = GetDocumentBodyById(documentId, documentBodyId);
+                if (documentBody == null)
+                {
+                    throw new ArgumentException("DocumentBody tidak ditemukan");
+                }
                 _documentBodies.Remove(documentBody);
                 return true;
             }
-            return false;
+            catch (ArgumentException ex)
+            {
+                Console.WriteLine($"Error deleting DocumentBody: {ex.Message}");
+                return false; // Mengembalikan false jika terjadi kesalahan
+            }
         }
 
         //UnitTest only

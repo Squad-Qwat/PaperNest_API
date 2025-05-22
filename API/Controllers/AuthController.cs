@@ -24,11 +24,27 @@ namespace PaperNest_API.Controllers
         {
             if (!ModelState.IsValid)
             {
-                return BadRequest(ModelState);
+                return Unauthorized(ModelState);
+            }
+
+            if (newUser == null)
+            {
+                return BadRequest(new
+                {
+                    message = "Invalid user data"
+                });
             }
 
             // For some reason, the RegisterRequest model is not being validated. Works from dev-abiyyu branch, but not here
             var new_user_obj = _userService.Register(newUser.Email, newUser.Password, newUser.Name, newUser.Username, newUser.Role);
+
+            if (new_user_obj == null)
+            {
+                return BadRequest(new
+                {
+                    message = "User already exists with the same email or username"
+                });
+            }
 
             return CreatedAtAction(nameof(Register), new { id = newUser.Id }, new
             {
@@ -42,7 +58,15 @@ namespace PaperNest_API.Controllers
         {
             if (!ModelState.IsValid)
             {
-                return BadRequest(ModelState);
+                return Unauthorized(ModelState);
+            }
+
+            if (existingUser == null)
+            {
+                return Unauthorized(new
+                {
+                    message = "Invalid user data"
+                });
             }
 
             var authorizedUser = _userService.Login(existingUser.Email, existingUser.Password);
@@ -71,7 +95,15 @@ namespace PaperNest_API.Controllers
         {
             if (!ModelState.IsValid)
             {
-                return BadRequest(ModelState);
+                return Unauthorized(ModelState);
+            }
+
+            if (string.IsNullOrEmpty(userEmail) || string.IsNullOrEmpty(newPassword))
+            {
+                return BadRequest(new
+                {
+                    message = "Email and new password must be provided"
+                });
             }
 
             bool success = _userService.ResetPassword(userEmail, newPassword);
@@ -93,9 +125,22 @@ namespace PaperNest_API.Controllers
         [HttpPost("change-email")]
         public IActionResult ResetEmail([FromBody] ChangeEmailRequest newEmail)
         {
+            if (!ModelState.IsValid)
+            {
+                return Unauthorized(ModelState);
+            }
+            
+            if (newEmail == null)
+            {
+                return BadRequest(new
+                {
+                    message = "Invalid email data"
+                });
+            }
+
             if (string.IsNullOrEmpty(newEmail.OldEmail) || string.IsNullOrEmpty(newEmail.NewEmail))
             {
-                return BadRequest(ModelState);
+                return Unauthorized(ModelState);
             }
 
             _userService.ChangeEmail(newEmail.OldEmail, newEmail.NewEmail);

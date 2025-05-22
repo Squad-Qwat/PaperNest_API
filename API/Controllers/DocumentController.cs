@@ -19,6 +19,14 @@ namespace PaperNest_API.Controllers
         {
             var documents = _documentService.GetAll();
 
+            if (documents == null || !documents.Any())
+            {
+                return NotFound(new
+                {
+                    message = "No documents found"
+                });
+            }
+
             return Ok(new
             {
                 message = "Success get all documents",
@@ -29,6 +37,14 @@ namespace PaperNest_API.Controllers
         [HttpGet("{id}")]
         public IActionResult GetDocumentById(Guid documentId)
         {
+            if (documentId == Guid.Empty)
+            {
+                return BadRequest(new
+                {
+                    message = "Invalid document ID"
+                });
+            }
+
             var document = _documentService.GetById(documentId);
 
             if (document == null)
@@ -49,7 +65,23 @@ namespace PaperNest_API.Controllers
         [HttpGet("user/{userId}")]
         public IActionResult GetDocumentsByUserId(Guid userId)
         {
+            if (userId == Guid.Empty)
+            {
+                return BadRequest(new
+                {
+                    message = "Invalid user ID"
+                });
+            }
+
             var documents = _documentService.GetByUserId(userId);
+
+            if (documents == null || !documents.Any())
+            {
+                return NotFound(new
+                {
+                    message = "No documents found for this user"
+                });
+            }
 
             return Ok(new
             {
@@ -61,7 +93,23 @@ namespace PaperNest_API.Controllers
         [HttpGet("workspace/{workspaceId}")]
         public IActionResult GetDocumentsByWorkspaceId(Guid workspaceId)
         {
+            if (workspaceId == Guid.Empty)
+            {
+                return BadRequest(new
+                {
+                    message = "Invalid workspace ID"
+                });
+            }
+
             var documents = _documentService.GetByWorkspaceId(workspaceId);
+
+            if (documents == null || !documents.Any())
+            {
+                return NotFound(new
+                {
+                    message = "No documents found in this workspace"
+                });
+            }
 
             return Ok(new
             {
@@ -73,6 +121,14 @@ namespace PaperNest_API.Controllers
         [HttpPost]
         public IActionResult CreateDocument([FromBody] Document newDocument)
         {
+            if (newDocument == null)
+            {
+                return BadRequest(new
+                {
+                    message = "Document data is required"
+                });
+            }
+
             _documentService.Create(newDocument);
 
             return CreatedAtAction(nameof(GetDocumentById), new { id = newDocument.Id }, new
@@ -85,6 +141,22 @@ namespace PaperNest_API.Controllers
         [HttpPut("{id}")]
         public IActionResult UpdateDocument(Guid id, [FromBody] Document updatedDocument)
         {
+            if (updatedDocument == null)
+            {
+                return BadRequest(new
+                {
+                    message = "Updated document data is required"
+                });
+            }
+
+            if (id != updatedDocument.Id)
+            {
+                return Unauthorized(new
+                {
+                    message = "Document ID in the URL does not match the ID in the document data"
+                });
+            }
+
             var existingDocument = _documentService.GetById(id);
 
             if (existingDocument == null)
@@ -107,6 +179,14 @@ namespace PaperNest_API.Controllers
         [HttpDelete("{id}")]
         public IActionResult DeleteDocument(Guid documentId)
         {
+            if (documentId == Guid.Empty)
+            {
+                return BadRequest(new
+                {
+                    message = "Invalid document ID"
+                });
+            }
+
             var existingDocument = _documentService.GetById(documentId);
 
             if (existingDocument == null)

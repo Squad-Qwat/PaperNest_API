@@ -6,7 +6,7 @@ namespace API.Repositories
     {
         // A static list to simulate a database collection for Citation objects.
         // This list will hold all Citation instances managed by this repository.
-        private static readonly List<Citation> _citations = new List<Citation>();
+        private static readonly List<Citation> _citations = []; // Setara dengan `new List<Citation>()` untuk menyimpan semua Citation instances.
         private static Citation? citationForService; // A placeholder for a single Citation instance.
 
         // Default constructor. Initializes the repository.
@@ -73,63 +73,120 @@ namespace API.Repositories
             get => _citations;
             set
             {
-                if (value != null)
-                {
+                try 
+                { 
+                    if (value == null)
+                    {
+                        Console.WriteLine("Setting new citations list.");
+                        return;
+                    }
+
+                    if (value.Count == 0)
+                    {
+                        Console.WriteLine("Setting empty citations list.");
+                    }
+                    else
+                    {
+                        Console.WriteLine($"Setting citations list with {value.Count} items.");
+                    }
+
+                    if (value.Any(c => c == null))
+                    {
+                        throw new ArgumentException("Citations list cannot contain null items.");
+                    }
+
+                    if (value.Any(c => c.Id == Guid.Empty))
+                    {
+                        throw new ArgumentException("Citations list cannot contain items with empty IDs.");
+                    }
                     _citations.Clear(); // Clear existing data
                     _citations.AddRange(value); // Add new data
+                }
+                catch (ArgumentException ex)
+                {
+                    Console.WriteLine($"Error setting citations: {ex.Message}");
                 }
             }
         }
 
         public static void AddCitation(Citation citation)
         {
-            if (citation == null)
+            try
             {
-                throw new ArgumentNullException(nameof(citation), "Citation cannot be null.");
+                if (citation == null)
+                {
+                    throw new ArgumentNullException(nameof(citation), "Citation cannot be null.");
+                }
+                // Ensure the ID is set if it's empty (though the model defaults it)
+                if (citation.Id == Guid.Empty)
+                {
+                    citation.Id = Guid.NewGuid();
+                }
+                _citations.Add(citation);
             }
-            // Ensure the ID is set if it's empty (though the model defaults it)
-            if (citation.Id == Guid.Empty)
+            catch (ArgumentNullException ex)
             {
-                citation.Id = Guid.NewGuid();
-            }
-            _citations.Add(citation);
+                Console.WriteLine($"Error adding citation: {ex.Message}");
+            } 
         }
 
         public static Citation? GetCitationById(Guid citationId)
         {
-            if (citationId == Guid.Empty)
+            try
             {
-                throw new ArgumentException("Citation ID cannot be empty.", nameof(citationId));
+                if (citationId == Guid.Empty)
+                {
+                    throw new ArgumentException("Citation ID cannot be empty.", nameof(citationId));
+                }
+
+                return _citations.FirstOrDefault(c => c.Id == citationId);
             }
-            return _citations.FirstOrDefault(c => c.Id == citationId);
+            catch (ArgumentException ex)
+            {
+                Console.WriteLine($"Error retrieving citation: {ex.Message}");
+                return null;
+            } 
         }
 
         public static IEnumerable<Citation> GetCitationsByDocumentId(Guid documentId)
         {
-            if (documentId == Guid.Empty)
+            try
             {
-                throw new ArgumentException("Document ID cannot be empty.", nameof(documentId));
+                if (documentId == Guid.Empty)
+                {
+                    throw new ArgumentException("Document ID cannot be empty.", nameof(documentId));
+                }
+                // Order by CreatedAt for consistent retrieval, newest first
+                return _citations.Where(c => c.FK_DocumentId == documentId)
+                                 .OrderByDescending(c => c.CreatedAt); // Ensure using CreatedAt property
             }
-            // Order by CreatedAt for consistent retrieval, newest first
-            return _citations.Where(c => c.FK_DocumentId == documentId)
-                             .OrderByDescending(c => c.CreatedAt); // Ensure using CreatedAt property
+            catch (ArgumentException ex)
+            {
+                Console.WriteLine($"Error retrieving citations: {ex.Message}");
+                return []; // Setara dengan 'Enumerable.Empty<Citation>()'
+            }
         }
 
         public static bool UpdateCitation(Citation updatedCitation)
         {
-            if (updatedCitation == null)
+            try
             {
-                throw new ArgumentNullException(nameof(updatedCitation), "Updated citation cannot be null.");
-            }
-            if (updatedCitation.Id == Guid.Empty)
-            {
-                throw new ArgumentException("Updated citation ID cannot be empty.", nameof(updatedCitation));
-            }
+                if (updatedCitation == null)
+                {
+                    throw new ArgumentNullException(nameof(updatedCitation), "Updated citation cannot be null.");
+                }
+                if (updatedCitation.Id == Guid.Empty)
+                {
+                    throw new ArgumentException("Updated citation ID cannot be empty.", nameof(updatedCitation));
+                }
 
-            var existingCitation = _citations.FirstOrDefault(c => c.Id == updatedCitation.Id);
+                var existingCitation = _citations.FirstOrDefault(c => c.Id == updatedCitation.Id);
 
-            if (existingCitation != null)
-            {
+                if (existingCitation == null)
+                {
+                    throw new Exception($"Citation with ID {updatedCitation.Id} not found.");
+                }
+                
                 // Update all modifiable properties
                 existingCitation.Type = updatedCitation.Type;
                 existingCitation.Title = updatedCitation.Title;
@@ -151,22 +208,36 @@ namespace API.Repositories
 
                 return true;
             }
-            return false; // Citation not found
+            catch (ArgumentNullException ex)
+            {
+                Console.WriteLine($"Error updating citation: {ex.Message}");
+                return false;
+            }
         }
 
         public static bool DeleteCitation(Guid citationId)
         {
-            if (citationId == Guid.Empty)
+            try
             {
-                throw new ArgumentException("Citation ID cannot be empty.", nameof(citationId));
-            }
-            var citationToRemove = _citations.FirstOrDefault(c => c.Id == citationId);
-            if (citationToRemove != null)
-            {
+                if (citationId == Guid.Empty)
+                {
+                    throw new ArgumentException("Citation ID cannot be empty.", nameof(citationId));
+                }
+                var citationToRemove = _citations.FirstOrDefault(c => c.Id == citationId) ?? throw new Exception($"Citation with ID {citationId} not found.");
+                /*
+                 * Setara dengan 'if (citationToRemove == null)
+                 * { 
+                 *     throw new Exception($"Citation with ID {citationId} not found.");
+                 * }'
+                 */
                 _citations.Remove(citationToRemove);
                 return true;
             }
-            return false;
+            catch (ArgumentException ex)
+            {
+                Console.WriteLine($"Error deleting citation: {ex.Message}");
+                return false;
+            } 
         }
 
         public static void ClearAllCitations()

@@ -25,11 +25,9 @@ namespace API.Helpers.Enums
                 Console.WriteLine($"Error: Cannot directly set to {result} from {Name}. Requires review first.");
                 return;
             }
-            else
-            {
-                Console.WriteLine("Research request is submitted and pending review.");
-                manager.ChangeState(request, new UnderReviewState());
-            }
+            
+            Console.WriteLine("Research request is submitted and pending review.");
+            manager.ChangeState(request, new UnderReviewState());
         }
     }
     public class UnderReviewState : ReviewState
@@ -85,14 +83,14 @@ namespace API.Helpers.Enums
         public void Process(Review request, ReviewStatus result, string reviewerComment)
         {
             ReviewUtil manager = new(); // Setara dengan 'new  ReviewUtil()'
-            if (result == ReviewStatus.Approved)
-            {
-                manager.ChangeState(request, new ApprovedState());
-            }
-            else
+            if (result != ReviewStatus.Approved)
             {
                 Console.WriteLine($"Research request {request} is still under revision or received another review result: {result}");
+                return;
+                
             }
+            
+            manager.ChangeState(request, new ApprovedState());
         }
     }
 }

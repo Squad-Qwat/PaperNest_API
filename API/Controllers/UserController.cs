@@ -18,6 +18,14 @@ namespace PaperNest_API.Controllers
         {
             var user = _userService.GetAll();
 
+            if (user == null || !user.Any())
+            {
+                return NotFound(new
+                {
+                    message = "No users found"
+                });
+            }
+
             return Ok(new
             {
                 message = "Success get all User data",
@@ -28,11 +36,22 @@ namespace PaperNest_API.Controllers
         [HttpGet("{id}")]
         public IActionResult GetUserById(Guid id)
         {
+            if (id == Guid.Empty)
+            {
+                return BadRequest(new
+                {
+                    message = "User ID cannot be empty"
+                });
+            }
+
             var user = _userService.GetById(id);
 
             if (user == null)
             {
-                return NotFound();
+                return NotFound(new 
+                {
+                    message = "User not found!"
+                });
             }
 
             return Ok(new
@@ -45,11 +64,38 @@ namespace PaperNest_API.Controllers
         [HttpPut("{id}")]
         public IActionResult UpdateUser(Guid id, [FromBody] User user)
         {
+            if (id == Guid.Empty)
+            {
+                return BadRequest(new
+                {
+                    message = "User ID cannot be empty"
+                });
+            }
+
+            if (user == null)
+            {
+                return BadRequest(new
+                {
+                    message = "User data cannot be null"
+                });
+            }
+
             var existingUser = _userService.GetById(id);
 
             if (existingUser == null)
             {
-                return NotFound();
+                return NotFound(new 
+                { 
+                    message = "User doesn't exist!"
+                });
+            }
+
+            if (existingUser.Name == null || existingUser.Username == null)
+            {
+                return BadRequest(new
+                {
+                    message = "User name and username cannot be null"
+                });
             }
 
             existingUser.Name = user.Name;
@@ -64,6 +110,14 @@ namespace PaperNest_API.Controllers
         [HttpDelete("id")]
         public IActionResult DeleteUser(Guid id)
         {
+            if (id == Guid.Empty)
+            {
+                return BadRequest(new
+                {
+                    message = "User ID cannot be empty"
+                });
+            }
+
             _userService.Delete(id);
 
             return Ok(new
