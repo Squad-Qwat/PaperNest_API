@@ -1,5 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using API.Helpers.Enums;
 
 namespace API.Models
 {
@@ -9,19 +10,22 @@ namespace API.Models
         public Guid Id { get; protected set; } = Guid.NewGuid();
 
         [Required, MaxLength(100)]
-        public string Name { get; set; }
+        public string? Name { get; set; }
 
         [Required, MaxLength(255)]
-        public string Email { get; set; }
+        public string? Email { get; set; }
 
         [Required, MaxLength(12)]
-        public string Password { get; set; }
+        public string? Password { get; set; }
 
         [MaxLength(15)]
-        public string Username { get; set; }
+        public string? Username { get; set; }
+
+        [Required, EnumDataType(typeof(UserRole))]
+        public string Role { get; set; } = UserRole.Student.ToString();
 
         // one to many
-        public ICollection<UserWorkspace> UserWorkspace = new List<UserWorkspace>();
+        public ICollection<UserWorkspace> UserWorkspace = []; // Setara dengan 'new List<UserWorkspace>()'
 
         public DateTime CreatedAt { get; protected set; } = DateTime.Now;
 

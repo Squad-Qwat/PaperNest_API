@@ -1,6 +1,7 @@
 ﻿using API.Helpers.Enums;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.ComponentModel.DataAnnotations;
+using API.Repositories;
 
 namespace API.Models
 {
@@ -10,16 +11,16 @@ namespace API.Models
         public Guid Id { get; set; } = Guid.NewGuid();
 
         [Required]
-        public string Title { get; set; } // Title of the submission
+        public string? Title { get; set; } // Title of the submission
 
         [Required]
-        public string Abstract { get; set; } // Abstract of the submission
+        public string? Abstract { get; set; } // Abstract of the submission
 
         [Required]
-        public string ResearcherName { get; set; } // Submitter's name
+        public string? ResearcherName { get; set; } // Submitter's name
 
         public DateTime SubmissionDate { get; private set; } // When it was submitted
-        public ReviewState State { get; set; } // Current state of the review process
+        public ReviewState? State { get; set; } // Current state of the review process
         public DateTime CreatedAt { get; protected set; } = DateTime.Now;
 
         public DateTime UpdateAt { get; set; } = DateTime.Now;
@@ -44,24 +45,6 @@ namespace API.Models
         [ForeignKey("DocumentBodyId")]
         public virtual DocumentBody DocumentBody { get; set; } = null!; // The proposed content version
 
-        public virtual List<Review> Reviews { get; private set; } = new List<Review>(); // Collection of reviews for this request
-
-        // Constructor for Entity Framework
-        protected ReviewRequest() { }
-
-        public ReviewRequest(Guid id, string title, string abstractText, string researcherName, Guid userId, Guid documentId, Guid documentBodyId)
-        {
-            Id = id;
-            Title = title;
-            Abstract = abstractText;
-            ResearcherName = researcherName;
-            UserId = userId;
-            DocumentId = documentId;
-            DocumentBodyId = documentBodyId;
-            SubmissionDate = DateTime.Now;
-            State = new SubmittedState(); // Initial state
-            CreatedAt = DateTime.Now;
-            UpdateAt = DateTime.Now;
-        }
+        public virtual List<ReviewRepository> Reviews { get; private set; } = []; // Collection of reviews for this request, equal to 'new List<ReviewRepository>()'
     }
 }

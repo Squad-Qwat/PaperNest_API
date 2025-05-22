@@ -1,4 +1,5 @@
 ﻿using API.Models;
+using API.Repositories;
 using API.Services;
 using API.StateMachines;
 using Microsoft.AspNetCore.Mvc;
@@ -8,14 +9,14 @@ namespace API.Helpers.Enums
     public interface ReviewState
     {
         string Name { get; }
-        void Process(ReviewRequest request, ReviewStatus result, string reviewerComment);
+        void Process(Review request, ReviewStatus result, string reviewerComment);
     }
 
     public class SubmittedState : ReviewState
     {
         public string Name => "Submitted";
         
-        public void Process(ReviewRequest request, ReviewStatus result, string reviewerComment)
+        public void Process(Review request, ReviewStatus result, string reviewerComment)
         {
             // Change the state to Under Review
             ReviewUtil manager = new(); // Setara dengan 'new  ReviewUtil()'
@@ -34,10 +35,10 @@ namespace API.Helpers.Enums
     {
         public string Name => "Under Review";
 
-        public void Process(ReviewRequest request, ReviewStatus result, string reviewerComment)
+        public void Process(Review request, ReviewStatus result, string reviewerComment)
         {
             ReviewUtil manager = new(); // Setara dengan 'new  ReviewUtil()'
-            manager.AddReview(request, new Review(Guid.NewGuid(), result, request.DocumentBodyId, request.UserId, reviewerComment));
+            manager.AddReview(request, new ReviewRepository(Guid.NewGuid(), result, request.FK_DocumentBodyId, request.FK_UserId, reviewerComment));
 
             switch (result)
             {
@@ -56,7 +57,7 @@ namespace API.Helpers.Enums
     public class ApprovedState : ReviewState
     {
         public string Name => "Approved";
-        public void Process(ReviewRequest request, ReviewStatus result, string reviewerComment)
+        public void Process(Review request, ReviewStatus result, string reviewerComment)
         {
             // Change the state to Under Review
             ReviewUtil manager = new(); // Setara dengan 'new  ReviewUtil()'
@@ -70,7 +71,7 @@ namespace API.Helpers.Enums
     public class DoneState : ReviewState
     {
         public string Name => "Done";
-        public void Process(ReviewRequest request, ReviewStatus result, string reviewerComment)
+        public void Process(Review request, ReviewStatus result, string reviewerComment)
         {
             Console.WriteLine("Dokumen sudah ditinjau.");
             Console.WriteLine($"Permintaan peninjauan {request} sudah selesai: {result}.");
@@ -81,7 +82,7 @@ namespace API.Helpers.Enums
     public class NeedsRevisionState : ReviewState
     {
         public string Name => "Needs Revision";
-        public void Process(ReviewRequest request, ReviewStatus result, string reviewerComment)
+        public void Process(Review request, ReviewStatus result, string reviewerComment)
         {
             ReviewUtil manager = new(); // Setara dengan 'new  ReviewUtil()'
             if (result == ReviewStatus.Approved)

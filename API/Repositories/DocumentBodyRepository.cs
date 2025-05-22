@@ -4,7 +4,37 @@ namespace API.Repositories
 {
     public class DocumentBodyRepository
     {
-        private static readonly List<DocumentBody> _documentBodies = new List<DocumentBody>();
+        private static readonly List<DocumentBody> _documentBodies = []; // Setara dengan 'new List<DocumentBody>();
+        private static DocumentBody? documentBodyForService;
+
+        public DocumentBodyRepository()
+        {
+            documentBodyForService = new(); // Setara dengan 'new DocumentBody();'
+        }
+
+        public DocumentBodyRepository(Guid id, string content, Guid documentId, bool isCurrentVersion)
+        {
+            documentBodyForService = new()
+            {
+                Id = id,
+                Content = content,
+                FK_DocumentId = documentId,
+                IsCurrentVersion = isCurrentVersion
+            }; // Setara dengan 'new DocumentBody();'
+        }
+
+        public DocumentBodyRepository(Guid id, string content, Guid documentId, bool isCurrentVersion, bool isReviewed, DateTime createdAt)
+        {
+            documentBodyForService = new()
+            {
+                Id = id,
+                Content = content,
+                FK_DocumentId = documentId,
+                IsCurrentVersion = isCurrentVersion,
+                IsReviewed = isReviewed,
+                CreatedAt = createdAt
+            }; // Setara dengan 'new DocumentBody();'
+        }
 
         public static List<DocumentBody> DocumentBodies
         {
@@ -53,6 +83,17 @@ namespace API.Repositories
                 .Where(db => db.FK_DocumentId == documentId && !db.IsCurrentVersion)
                 .OrderByDescending(db => db.CreatedAt)
                 .FirstOrDefault();
+        }
+
+        public static bool DeleteDocumentBody(Guid documentId, Guid documentBodyId)
+        {
+            var documentBody = GetDocumentBodyById(documentId, documentBodyId);
+            if (documentBody != null)
+            {
+                _documentBodies.Remove(documentBody);
+                return true;
+            }
+            return false;
         }
 
         //UnitTest only

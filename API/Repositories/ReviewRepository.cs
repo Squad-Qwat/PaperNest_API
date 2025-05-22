@@ -1,11 +1,30 @@
 ﻿using API.Helpers.Enums;
 using API.Models;
+using System.Xml.Linq;
 
 namespace API.Repositories
 {
     public class ReviewRepository
     {
-        private static readonly List<Review> _reviews = new List<Review>();
+        private static readonly List<Review> _reviews = []; // Setara dengan 'new List<Review>();'
+        private static Review? reviewforservice;
+
+        public ReviewRepository()
+        {
+            reviewforservice = new(); // Setara dengan 'new Review();'
+        }
+
+        public ReviewRepository(Guid id, ReviewStatus status, Guid documentBodyId, Guid userId, string comment)
+        {
+            reviewforservice = new()
+            {
+                Id = id,
+                Status = status,
+                Comment = comment,
+                FK_DocumentBodyId = documentBodyId,
+                FK_UserId = userId,
+            }; // Setara dengan 'new Review();'
+        }
         public static List<Review> Reviews
         {
             get => _reviews;
@@ -38,6 +57,17 @@ namespace API.Repositories
             Guid documentBodyId)
         {
             return _reviews.FirstOrDefault(r => r.FK_DocumentBodyId == documentBodyId);
+        }
+
+        public static bool RemoveReview(Guid reviewId)
+        {
+            var review = _reviews.FirstOrDefault(r => r.Id == reviewId);
+            if (review != null)
+            {
+                _reviews.Remove(review);
+                return true;
+            }
+            return false;
         }
     }
 }

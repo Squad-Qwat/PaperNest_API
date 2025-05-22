@@ -1,4 +1,5 @@
 ﻿using API.Helpers.Enums;
+using API.Repositories;
 using System.ComponentModel.DataAnnotations;
 
 namespace API.Models
@@ -8,33 +9,26 @@ namespace API.Models
         [Key, Required]
         public Guid Id { get; set; }
 
-        public string Comment { get; set; }
+        public string? Comment { get; set; }
 
         [Required]
         public Guid FK_DocumentBodyId { get; set; }
-        public DocumentBody DocumentBody { get; set; }
+        public DocumentBody? DocumentBody { get; set; }
 
         [Required]
         public Guid FK_UserId { get; set; }
-        public User User { get; set; }
+        public User? User { get; set; }
 
         [Required]
         public ReviewStatus Status { get; set; } = ReviewStatus.NeedsRevision;
+
+        public ReviewState? State { get; set; } // Current state of the review process
 
         [Required]
         public DateTime CreatedAt { get; protected set; } = DateTime.Now;
 
         public DateTime UpdateAt { get; set; } = DateTime.Now;
 
-        public Review() { }
-
-        public Review(Guid id, ReviewStatus status,Guid documentBodyId, Guid userId, string comment)
-        {
-            Id = id;
-            Status = status;
-            Comment = comment;
-            FK_DocumentBodyId = documentBodyId;
-            FK_UserId = userId;
-        }
+        public virtual List<ReviewRepository> Reviews { get; private set; } = []; // Collection of reviews for this request, equal to 'new List<ReviewRepository>()'
     }
 }

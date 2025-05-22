@@ -4,7 +4,7 @@ namespace API.Repositories
 {
     public class UserWorkspaceRepository
     {
-        public static List<UserWorkspace> _userWorkspace= new List<UserWorkspace>();
+        public static List<UserWorkspace> _userWorkspace= []; // Setara dengan 'new List<UserWorkspace>()'
 
         public static List<UserWorkspace> UserWorkspace
         {

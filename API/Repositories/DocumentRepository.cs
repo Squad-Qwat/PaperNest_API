@@ -4,6 +4,6 @@ namespace API.Repositories
 {
     public class DocumentRepository
     {
-        public static List<Document> documentWorkspace = new List<Document>();
+        public static List<Document> documentRepository = []; // Setara dengan 'new List<Document>()'
     }
 }
