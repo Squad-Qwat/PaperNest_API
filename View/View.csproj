@@ -8,6 +8,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+<<<<<<< HEAD
     <Compile Remove="Lecturer\**" />
     <Compile Remove="Student\**" />
     <EmbeddedResource Remove="Lecturer\**" />
@@ -19,6 +20,14 @@
   <ItemGroup>
     <ProjectReference Include="..\API\API.csproj" />
     <ProjectReference Include="..\UnitTesting\UnitTesting.csproj" />
+=======
+    <Folder Include="Student\" />
+    <Folder Include="Student\" />
+>>>>>>> 17a6f9ab8a50a274fa9a032397d1ac9f4e34ae19
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\API\API.csproj" />
   </ItemGroup>
 
 </Project>

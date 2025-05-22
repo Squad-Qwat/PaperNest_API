@@ -26,11 +26,15 @@
   </ItemGroup>
 
   <ItemGroup>
+<<<<<<< HEAD
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.6.2" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\UnitTesting\UnitTesting.csproj" />
+=======
+    <Folder Include="Helpers\Globals\" />
+>>>>>>> 17a6f9ab8a50a274fa9a032397d1ac9f4e34ae19
   </ItemGroup>
 
 </Project>
