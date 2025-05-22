@@ -4,7 +4,6 @@ using API.Services;
 using API.Repositories;
 using API.Models.DataBinding;
 using API.Helpers.Enums;
-using Microsoft.AspNetCore.Identity.Data;
 
 namespace PaperNest_API.Controllers
 {
@@ -35,7 +34,6 @@ namespace PaperNest_API.Controllers
                 });
             }
 
-            // For some reason, the RegisterRequest model is not being validated. Works from dev-abiyyu branch, but not here
             var new_user_obj = _userService.Register(newUser.Email, newUser.Password, newUser.Name, newUser.Username, newUser.Role);
 
             if (new_user_obj == null)
@@ -66,6 +64,15 @@ namespace PaperNest_API.Controllers
                 return Unauthorized(new
                 {
                     message = "Invalid user data"
+                });
+            }
+
+            // Check if email and password are provided
+            if (string.IsNullOrEmpty(existingUser.Email) || string.IsNullOrEmpty(existingUser.Password))
+            {
+                return BadRequest(new
+                {
+                    message = "Email and Password must be provided"
                 });
             }
 

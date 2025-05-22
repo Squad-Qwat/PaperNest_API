@@ -9,6 +9,5 @@ namespace API.Models.DataBinding
 
         [Required]
         public string? Content { get; set; }
-
     }
 }

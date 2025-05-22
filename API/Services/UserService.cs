@@ -34,13 +34,44 @@ namespace API.Services
 
         }
 
-        public User Register(string userEmail, string userPassword, string userName, string userUsername, string userRole = "Mahasiswa")
+        public User? Register(string? userEmail, string? userPassword, string? userName, string? userUsername, string? userRole = "Mahasiswa")
         {
             Debug.Assert(userEmail != string.Empty, "User email can not be empty");
             Debug.Assert(userPassword != string.Empty, "User password can not be empty");
             Debug.Assert(userName != string.Empty, "User name can not be empty");
             Debug.Assert(userUsername != string.Empty, "User username can not be empty");
             Debug.Assert(userRole != string.Empty, "User role can not be empty");
+
+            // Separate null checks for each field to provide specific error messages
+            if (userEmail == null)
+            {
+               Debug.WriteLine("User registration failed: 'userEmail' fields are null.");
+               return null;
+            }
+            
+            if (userPassword == null)
+            {
+                Debug.WriteLine("User registration failed: 'userPassword' fields are null.");
+                return null;
+            }
+            
+            if (userName == null)
+            {
+                Debug.WriteLine("User registration failed: 'userName' fields are null.");
+                return null;
+            }
+            
+            if (userUsername == null)
+            {
+                Debug.WriteLine("User registration failed: 'userUsername' fields are null.");
+                return null;
+            }
+            
+            if (userRole == null)
+            {
+                Debug.WriteLine("User registration failed: 'userRole' fields are null.");
+                return null;
+            }
 
             var checkEmail = GetByEmail(userEmail);
             var checkUsername = GetByUsername(userUsername);
@@ -80,10 +111,22 @@ namespace API.Services
             return UserRepository.userRepository.FirstOrDefault(u => (u.Email == userEmailOrUsername || u.Username == userEmailOrUsername) && u.Password == userPassword);
         }
 
-        public User? Login(string userEmailOrUsername, string userPassword)
+        public User? Login(string? userEmailOrUsername, string? userPassword)
         {
             Debug.Assert(userEmailOrUsername != string.Empty, "User email or username can not be empty");
             Debug.Assert(userPassword != string.Empty, "User password can not be empty");
+
+            // Separate null checks for each field to provide specific error messages
+            if (userEmailOrUsername == null)
+            {
+                Debug.WriteLine("Login failed: user email or username field is null.");
+                return null;
+            }
+            if (userPassword == null)
+            {
+                Debug.WriteLine("Login failed: user password field is null.");
+                return null;
+            }
 
             return GetByEmailOrUsernameAndPassword(userEmailOrUsername, userPassword);
         }
