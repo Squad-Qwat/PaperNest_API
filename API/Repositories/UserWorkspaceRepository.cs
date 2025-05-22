@@ -1,4 +1,5 @@
 ﻿using API.Models;
+using API.Helpers.Enums;
 // using System.Diagnostics;
 
 namespace API.Repositories
@@ -83,6 +84,138 @@ namespace API.Repositories
                 return []; // Setara dengan 'Enumerable.Empty<UserWorkspace>()'
             }
             return _userWorkspace.Where(uw => uw.FK_UserId == userId);
+        }
+
+        /*
+        public static UserWorkspace? UpdateUserWorkspace(Guid userId, Guid workspaceId)
+        {
+            try
+            {
+                if (userId == Guid.Empty || workspaceId == Guid.Empty)
+                {
+                    throw new ArgumentException("User ID and workspace ID cannot be empty.");
+                }
+                var userWorkspace = _userWorkspace.FirstOrDefault(uw => uw.FK_UserId == userId && uw.FK_WorkspaceId == workspaceId);
+                if (userWorkspace == null)
+                {
+                    throw new KeyNotFoundException("User workspace not found for the given user ID and workspace ID.");
+                }
+                // userWorkspace.WorkspaceRole = newRole;
+                userWorkspace.UpdateAt = DateTime.Now; // Update timestamp
+                return userWorkspace;
+            }
+            catch (ArgumentException ex)
+            {
+                Console.WriteLine($"Error updating user workspace: {ex.Message}");
+                return null;
+            }
+            catch (KeyNotFoundException ex)
+            {
+                Console.WriteLine($"Error updating user workspace: {ex.Message}");
+                return null;
+            }
+        }
+        */
+
+        public static bool UpdateUserWorkspace(Guid userId, Guid workspaceId)
+        {
+            try
+            {
+                if (userId == Guid.Empty || workspaceId == Guid.Empty)
+                {
+                    throw new ArgumentException("User ID and workspace ID cannot be empty.");
+                }
+
+                var userWorkspace = _userWorkspace.FirstOrDefault(uw => uw.FK_UserId == userId && uw.FK_WorkspaceId == workspaceId) ??
+                    throw new KeyNotFoundException("User workspace not found for the given user ID and workspace ID.");
+                /*
+                 * Setara dengan 
+                 * if (userWorkspace == null)
+                 * {
+                 *    throw new KeyNotFoundException("User workspace not found for the given user ID and workspace ID.");
+                 * }
+                 */
+                userWorkspace.UpdateAt = DateTime.Now; // Update timestamp
+                return true;
+            }
+            catch (ArgumentException ex)
+            {
+                Console.WriteLine($"Error updating user workspace: {ex.Message}");
+                return false;
+            }
+            catch (KeyNotFoundException ex)
+            {
+                Console.WriteLine($"Error updating user workspace: {ex.Message}");
+                return false;
+            }
+        }
+
+        /*
+        public static UserWorkspace? UpdateUserWorkspaceRole(Guid userId, Guid workspaceId, WorkspaceRole role) 
+        {
+            try
+            {
+                if (userId == Guid.Empty || workspaceId == Guid.Empty)
+                {
+                    throw new ArgumentException("User ID and workspace ID cannot be empty.");
+                }
+                var userWorkspace = _userWorkspace.FirstOrDefault(uw => uw.FK_UserId == userId && uw.FK_WorkspaceId == workspaceId) ?? 
+                    throw new KeyNotFoundException("User workspace not found for the given user ID and workspace ID.");
+                {
+                 * Setara dengan:
+                 * if (userWorkspace == null)
+                 * {
+                 *    throw new KeyNotFoundException("User workspace not found for the given user ID and workspace ID.");
+                 * }
+                }
+                userWorkspace.WorkspaceRole = role;
+                userWorkspace.UpdateAt = DateTime.Now; // Update timestamp
+                return userWorkspace;
+            }
+            catch (ArgumentException ex)
+            {
+                Console.WriteLine($"Error updating user workspace: {ex.Message}");
+                return null;
+            }
+            catch (KeyNotFoundException ex)
+            {
+                Console.WriteLine($"Error updating user workspace: {ex.Message}");
+                return null;
+            }
+        }
+        */
+
+        public static bool UpdateUserWorkspaceRole(Guid userId, Guid workspaceId, WorkspaceRole role)
+        {
+            try
+            {
+                if (userId == Guid.Empty || workspaceId == Guid.Empty)
+                {
+                    throw new ArgumentException("User ID and workspace ID cannot be empty.");
+                }
+                var userWorkspace = _userWorkspace.FirstOrDefault(uw => uw.FK_UserId == userId && uw.FK_WorkspaceId == workspaceId) ??
+                    throw new KeyNotFoundException("User workspace not found for the given user ID and workspace ID.");
+                /*
+                 * Setara dengan 
+                 * if (userWorkspace == null)
+                 * {
+                 *    throw new KeyNotFoundException("User workspace not found for the given user ID and workspace ID.");
+                 * }
+                 */
+                userWorkspace.WorkspaceRole = role;
+                userWorkspace.UpdateAt = DateTime.Now; // Update timestamp
+                return true;
+            }
+            catch (ArgumentException ex)
+            {
+                Console.WriteLine($"Error updating user workspace role: {ex.Message}");
+                return false;
+            }
+            catch (KeyNotFoundException ex)
+            {
+                Console.WriteLine($"Error updating user workspace role: {ex.Message}");
+                return false;
+            }
         }
 
         public static bool RemoveUserWorkspace(Guid userId, Guid workspaceId)

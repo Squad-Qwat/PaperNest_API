@@ -5,13 +5,17 @@ using API.Services;
 namespace PaperNest_API.Controllers
 {
     [ApiController, Route("/api/users")]
-    public class UserController : Controller
+    public class UserController(UserService userService) : Controller
     {
-        public readonly UserService _userService;
-        public UserController(UserService userService)
-        {
-            _userService = userService;
-        }
+        public readonly UserService _userService = userService;
+
+        /*
+         * Setara dengan:
+         * public UserController(UserService userService)
+         * {
+         *    _userService = userService;
+         * }
+         */
 
         [HttpGet]
         public IActionResult GetAllUser()
@@ -48,7 +52,7 @@ namespace PaperNest_API.Controllers
 
             if (user == null)
             {
-                return NotFound(new 
+                return NotFound(new
                 {
                     message = "User not found!"
                 });
@@ -60,6 +64,9 @@ namespace PaperNest_API.Controllers
                 data = user
             });
         }
+
+        // No need to create [HttpPost] for creating a user, as it is handled in AuthController
+        // Note: The [FromBody] attribute is used to bind the request body to the user parameter
 
         [HttpPut("{id}")]
         public IActionResult UpdateUser(Guid id, [FromBody] User user)
@@ -84,8 +91,8 @@ namespace PaperNest_API.Controllers
 
             if (existingUser == null)
             {
-                return NotFound(new 
-                { 
+                return NotFound(new
+                {
                     message = "User doesn't exist!"
                 });
             }
@@ -107,7 +114,7 @@ namespace PaperNest_API.Controllers
             });
         }
 
-        [HttpDelete("id")]
+        [HttpDelete("{id}")]
         public IActionResult DeleteUser(Guid id)
         {
             if (id == Guid.Empty)

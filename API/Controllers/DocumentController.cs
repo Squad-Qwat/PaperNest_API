@@ -5,14 +5,17 @@ using API.Services;
 namespace PaperNest_API.Controllers
 {
     [ApiController, Route("api/documents")]
-    public class DocumentController : Controller
+    public class DocumentController(DocumentService documentService) : Controller
     {
-        public readonly DocumentService _documentService;
+        public readonly DocumentService _documentService = documentService;
 
-        public DocumentController(DocumentService documentService)
-        {
-            _documentService = documentService;
-        }
+        /*
+         * Setara dengan:
+         * public DocumentController(DocumentService documentService)
+         * {
+         *    _documentService = documentService;
+         * }
+         */
 
         [HttpGet]
         public IActionResult GetAllDocuments()
@@ -34,7 +37,7 @@ namespace PaperNest_API.Controllers
             });
         }
 
-        [HttpGet("{id}")]
+        [HttpGet("{documentid}")]
         public IActionResult GetDocumentById(Guid documentId)
         {
             if (documentId == Guid.Empty)
@@ -176,7 +179,7 @@ namespace PaperNest_API.Controllers
             });
         }
 
-        [HttpDelete("{id}")]
+        [HttpDelete("{documentid}")]
         public IActionResult DeleteDocument(Guid documentId)
         {
             if (documentId == Guid.Empty)

@@ -8,15 +8,18 @@ namespace API.Controllers
 {
     [ApiController]
     [Route("api/citations")]
-    public class CitationController : ControllerBase // Use ControllerBase for API controllers without view support
+    public class CitationController(CitationService citationService) : ControllerBase // Use ControllerBase for API controllers without view support
     {
-        private readonly CitationService _citationService;
+        private readonly CitationService _citationService = citationService;
 
         // Constructor for dependency injection of CitationService
-        public CitationController(CitationService citationService)
-        {
-            _citationService = citationService;
-        }
+        /*
+         * Setara dengan:
+         * public CitationController(CitationService citationService)
+         * {
+         *    _citationService = citationService;
+         * }
+         */
 
         [HttpGet]
         public IActionResult GetAllCitations()

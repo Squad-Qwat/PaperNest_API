@@ -5,14 +5,17 @@ using API.Helpers.Enums;
 namespace API.Controllers
 {
     [ApiController, Route("api/review")]
-    public class ReviewController : Controller
+    public class ReviewController(ReviewService reviewService) : Controller
     {
-        private readonly ReviewService _reviewService;
+        private readonly ReviewService _reviewService = reviewService;
 
-        public ReviewController(ReviewService reviewService)
-        {
-            _reviewService = reviewService;
-        }
+        /*
+         * Setara dengan:
+         * public ReviewController(ReviewService reviewService)
+         * {
+         *   _reviewService = reviewService;
+         * }
+         */
 
         [HttpGet("{documentBodyId}")]
         public IActionResult GetReviews(Guid documentBodyId)
@@ -84,6 +87,56 @@ namespace API.Controllers
 
             _reviewService.AddReview(documentBodyId, UserLecturerId, comment, status);
             return CreatedAtAction(nameof(GetReviews), new { documentBodyId }, null);
+        }
+
+        [HttpPut("{reviewId}")]
+        public IActionResult UpdateReview(Guid reviewId, [FromBody] string comment, [FromQuery] ReviewStatus status)
+        {
+            if (reviewId == Guid.Empty)
+            {
+                return BadRequest(new
+                {
+                    message = "ReviewId tidak boleh kosong"
+                });
+            }
+
+            var review = _reviewService.GetReviewById(reviewId);
+            if (review == null)
+            {
+                return NotFound(new
+                {
+                    message = "Review tidak ditemukan"
+                });
+            }
+            if (string.IsNullOrWhiteSpace(comment))
+            {
+                return BadRequest(new
+                {
+                    message = "Comment tidak boleh kosong"
+                });
+            }
+            if (!Enum.IsDefined(typeof(ReviewStatus), status))
+            {
+                return BadRequest(new
+                {
+                    message = "Status tidak valid"
+                });
+            }
+            review.Comment = comment;
+            review.Status = status;
+            review.UpdateAt = DateTime.Now;
+            var isUpdated = _reviewService.UpdateReview(reviewId, review.Comment, review.Status);
+            if (!isUpdated)
+            {
+                return BadRequest(new
+                {
+                    message = "Gagal memperbarui review"
+                });
+            }
+            return Ok(new
+            {
+                message = "Sukses memperbarui review"
+            });
         }
 
         [HttpDelete("{reviewId}")]

@@ -5,13 +5,17 @@ using Microsoft.AspNetCore.Mvc;
 namespace API.Controllers
 {
     [ApiController, Route("api/document")]
-    public class DocumentBodyController : Controller
+    public class DocumentBodyController(DocumentBodyService documentBodyService) : Controller
     {
-        private readonly DocumentBodyService _documentBodyService;
-        public DocumentBodyController(DocumentBodyService documentBodyService)
-        {
-            _documentBodyService = documentBodyService;
-        }
+        private readonly DocumentBodyService _documentBodyService = documentBodyService;
+
+        /*
+         * Setara dengan:
+         * public DocumentBodyController(DocumentBodyService documentBodyService)
+         * {
+         *    _documentBodyService = documentBodyService
+         * }
+         */
 
         [HttpGet("{documentId}/versions")]
         public IActionResult GetVersions(Guid documentId)

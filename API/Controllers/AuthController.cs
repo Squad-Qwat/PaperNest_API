@@ -9,14 +9,17 @@ namespace PaperNest_API.Controllers
 {
     [ApiController]
     [Route("api/auth")]
-    public class AuthController : Controller
+    public class AuthController(UserService userService) : Controller
     {
-        private readonly UserService _userService;
+        private readonly UserService _userService = userService;
 
-        public AuthController(UserService userService)
-        {
-            _userService = userService;
-        }
+        /*
+         * Setara dengan:
+         * public AuthController(UserService userService)
+         * {
+         *    _userService = userService;
+         * }
+         */
 
         [HttpPost("register")]
         public IActionResult Register([FromBody] RegisterRequest newUser)

@@ -163,6 +163,122 @@ namespace API.Services
                 Console.WriteLine($"Error adding user workspace as lecturer: {ex.Message}");
             }
         }
+
+        /*
+        public UserWorkspace? UpdateUserWorkspace(Guid userId, Guid workspaceId)
+        {
+            try
+            {
+                if (userId == Guid.Empty)
+                {
+                    throw new ArgumentException("UserId tidak boleh kosong", nameof(userId));
+                }
+                if (workspaceId == Guid.Empty)
+                {
+                    throw new ArgumentException("WorkspaceId tidak boleh kosong", nameof(workspaceId));
+                }
+                // var userWorkspace = UserWorkspaceRepository.GetUserWorkspacesByUserId(userId).FirstOrDefault(uw => uw.FK_WorkspaceId == workspaceId) ?? throw new InvalidOperationException("User workspace not found.");
+                var userWorkspace = UserWorkspaceRepository.UpdateUserWorkspace(userId, workspaceId) ?? 
+                    throw new InvalidOperationException("User workspace not found.");
+
+                {
+                 * Setara dengan:
+                 *  if (userWorkspace == null)
+                 *  {
+                 *      throw new InvalidOperationException("User workspace not found.");
+                 *  }
+                }
+                userWorkspace.UpdateAt = DateTime.Now;
+                return userWorkspace; // Assuming the repository handles the update
+            }
+            catch (ArgumentException ex)
+            {
+                Console.WriteLine($"Error updating workspace: {ex.Message}");
+                return null;
+            }
+        }
+        */
+
+        public bool UpdateUserWorkspace(Guid userId, Guid workspaceId)
+        {
+            try
+            {
+                if (userId == Guid.Empty)
+                {
+                    throw new ArgumentException("UserId tidak boleh kosong", nameof(userId));
+                }
+
+                if (workspaceId == Guid.Empty)
+                {
+                    throw new ArgumentException("WorkspaceId tidak boleh kosong", nameof(workspaceId));
+                }
+
+                return UserWorkspaceRepository.UpdateUserWorkspace(userId, workspaceId);
+            }
+            catch (ArgumentException ex)
+            {
+                Console.WriteLine($"Error updating user workspace: {ex.Message}");
+                return false;
+            }
+        }
+        /*
+        public UserWorkspace? UpdateUserWorkspaceRole(Guid userId, Guid workspaceId, WorkspaceRole newRole)
+        {
+            try
+            {
+                if (userId == Guid.Empty)
+                {
+                    throw new ArgumentException("UserId tidak boleh kosong", nameof(userId));
+                }
+                if (workspaceId == Guid.Empty)
+                {
+                    throw new ArgumentException("WorkspaceId tidak boleh kosong", nameof(workspaceId));
+                }
+                //var userWorkspace = UserWorkspaceRepository.GetUserWorkspacesByUserId(userId).FirstOrDefault(uw => uw.FK_WorkspaceId == workspaceId);
+                var userWorkspace = UserWorkspaceRepository.UpdateUserWorkspaceRole(userId, workspaceId, newRole) ?? 
+                    throw new InvalidOperationException("User workspace not found.");
+
+                {
+                 * Setara dengan:
+                 * if (userWorkspace == null)
+                 * {
+                 *    throw new InvalidOperationException("User workspace not found.");
+                 * }
+                }
+                userWorkspace.WorkspaceRole = newRole;
+                userWorkspace.UpdateAt = DateTime.Now;
+
+                return userWorkspace; // Assuming the repository handles the update
+            }
+            catch (ArgumentException ex)
+            {
+                Console.WriteLine($"Error updating workspace: {ex.Message}");
+                return null;
+            }
+        }
+        */
+
+        public bool UpdateUserWorkspaceRole(Guid userId, Guid workspaceId, WorkspaceRole newRole)
+        {
+            try
+            {
+                if (userId == Guid.Empty)
+                {
+                    throw new ArgumentException("UserId tidak boleh kosong", nameof(userId));
+                }
+                if (workspaceId == Guid.Empty)
+                {
+                    throw new ArgumentException("WorkspaceId tidak boleh kosong", nameof(workspaceId));
+                }
+                return UserWorkspaceRepository.UpdateUserWorkspaceRole(userId, workspaceId, newRole);
+            }
+            catch (ArgumentException ex)
+            {
+                Console.WriteLine($"Error updating user workspace role: {ex.Message}");
+                return false;
+            }
+        }
+
         public bool RemoveUserWorkspace(Guid userId, Guid workspaceId)
         {
             try

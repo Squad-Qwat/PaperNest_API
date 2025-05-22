@@ -6,8 +6,9 @@ using API.Services;
 using API.Models;
 using API.Models.DataBinding;
 using Microsoft.AspNetCore.Authentication;
+using System.Threading;
+using System.Text.RegularExpressions;
 using View.Lecturer;
-using Microsoft.AspNetCore.Identity.Data;
 using API.StateMachineAndUtils;
 
 namespace View.Global
@@ -32,14 +33,14 @@ namespace View.Global
         {
             Console.WriteLine("=== PaperNest - Sistem Manajemen Karya Tulis Ilmiah ===");
 
-            while (_isRunning)
+            do
             {
                 DisplayLoginMenu();
 
                 Console.WriteLine("\nTekan tombol apa saja untuk melanjutkan...");
                 Console.ReadKey();
                 Console.Clear();
-            }
+            } while (_isRunning);
         }
 
         private void DisplayLoginMenu()
@@ -97,51 +98,51 @@ namespace View.Global
 
             var result = _userService.Login(loginRequest.Email, loginRequest.Password);
 
-            if (result != null)
-            {
-                _authState.ActivateTrigger(AuthStateMachine.Trigger.LOGIN);
-                Console.WriteLine("Login berhasil!");
-
-                var user = result;
-
-                if (user != null)
-                {
-                    _currentUser = user;
-                    Console.WriteLine($"Selamat datang, {user.Name}!");
-                    Console.WriteLine("Memasuki sistem...");
-                    System.Threading.Thread.Sleep(1000);
-
-                    if (user.Role == "Mahasiswa")
-                    {
-                        Console.Clear();
-                        var studentView = new StudentView(user, _authState);
-                        studentView.Start();
-                        _currentUser = null;
-                        _authState.ActivateTrigger(AuthStateMachine.Trigger.LOGOUT);
-                    }
-                    else if (user.Role == "Dosen")
-                    {
-                        Console.Clear();
-                        var lecturerView = new LecturerView(user, _authState);
-                        lecturerView.Start();
-                        _currentUser = null;
-                        _authState.ActivateTrigger(AuthStateMachine.Trigger.LOGOUT);
-                    }
-                    else
-                    {
-                        Console.WriteLine("Role tidak dikenali. Silakan hubungi administrator.");
-                        _currentUser = null;
-                        _authState.ActivateTrigger(AuthStateMachine.Trigger.LOGOUT);
-                    }
-                }
-                else
-                {
-                    Console.WriteLine("Terjadi kesalahan saat mengambil data pengguna.");
-                }
-            }
-            else if (result is UnauthorizedObjectResult)
+            if (result == null || result is UnauthorizedObjectResult)
             {
                 Console.WriteLine("Username atau password salah. Silakan coba lagi.");
+                _authState.ActivateTrigger(AuthStateMachine.Trigger.LOGOUT);
+                return;
+            }
+
+            _authState.ActivateTrigger(AuthStateMachine.Trigger.LOGIN);
+            Console.WriteLine("Login berhasil!");
+
+            var user = result;
+
+            if (user == null)
+            {
+                Console.WriteLine("Terjadi kesalahan saat mengambil data pengguna.");
+                _authState.ActivateTrigger(AuthStateMachine.Trigger.LOGOUT);
+                return;
+            }
+
+            _currentUser = user;
+            Console.WriteLine($"Selamat datang, {user.Name}!");
+            Console.WriteLine("Memasuki sistem...");
+            Thread.Sleep(1000);
+
+            if (user.Role == "Mahasiswa")
+            {
+                Console.Clear();
+                var studentView = new StudentView(user, _authState);
+                studentView.Start();
+                _currentUser = null;
+                _authState.ActivateTrigger(AuthStateMachine.Trigger.LOGOUT);
+            }
+            else if (user.Role == "Dosen")
+            {
+                Console.Clear();
+                var lecturerView = new LecturerView(user, _authState);
+                lecturerView.Start();
+                _currentUser = null;
+                _authState.ActivateTrigger(AuthStateMachine.Trigger.LOGOUT);
+            }
+            else
+            {
+                Console.WriteLine("Role tidak dikenali. Silakan hubungi administrator.");
+                _currentUser = null;
+                _authState.ActivateTrigger(AuthStateMachine.Trigger.LOGOUT);
             }
         }
 
@@ -234,14 +235,12 @@ namespace View.Global
             try
             {
                 bool success = _userService.ResetPassword(email!, newPassword!);
-                if (success)
-                {
-                    Console.WriteLine("Password berhasil direset! Silakan login dengan password baru.");
-                }
-                else
+                if (!success)
                 {
                     Console.WriteLine("Email tidak ditemukan dalam sistem.");
                 }
+
+                Console.WriteLine("Password berhasil direset! Silakan login dengan password baru.");
             }
             catch (Exception ex)
             {
@@ -251,12 +250,52 @@ namespace View.Global
 
         private bool ValidateInput(string? input, string fieldName)
         {
-            if (string.IsNullOrEmpty(input))
+            try
             {
-                Console.WriteLine($"{fieldName} tidak boleh kosong!");
+                if (string.IsNullOrEmpty(input))
+                {
+                    throw new ArgumentException($"{fieldName} tidak boleh kosong!");
+                }
+
+                /* note: Regex for email validation is commented out to avoid dependency issues
+                if (fieldName == "Email" && !Regex.IsMatch(input, @"^[^@\s]+@[^@\s]+\.[^@\s]+$"))
+                {
+                    throw new ArgumentException("Format email tidak valid!");
+                }
+                */
+
+                if (fieldName == "Password" && input.Length < 8)
+                {
+                    throw new ArgumentException("Password harus minimal 8 karakter!");
+                }
+
+                if (fieldName == "Username" && input.Length > 15)
+                {
+                    throw new ArgumentException("Username tidak boleh lebih dari 15 karakter!");
+                }
+
+                if (fieldName == "Nama" && input.Length > 100)
+                {
+                    throw new ArgumentException("Nama tidak boleh lebih dari 100 karakter!");
+                }
+
+                if (fieldName == "Role" && (input != "1" && input != "2"))
+                {
+                    throw new ArgumentException("Pilihan role tidak valid! Pilih 1 untuk Mahasiswa atau 2 untuk Dosen.");
+                }
+
+                if (fieldName == "Password Baru" && input.Length < 8)
+                {
+                    throw new ArgumentException("Password baru harus minimal 8 karakter!");
+                }
+
+                return true;
+            }
+            catch (ArgumentException ex)
+            {
+                Console.WriteLine($"Error validasi input: {ex.Message}");
                 return false;
             }
-            return true;
         }
     }
 }

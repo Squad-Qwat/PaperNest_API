@@ -146,6 +146,110 @@ namespace API.Repositories
             return _reviews.FirstOrDefault(r => r.FK_DocumentBodyId == documentBodyId);
         }
 
+        /*
+        public static Review? UpdateReview(Guid reviewId, string? comment = null, ReviewStatus? status = null)
+        {
+            try
+            {
+                if (reviewId == Guid.Empty)
+                {
+                    throw new ArgumentException("Review ID cannot be empty.", nameof(reviewId));
+                }
+                var review = _reviews.FirstOrDefault(r => r.Id == reviewId) ?? 
+                    throw new KeyNotFoundException($"Review with ID {reviewId} not found.");
+                {
+                 * Setara dengan:
+                 * if (review == null)
+                 * {
+                 *    throw new KeyNotFoundException($"Review with ID {reviewId} not found.");
+                 * }
+                }
+                if (comment != null)
+                {
+                    review.Comment = comment;
+                }
+                if (status.HasValue)
+                {
+                    review.Status = status.Value;
+                }
+                review.UpdateAt = DateTime.Now; // Update the timestamp
+                return review;
+            }
+            catch (KeyNotFoundException ex)
+            {
+                Console.WriteLine(ex.Message);
+                return null;
+            }
+            catch (ArgumentException ex)
+            {
+                Console.WriteLine(ex.Message);
+                return null;
+            }
+        }
+        */
+
+        public static bool UpdateReview(Guid reviewId, string? comment = null, ReviewStatus? status = null)
+        {
+            try
+            {
+                if (reviewId == Guid.Empty)
+                {
+                    throw new ArgumentException("Review ID cannot be empty.", nameof(reviewId));
+                }
+
+                var review = _reviews.FirstOrDefault(r => r.Id == reviewId) ?? 
+                    throw new KeyNotFoundException($"Review with ID {reviewId} not found.");
+
+                /*
+                 * Setara dengan:
+                 * if (review == null)
+                 * {
+                 *    throw new KeyNotFoundException($"Review with ID {reviewId} not found.");
+                 * }
+                */
+
+                if (comment == null)
+                {
+                    throw new ArgumentException("Comment cannot be null.", nameof(comment));
+                }
+
+                if (string.IsNullOrWhiteSpace(comment))
+                {
+                    throw new ArgumentException("Comment cannot be empty or whitespace.", nameof(comment));
+                }
+                review.Comment = comment;
+
+                if (status == null)
+                {
+                    throw new ArgumentException("Status cannot be null.", nameof(status));
+                }
+
+                if (!Enum.IsDefined(typeof(ReviewStatus), status))
+                {
+                    throw new ArgumentException("Invalid review status provided.", nameof(status));
+                }
+
+                if (!status.HasValue)
+                {
+                    throw new ArgumentException("Status must have a value.", nameof(status));
+                }
+
+                review.Status = status.Value;
+                review.UpdateAt = DateTime.Now; // Update the timestamp
+                return true;
+            }
+            catch (KeyNotFoundException ex)
+            {
+                Console.WriteLine(ex.Message);
+                return false;
+            }
+            catch (ArgumentException ex)
+            {
+                Console.WriteLine(ex.Message);
+                return false;
+            }
+        }
+
         public static bool RemoveReview(Guid reviewId)
         {
             try

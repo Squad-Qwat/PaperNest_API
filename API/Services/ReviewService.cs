@@ -109,6 +109,116 @@ namespace API.Services
             }
         }
 
+        /*
+        public Review? UpdateReview(
+            Guid reviewId,
+            string? comment = null,
+            ReviewStatus? status = null
+            )
+        {
+            try
+            {
+                if (reviewId == Guid.Empty)
+                {
+                    throw new ArgumentException("ReviewId tidak boleh kosong", nameof(reviewId));
+                }
+                var review = ReviewRepository.UpdateReview(reviewId, comment, status) ??
+                    throw new InvalidOperationException("Review tidak ditemukan untuk ReviewId yang diberikan");
+                
+                 * Setara dengan:
+                 * if (review == null)
+                 * {
+                 *    throw new InvalidOperationException("Review tidak ditemukan untuk ReviewId yang diberikan");
+                 * }
+                
+                return review;
+            }
+            catch (ArgumentException ex)
+            {
+                Console.WriteLine($"Error updating review: {ex.Message}");
+                return null; // Setara dengan 'default(Review?)'
+            }
+            catch (InvalidOperationException ex)
+            {
+                Console.WriteLine($"Error updating review: {ex.Message}");
+                return null; // Setara dengan 'default(Review?)'
+            }
+        }
+        */
+
+        public bool UpdateReview(
+            Guid reviewId,
+            string? comment = null,
+            ReviewStatus? status = null
+            )
+        {
+            try
+            {
+                if (reviewId == Guid.Empty)
+                {
+                    throw new ArgumentException("ReviewId tidak boleh kosong", nameof(reviewId));
+                }
+
+                if (status.HasValue && !Enum.IsDefined(typeof(ReviewStatus), status.Value))
+                {
+                    throw new ArgumentException("Status tidak valid", nameof(status));
+                }
+
+                if (comment == null)
+                {
+                    throw new ArgumentException("Comment tidak boleh null", nameof(comment));
+                }
+
+                if (string.IsNullOrWhiteSpace(comment))
+                {
+                    throw new ArgumentException("Comment tidak boleh kosong", nameof(comment));
+                }
+                if (status == null)
+                {
+                    throw new ArgumentException("Status tidak boleh null", nameof(status));
+                }
+
+                if (!Enum.IsDefined(typeof(ReviewStatus), status))
+                {
+                    throw new ArgumentException("Status tidak valid", nameof(status));
+                }
+
+                var review = ReviewRepository.UpdateReview(reviewId, comment, status);
+
+                if(!review)
+                {
+                    throw new InvalidOperationException("Review tidak ditemukan untuk ReviewId yang diberikan");
+                }
+
+                /*
+                 * Opsional:
+                 * if (review == null)
+                 * {
+                 *    throw new InvalidOperationException("Review tidak ditemukan untuk ReviewId yang diberikan");
+                 * }
+                */
+
+                return true;
+            }
+            catch (ArgumentException ex)
+            {
+                Console.WriteLine($"Error updating review: {ex.Message}");
+                return false; // Setara dengan 'default(bool)'
+            }
+            catch (InvalidOperationException ex)
+            {
+                Console.WriteLine($"Error updating review: {ex.Message}");
+                return false; // Setara dengan 'default(bool)'
+            }
+            /* Opsional:
+            catch (InvalidOperationException ex)
+            {
+                Console.WriteLine($"Error updating review: {ex.Message}");
+                return false; // Setara dengan 'default(bool)'
+            }
+            */
+        }
+
         public bool RemoveReview(Guid reviewId)
         {
             try

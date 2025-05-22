@@ -1,21 +1,24 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using API.Services;
+using API.Helpers.Enums;
 
 namespace API.Controllers
 {
     [ApiController,
         Route("api/user/workspace")
         ]
-    public class UserWorkspaceController : Controller
+    public class UserWorkspaceController(UserWorkspaceService userWorkspaceService) : Controller
     {
-        public readonly UserWorkspaceService _userWorkspaceService;
-        
-        public UserWorkspaceController(UserWorkspaceService userWorkspaceService)
-        {
-            _userWorkspaceService = userWorkspaceService;
-        }
+        public readonly UserWorkspaceService _userWorkspaceService = userWorkspaceService;
 
-        
+        /*
+         * Setara dengan:
+         * public UserWorkspaceController(UserWorkspaceService userWorkspaceService)
+         * {
+         *    _userWorkspaceService = userWorkspaceService;
+         * }
+         */
+
         [HttpGet("{userId}")]
         public IActionResult GetUserWorkspaces(Guid userId)
         {
@@ -86,6 +89,70 @@ namespace API.Controllers
 
             _userWorkspaceService.AddUserWorkspaceAsLecturer(userId, workspaceId);
             return CreatedAtAction(nameof(GetUserWorkspaces), new { userId }, null);
+        }
+
+        [HttpPut("{userId}/{workspaceId}")]
+        public IActionResult UpdateUserWorkspace(Guid userId, Guid workspaceId)
+        {
+            if (userId == Guid.Empty)
+            {
+                return BadRequest(new { message = "UserId tidak boleh kosong" });
+            }
+            if (workspaceId == Guid.Empty)
+            {
+                return BadRequest(new { message = "WorkspaceId tidak boleh kosong" });
+            }
+            
+            var isUpdated = _userWorkspaceService.UpdateUserWorkspace(userId, workspaceId);
+            if (!isUpdated)
+            {
+                return BadRequest(new
+                {
+                    message = "Gagal memperbarui user di workspace"
+                });
+            }
+            return Ok(new
+            {
+                message = "Berhasil memperbarui user di workspace"
+            });
+        }
+
+        [HttpPut("{userId}/{workspaceId}/role/{role}")]
+        public IActionResult UpdateUserWorkspaceRole(Guid userId, Guid workspaceId, string role)
+        {
+            if (userId == Guid.Empty)
+            {
+                return BadRequest(new { message = "UserId tidak boleh kosong" });
+            }
+
+            if (workspaceId == Guid.Empty)
+            {
+                return BadRequest(new { message = "WorkspaceId tidak boleh kosong" });
+            }
+
+            if (string.IsNullOrWhiteSpace(role))
+            {
+                return BadRequest(new { message = "Role tidak boleh kosong" });
+            }
+
+            if (!Enum.TryParse(role, true, out WorkspaceRole workspaceRole))
+            {
+                return BadRequest(new { message = "Role tidak valid" });
+            }
+
+            var isUpdated = _userWorkspaceService.UpdateUserWorkspaceRole(userId, workspaceId, workspaceRole);
+            if (!isUpdated)
+            {
+                return BadRequest(new
+                {
+                    message = "Gagal memperbarui role user di workspace"
+                });
+            }
+
+            return Ok(new
+            {
+                message = "Berhasil memperbarui role user di workspace"
+            });
         }
 
         [HttpDelete("{userId}/{workspaceId}")]

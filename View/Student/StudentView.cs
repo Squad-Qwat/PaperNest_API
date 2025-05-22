@@ -11,34 +11,38 @@ using API.StateMachineAndUtils;
 
 namespace View.Student
 {
-    public class StudentView
+    public class StudentView(User currentUser, AuthStateMachine authState)
     {
-        private readonly UserService _userService;
-        private readonly WorkspaceService _workspaceService;
-        private readonly DocumentService _documentService;
-        private readonly AuthStateMachine _authState;
-        private readonly DocumentBodyService _documentBodyService;
-        private readonly ReviewService _reviewService;
-        private readonly UserWorkspaceService _userWorkspaceService;
-        private User? _currentUser;
-        private Workspace? _currentWorkspace;
-        private readonly GlobalView _globalView;
-        private readonly ReviewUtil _reviewUtil; // Add ReviewUtil
+        private readonly UserService _userService = new(); // Setara dengan 'new UserService()'
+        private readonly WorkspaceService _workspaceService = new(); // Setara dengan 'new WorkspaceService()'
+        private readonly DocumentService _documentService = new(); // Setara dengan 'new DocumentService()'
+        private readonly AuthStateMachine _authState = authState;
+        private readonly DocumentBodyService _documentBodyService = new(); // Setara dengan 'new DocumentBodyService()'
+        private readonly ReviewService _reviewService = new(); // Setara dengan 'new ReviewService()'
+        private readonly UserWorkspaceService _userWorkspaceService = new(); // Setara dengan 'new UserWorkspaceService()'
+        private User? _currentUser = currentUser;
+        private Workspace? _currentWorkspace = null;
+        private readonly GlobalView _globalView = new(); // Setara dengan 'new GlobalView()'
+        // Add ReviewUtil
+        private readonly ReviewUtil _reviewUtil = new(); // Setara dengan 'new ReviewUtil()'
 
-        public StudentView(User currentUser, AuthStateMachine authState)
-        {
-            _userService = new UserService();
-            _workspaceService = new WorkspaceService();
-            _documentService = new DocumentService();
-            _authState = authState;
-            _currentUser = currentUser;
-            _currentWorkspace = null;
-            _globalView = new GlobalView();
-            _documentBodyService = new DocumentBodyService();
-            _reviewService = new ReviewService();
-            _userWorkspaceService = new UserWorkspaceService();
-            _reviewUtil = new ReviewUtil(); // Initialize ReviewUtil
-        }
+        /*
+         * Setara dengan:
+         *  public StudentView(User currentUser, AuthStateMachine authState)
+         *  {
+         *      _userService = new UserService();
+         *      _workspaceService = new WorkspaceService();
+         *      _documentService = new DocumentService();
+         *      _authState = authState;
+         *      _currentUser = currentUser;
+         *      _currentWorkspace = null;
+         *      _globalView = new GlobalView();
+         *      _documentBodyService = new DocumentBodyService();
+         *      _reviewService = new ReviewService();
+         *      _userWorkspaceService = new UserWorkspaceService();
+         *      _reviewUtil = new ReviewUtil(); <- Initialize ReviewUtil
+         *  }
+         */
 
         public void Start()
         {
@@ -47,7 +51,7 @@ namespace View.Student
             Console.WriteLine("=== PaperNest - Sistem Manajemen Karya Tulis Ilmiah ===");
             Console.WriteLine("=== Panel Mahasiswa ===");
 
-            while (isRunning)
+            do
             {
                 if (_currentUser == null || _authState.GetCurrentState() == AuthStateMachine.AuthState.BELUM_LOGIN)
                 {
@@ -61,7 +65,7 @@ namespace View.Student
                 Console.WriteLine("\nTekan tombol apa saja untuk melanjutkan...");
                 Console.ReadKey();
                 Console.Clear();
-            }
+            } while (isRunning);
         }
 
         private void DisplayMainMenu()
@@ -207,39 +211,38 @@ namespace View.Student
             var results = _workspaceService.GetByUserId(_currentUser.Id);
 
 
-            if (results != null)
-            {
-                var workspaces = results;
-
-                if (workspaces == null || !workspaces.Any())
-                {
-                    Console.WriteLine("Belum ada workspace.");
-                    return;
-                }
-
-                int index = 1;
-                foreach (var workspace in workspaces)
-                {
-                    string description = workspace.Description ?? "Tidak ada deskripsi";
-                    string createdAt = workspace.CreatedAt.ToString("dd/MM/yyyy HH:mm:ss");
-
-                    Console.WriteLine($"{index}. {workspace.Title} [ID: {workspace.Id}]");
-                    Console.WriteLine($"   Deskripsi: {description}");
-                    Console.WriteLine($"   Dibuat pada: {createdAt}");
-                    Console.WriteLine();
-                    index++;
-                }
-
-                Console.Write("Pilih workspace (nomor) atau 0 untuk kembali: ");
-                if (int.TryParse(Console.ReadLine(), out int choice) && choice > 0 && choice <= workspaces.Count())
-                {
-                    _currentWorkspace = workspaces.ElementAt(choice - 1);
-                    WorkspaceMenu();
-                }
-            }
-            else
+            if (results == null)
             {
                 Console.WriteLine("Gagal mendapatkan daftar workspace.");
+                return;
+            }
+
+            var workspaces = results;
+
+            if (workspaces == null || !workspaces.Any())
+            {
+                Console.WriteLine("Belum ada workspace.");
+                return;
+            }
+
+            int index = 1;
+            foreach (var workspace in workspaces)
+            {
+                string description = workspace.Description ?? "Tidak ada deskripsi";
+                string createdAt = workspace.CreatedAt.ToString("dd/MM/yyyy HH:mm:ss");
+
+                Console.WriteLine($"{index}. {workspace.Title} [ID: {workspace.Id}]");
+                Console.WriteLine($"   Deskripsi: {description}");
+                Console.WriteLine($"   Dibuat pada: {createdAt}");
+                Console.WriteLine();
+                index++;
+            }
+
+            Console.Write("Pilih workspace (nomor) atau 0 untuk kembali: ");
+            if (int.TryParse(Console.ReadLine(), out int choice) && choice > 0 && choice <= workspaces.Count())
+            {
+                _currentWorkspace = workspaces.ElementAt(choice - 1);
+                WorkspaceMenu();
             }
         }
 
@@ -263,14 +266,20 @@ namespace View.Student
                 return;
             }
 
+            if (_currentUser == null)
+            {
+                Console.WriteLine("Anda harus login terlebih dahulu.");
+                return;
+            }
+
             bool backToMainMenu = false;
 
             WorkspaceRole userRole = _workspaceService.GetUserRoleInWorkspace(_currentUser.Id, _currentWorkspace.Id);
 
-            while (!backToMainMenu)
+            do
             {
-                Console.WriteLine($"\n=== Workspace: {_currentWorkspace.Title} ===");
-                Console.WriteLine($"ID: {_currentWorkspace.Id} (Bagikan ID ini kepada dosen atau teman untuk bergabung)");
+                Console.WriteLine($"\n=== Workspace: {_currentWorkspace?.Title} ===");
+                Console.WriteLine($"ID: {_currentWorkspace?.Id} (Bagikan ID ini kepada dosen atau teman untuk bergabung)");
                 Console.WriteLine($"Role Anda: {userRole}");
 
                 // Menu untuk semua pengguna
@@ -336,7 +345,7 @@ namespace View.Student
                     Console.ReadKey();
                     Console.Clear();
                 }
-            }
+            } while (!backToMainMenu);
         }
 
         // Method untuk melihat dokumen dalam workspace
@@ -354,33 +363,32 @@ namespace View.Student
 
             if (result != null)
             {
-                var documents = result;
-
-                if (documents == null || !documents.Any())
-                {
-                    Console.WriteLine("Belum ada dokumen di workspace ini.");
-                    return;
-                }
-
-                int index = 1;
-                foreach (var document in documents)
-                {
-                    Console.WriteLine($"{index}. {document.Title}");
-                    Console.WriteLine($"   Dibuat pada: {document.CreatedAt.ToString("dd/MM/yyyy HH:mm:ss")}");
-                    Console.WriteLine();
-                    index++;
-                }
-
-                Console.Write("Pilih dokumen (nomor) atau 0 untuk kembali: ");
-                if (int.TryParse(Console.ReadLine(), out int choice) && choice > 0 && choice <= documents.Count())
-                {
-                    var selectedDocument = documents.ElementAt(choice - 1);
-                    DocumentMenu(selectedDocument);
-                }
-            }
-            else
-            {
                 Console.WriteLine("Gagal mendapatkan daftar dokumen.");
+                return;
+            }
+
+            var documents = result;
+
+            if (documents == null || !documents.Any())
+            {
+                Console.WriteLine("Belum ada dokumen di workspace ini.");
+                return;
+            }
+
+            int index = 1;
+            foreach (var document in documents)
+            {
+                Console.WriteLine($"{index}. {document.Title}");
+                Console.WriteLine($"   Dibuat pada: {document.CreatedAt.ToString("dd/MM/yyyy HH:mm:ss")}");
+                Console.WriteLine();
+                index++;
+            }
+
+            Console.Write("Pilih dokumen (nomor) atau 0 untuk kembali: ");
+            if (int.TryParse(Console.ReadLine(), out int choice) && choice > 0 && choice <= documents.Count())
+            {
+                var selectedDocument = documents.ElementAt(choice - 1);
+                DocumentMenu(selectedDocument);
             }
         }
 
@@ -431,53 +439,70 @@ namespace View.Student
 
             bool backToWorkspaceMenu = false;
 
-            while (!backToWorkspaceMenu)
+            do
             {
 
                 // Tambahkan informasi tentang status review terbaru
-                string reviewInfo = "";
+                string reviewInfo;
                 var versions = _documentBodyService.GetDocumentBodiesByDocumentId(document.Id);
-                if (versions != null && versions.Any())
+                if (versions == null)
                 {
-                    var currentVersion = _documentBodyService.GetCurrentVersion(document.Id);
-                    if (currentVersion != null && currentVersion.IsReviewed)
+                    Console.WriteLine("Gagal mendapatkan daftar versi dokumen.");
+                    return;
+                }
+
+                if(!versions.Any())
+                {
+                    Console.WriteLine("Dokumen ini belum memiliki versi.");
+                    return;
+                }
+
+                var currentVersion = _documentBodyService.GetCurrentVersion(document.Id);
+                if (currentVersion == null)
+                {
+                    Console.WriteLine("Dokumen ini belum memiliki versi aktif.");
+                    return;
+                }
+                
+                if(currentVersion.IsReviewed)
+                {
+                    reviewInfo = $"\nVersi saat ini: [DISETUJUI] (Klik menu 'Lihat Versi Dokumen' untuk detail)";
+                }
+                else
+                {
+                    reviewInfo = $"\nVersi saat ini: [BELUM DIREVIEW] (Klik menu 'Lihat Versi Dokumen' untuk detail)";
+                }
+
+                var review = _reviewService.GetReviewByDocumentBodyId(currentVersion.Id);
+                string statusText;
+                if (review != null)
+                {
+                    // Using the Review's State instead of direct ReviewStatus
+                    if (review.State is ApprovedState)
                     {
-                        var review = _reviewService.GetReviewByDocumentBodyId(currentVersion.Id);
-                        string statusText = "";
-                        if (review != null)
-                        {
-                            // Using the Review's State instead of direct ReviewStatus
-                            if (review.State is ApprovedState)
-                            {
-                                statusText = "DISETUJUI";
-                            }
-                            else if (review.State is NeedsRevisionState)
-                            {
-                                statusText = "PERLU REVISI";
-                            }
-                            else if (review.State is DoneState)
-                            {
-                                statusText = "SELESAI";
-                            }
-                            else if (review.State is SubmittedState) // Added SubmittedState
-                            {
-                                statusText = "DIAJUKAN";
-                            }
-                            else if (review.State is UnderReviewState) // Added UnderReviewState
-                            {
-                                statusText = "DALAM REVIEW";
-                            }
-                            else
-                            {
-                                statusText = review.State?.GetType().Name.Replace("State", "").ToUpper() ?? "TIDAK DIKETAHUI";
-                            }
-                            reviewInfo = $"\nVersi saat ini: [{statusText}] (Klik menu 'Lihat Versi Dokumen' untuk detail)";
-                        }
+                        statusText = "DISETUJUI";
                     }
-                    else if (currentVersion != null)
+                    else if (review.State is NeedsRevisionState)
                     {
-                        reviewInfo = "\nVersi saat ini belum direview";
+                        statusText = "PERLU REVISI";
                     }
+                    else if (review.State is DoneState)
+                    {
+                        statusText = "SELESAI";
+                    }
+                    else if (review.State is SubmittedState) // Added SubmittedState
+                    {
+                        statusText = "DIAJUKAN";
+                    }
+                    else if (review.State is UnderReviewState) // Added UnderReviewState
+                    {
+                        statusText = "DALAM REVIEW";
+                    }
+                    else
+                    {
+                        statusText = review.State?.GetType().Name.Replace("State", "").ToUpper() ?? "TIDAK DIKETAHUI";
+                    }
+                    reviewInfo = $"\nVersi saat ini: [{statusText}] (Klik menu 'Lihat Versi Dokumen' untuk detail)";
                 }
 
                 Console.WriteLine($"\n=== Dokumen: {document.Title} ===");
@@ -542,7 +567,7 @@ namespace View.Student
                     Console.ReadKey();
                     Console.Clear();
                 }
-            }
+            } while (!backToWorkspaceMenu);
         }
 
         // Method untuk mengedit metadata dokumen (judul, deskripsi, status)
@@ -692,7 +717,7 @@ namespace View.Student
 
             bool backToDocumentMenu = false;
 
-            while (!backToDocumentMenu)
+            do
             {
                 Console.WriteLine($"\n=== Manajemen Versi Dokumen: {document.Title} ===");
                 Console.WriteLine("1. Lihat Semua Versi");
@@ -729,7 +754,7 @@ namespace View.Student
                     Console.ReadKey();
                     Console.Clear();
                 }
-            }
+            } while (!backToDocumentMenu);
         }
 
         // Method untuk membuat versi baru dokumen tanpa mengedit konten
@@ -763,21 +788,42 @@ namespace View.Student
 
             // Periksa apakah sudah ada versi sebelumnya dengan konten yang sama
             var versions = _documentBodyService.GetDocumentBodiesByDocumentId(document.Id);
-            if (versions != null && versions.Any())
+            if (versions == null)
             {
-                var latestVersion = versions.FirstOrDefault();
-                if (latestVersion != null && latestVersion.Content == currentContent)
-                {
-                    Console.WriteLine("Tidak dapat mengirim versi baru karena konten sama dengan versi sebelumnya.");
-                    Console.WriteLine("Silakan ubah konten dokumen terlebih dahulu.");
-                    return;
-                }
+                Console.WriteLine("Gagal mendapatkan daftar versi dokumen.");
+                return;
+            }
+
+            if (!versions.Any())
+            {
+                Console.WriteLine("Belum ada versi dokumen sebelumnya.");
+                return;
+            }
+
+            var latestVersion = versions.FirstOrDefault();
+            if (latestVersion != null && latestVersion.Content == currentContent)
+            {
+                Console.WriteLine("Tidak dapat mengirim versi baru karena konten sama dengan versi sebelumnya.");
+                Console.WriteLine("Silakan ubah konten dokumen terlebih dahulu.");
+                return;
             }
 
             Console.Write("\nDeskripsi versi baru (seperti commit message): ");
             string comment = Console.ReadLine() ?? "New version";
 
+            if(_currentUser == null)
+            {
+                Console.WriteLine("Anda harus login terlebih dahulu.");
+                return;
+            }
+
             var newVersion = _documentBodyService.CreateDocumentBody(document.Id, _currentUser.Id, comment, currentContent);
+            if (newVersion == null)
+            {
+                Console.WriteLine("Gagal membuat versi baru dokumen.");
+                return;
+            }
+
             document.UpdateAt = DateTime.Now;
             _documentService.Update(document.Id, document);
 
@@ -824,37 +870,35 @@ namespace View.Student
                 string reviewStatus = "";
                 var review = _reviewService.GetReviewByDocumentBodyId(version.Id); // Attempt to get review
 
-                if (version.IsReviewed && review != null)
+                if (!version.IsReviewed || review == null)
                 {
-                    // Check the state of the review using the Review object's State property
-                    if (review.State is ApprovedState)
-                    {
-                        reviewStatus = "[DISETUJUI]";
-                    }
-                    else if (review.State is NeedsRevisionState)
-                    {
-                        reviewStatus = "[PERLU REVISI]";
-                    }
-                    else if (review.State is DoneState)
-                    {
-                        reviewStatus = "[SELESAI]";
-                    }
-                    else if (review.State is SubmittedState)
-                    {
-                        reviewStatus = "[DIAJUKAN]";
-                    }
-                    else if (review.State is UnderReviewState)
-                    {
-                        reviewStatus = "[DALAM REVIEW]";
-                    }
-                    else
-                    {
-                        reviewStatus = $"[{review.State?.GetType().Name.Replace("State", "").ToUpper() ?? "TIDAK DIKETAHUI"}]";
-                    }
+                    reviewStatus = "[BELUM DIREVIEW]";
+                }
+
+                // Check the state of the review using the Review object's State property
+                if (review?.State is ApprovedState)
+                {
+                    reviewStatus = "[DISETUJUI]";
+                }
+                else if (review?.State is NeedsRevisionState)
+                {
+                    reviewStatus = "[PERLU REVISI]";
+                }
+                else if (review?.State is DoneState)
+                {
+                    reviewStatus = "[SELESAI]";
+                }
+                else if (review?.State is SubmittedState)
+                {
+                    reviewStatus = "[DIAJUKAN]";
+                }
+                else if (review?.State is UnderReviewState)
+                {
+                    reviewStatus = "[DALAM REVIEW]";
                 }
                 else
                 {
-                    reviewStatus = "[BELUM DIREVIEW]";
+                    reviewStatus = $"[{review?.State?.GetType().Name.Replace("State", "").ToUpper() ?? "TIDAK DIKETAHUI"}]";
                 }
 
                 var creator = _userService.GetById(version.FK_UserCreatorId);
@@ -864,11 +908,11 @@ namespace View.Student
                 {
                     Console.WriteLine($"   {("[AKTIF]")}");
                 }
-                Console.WriteLine($"   Nama pengirim: {creator.Name}");
+                Console.WriteLine($"   Nama pengirim: {creator?.Name}");
                 Console.WriteLine($"   Deskripsi: {version.Comment}");
 
                 // Tampilkan preview konten (maksimal 50 karakter)
-                string contentPreview = version.Content.Length > 50
+                string? contentPreview = version.Content?.Length > 50
                     ? version.Content.Substring(0, 50) + "..."
                     : version.Content;
                 Console.WriteLine($"   Preview: {contentPreview}");
@@ -906,58 +950,62 @@ namespace View.Student
             var review = _reviewService.GetReviewByDocumentBodyId(version.Id);
 
 
-            if (version.IsReviewed && review != null)
-            {
-                Console.WriteLine("\n=== Hasil Review ===");
-
-                string statusReview = "";
-                // Use the Review's State for display
-                if (review.State is ApprovedState)
-                {
-                    statusReview = "DISETUJUI";
-                }
-                else if (review.State is NeedsRevisionState)
-                {
-                    statusReview = "PERLU REVISI";
-                }
-                else if (review.State is DoneState)
-                {
-                    statusReview = "SELESAI";
-                }
-                else if (review.State is SubmittedState)
-                {
-                    statusReview = "DIAJUKAN";
-                }
-                else if (review.State is UnderReviewState)
-                {
-                    statusReview = "DALAM REVIEW";
-                }
-                else
-                {
-                    statusReview = review.State?.GetType().Name.Replace("State", "").ToUpper() ?? "TIDAK DIKETAHUI";
-                }
-
-                Console.WriteLine($"Status: {statusReview}");
-
-                var lecturer = _userService.GetById(review.FK_UserLecturerId);
-                if (lecturer != null)
-                {
-                    Console.WriteLine($"\nReviewer: {lecturer.Name}");
-                }
-                else
-                {
-                    Console.WriteLine("Reviewer: Tidak Diketahui");
-                }
-                Console.WriteLine($"Tanggal: {review.CreatedAt.ToString("dd/MM/yyyy HH:mm:ss")}");
-                Console.WriteLine("Komentar:");
-                Console.WriteLine("------------");
-                Console.WriteLine(review.Comment);
-                Console.WriteLine("------------");
-            }
-            else
+            if (!version.IsReviewed)
             {
                 Console.WriteLine("\nVersi ini belum direview.");
             }
+
+            Console.WriteLine("\n=== Hasil Review ===");
+
+            string statusReview;
+            // Use the Review's State for display
+            if (review?.State is ApprovedState)
+            {
+                statusReview = "DISETUJUI";
+            }
+            else if (review?.State is NeedsRevisionState)
+            {
+                statusReview = "PERLU REVISI";
+            }
+            else if (review?.State is DoneState)
+            {
+                statusReview = "SELESAI";
+            }
+            else if (review?.State is SubmittedState)
+            {
+                statusReview = "DIAJUKAN";
+            }
+            else if (review?.State is UnderReviewState)
+            {
+                statusReview = "DALAM REVIEW";
+            }
+            else
+            {
+                statusReview = review?.State?.GetType().Name.Replace("State", "").ToUpper() ?? "TIDAK DIKETAHUI";
+            }
+
+            Console.WriteLine($"Status: {statusReview}");
+
+            if (review == null)
+            {
+                Console.WriteLine("Tidak ada review untuk versi ini.");
+                return;
+            }
+
+            var lecturer = _userService.GetById(review.FK_UserLecturerId);
+            if (lecturer != null)
+            {
+                Console.WriteLine($"\nReviewer: {lecturer.Name}");
+            }
+            else
+            {
+                Console.WriteLine("Reviewer: Tidak Diketahui");
+            }
+            Console.WriteLine($"Tanggal: {review.CreatedAt:dd/MM/yyyy HH:mm:ss}"); // Setara dengan review.CreatedAt.ToString("dd/MM/yyyy HH:mm:ss")
+            Console.WriteLine("Komentar:");
+            Console.WriteLine("------------");
+            Console.WriteLine(review.Comment);
+            Console.WriteLine("------------");
         }
 
         private void RollbackDocumentVersion(Document document)
@@ -981,7 +1029,7 @@ namespace View.Student
             // Exclude the current version from the list for rollback
             var rollbackableVersions = versions.Where(v => !v.IsCurrentVersion).ToList();
 
-            if (!rollbackableVersions.Any())
+            if (rollbackableVersions.Count == 0)
             {
                 Console.WriteLine("Tidak ada versi sebelumnya untuk di-rollback.");
                 return;
@@ -990,7 +1038,7 @@ namespace View.Student
             int index = 1;
             foreach (var version in rollbackableVersions)
             {
-                Console.WriteLine($"{index}. Versi dari {version.CreatedAt.ToString("dd/MM/yyyy HH:mm:ss")} (Deskripsi: {version.Comment})");
+                Console.WriteLine($"{index}. Versi dari {version.CreatedAt:dd/MM/yyyy HH:mm:ss} (Deskripsi: {version.Comment})"); // Setara dengan version.CreatedAt.ToString("dd/MM/yyyy HH:mm:ss")
                 index++;
             }
 
@@ -1011,8 +1059,8 @@ namespace View.Student
         // Helper untuk input multi-line
         private string ReadAndEditMultilineText(string initialText)
         {
-            List<string> lines = new List<string>(initialText.Split(new[] { "\r\n", "\r", "\n" }, StringSplitOptions.None));
-            if (!lines.Any())
+            List<string> lines = [.. initialText.Split(["\r\n", "\r", "\n"], StringSplitOptions.None)]; // Setara dengan 'new List<string>(initialText.Split(new[] { "\r\n", "\r", "\n" }, StringSplitOptions.None))'
+            if (lines.Count == 0)
             {
                 lines.Add("");
             }
@@ -1034,7 +1082,7 @@ namespace View.Student
             Console.SetCursorPosition(3 + lines[currentLine].Length, startY + currentLine + 2); // 3 for "X: " prefix, +2 for header lines
 
             bool editing = true;
-            while (editing)
+            do
             {
                 ConsoleKeyInfo key = Console.ReadKey(intercept: true); // intercept: true hides the key press
 
@@ -1203,7 +1251,7 @@ namespace View.Student
                         }
                         break;
                 }
-            }
+            } while (editing);
             Console.Clear();  // Clear the screen after editing is done
             return string.Join(Environment.NewLine, lines);
         }
