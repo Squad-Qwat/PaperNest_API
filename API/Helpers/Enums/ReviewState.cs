@@ -23,6 +23,7 @@ namespace API.Helpers.Enums
             if (result != ReviewStatus.Pending)
             {
                 Console.WriteLine($"Error: Cannot directly set to {result} from {Name}. Requires review first.");
+                return;
             }
             else
             {
@@ -60,7 +61,7 @@ namespace API.Helpers.Enums
         public void Process(Review request, ReviewStatus result, string reviewerComment)
         {
             // Change the state to Under Review
-            ReviewUtil manager = new(); // Setara dengan 'new  ReviewUtil()'
+            // ReviewUtil manager = new(); <- Setara dengan 'new  ReviewUtil()'
             Console.WriteLine($"Permintaan peninjauan {request} telah disetujui: {result}");
             Console.WriteLine($"Komentar reviewer: {reviewerComment}");
             // manager.ChangeState(request, new DoneState());
