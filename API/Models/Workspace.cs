@@ -19,5 +19,7 @@ namespace API.Models
         public DateTime CreatedAt { get; protected set; } = DateTime.Now;
 
         public DateTime UpdateAt { get; set; }
+
+
     }
 }

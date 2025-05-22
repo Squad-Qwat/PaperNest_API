@@ -6,7 +6,6 @@ namespace API.Services
 {
     public class WorkspaceService
     {
-
         public static void Create(Workspace newWorkspace)
         {
             WorkspaceRepository.workspaceRepository.Add(newWorkspace);
