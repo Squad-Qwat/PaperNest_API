@@ -1,7 +1,8 @@
-﻿using API.Models;
+﻿using API.Helpers.Enums;
+using API.Models;
 using System.Text.RegularExpressions;
 
-namespace API.StateMachines
+namespace API.StateMachineAndUtils
 {
     public static class CitationFormatter
     {
@@ -78,16 +79,52 @@ namespace API.StateMachines
 
         private static string FormatJournalArticleCitation(Citation citation, string finalUrl, string retrievedFromUrlPart)
         {
+            /*
             string volumeIssueString = "";
             if (!string.IsNullOrWhiteSpace(citation.Volume))
             {
                 volumeIssueString += citation.Volume;
                 if (!string.IsNullOrWhiteSpace(citation.Issue))
                 {
-                    volumeIssueString += $"({citation.Issue})"; // Corrected issue format
+                    volumeIssueString += $"({citation.Issue})"; <- Corrected issue format
                 }
             }
             else if (!string.IsNullOrWhiteSpace(citation.Issue))
+            {
+                volumeIssueString += $"({citation.Issue})";
+            }
+            */
+
+            // If both volume and issue are empty, return an empty string immediately (guard clause)
+            if (string.IsNullOrWhiteSpace(citation.Volume) && string.IsNullOrWhiteSpace(citation.Issue))
+            {
+                return "";
+            }
+
+            // If only issue is present, format it and return
+            if (string.IsNullOrWhiteSpace(citation.Volume) && !string.IsNullOrWhiteSpace(citation.Issue))
+            {
+                return $"({citation.Issue})";
+            }
+
+            // If only volume is present, format it and return
+            if (!string.IsNullOrWhiteSpace(citation.Volume) && string.IsNullOrWhiteSpace(citation.Issue))
+            {
+                return $"{citation.Volume}";
+            }
+
+            // At this point, we know citation.Volume and citation.Issue is NOT null or whitespace.
+            // create the volumeIssueString to hold the formatted volume and issue information, using empty string as a base
+            string volumeIssueString = "";
+
+            // If only volume is present, format it and proceed
+            if (!string.IsNullOrWhiteSpace(citation.Volume))
+            {
+                volumeIssueString += $"({citation.Volume})";
+            }
+
+            // If issue is present, append it in parentheses
+            if (!string.IsNullOrWhiteSpace(citation.Issue))
             {
                 volumeIssueString += $"({citation.Issue})";
             }

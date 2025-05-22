@@ -1,4 +1,4 @@
-﻿namespace API.StateMachines
+﻿namespace API.StateMachineAndUtils
 {
     public class AuthStateMachine
     {
@@ -20,18 +20,20 @@
         }
 
         private AuthState currentState;
-        private List<Transition> transitions;
+        private readonly List<Transition> transitions;
 
         public AuthStateMachine()
         {
             currentState = AuthState.BELUM_LOGIN;
-            transitions = new List<Transition>
-            {
-                new Transition(AuthState.BELUM_LOGIN, AuthState.SUDAH_LOGIN, Trigger.LOGIN),
-                new Transition(AuthState.SUDAH_LOGIN, AuthState.BELUM_LOGIN, Trigger.LOGOUT),
-                new Transition(AuthState.BELUM_LOGIN, AuthState.BELUM_LOGIN, Trigger.LOGOUT),
-                new Transition(AuthState.SUDAH_LOGIN, AuthState.SUDAH_LOGIN, Trigger.LOGIN)
-            };
+            // Setara dengan 'new List<Transition>()'
+            transitions =
+            [
+                // Setara dengan 'new Transition()' di C#
+                new(AuthState.BELUM_LOGIN, AuthState.SUDAH_LOGIN, Trigger.LOGIN),
+                new(AuthState.SUDAH_LOGIN, AuthState.BELUM_LOGIN, Trigger.LOGOUT),
+                new(AuthState.BELUM_LOGIN, AuthState.BELUM_LOGIN, Trigger.LOGOUT),
+                new(AuthState.SUDAH_LOGIN, AuthState.SUDAH_LOGIN, Trigger.LOGIN)
+            ];
         }
 
         private AuthState GetNextState(AuthState prevState, Trigger trigger)
@@ -60,4 +62,3 @@
         }
     }
 }
-

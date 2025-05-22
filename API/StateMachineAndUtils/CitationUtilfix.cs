@@ -1,34 +1,36 @@
 ﻿using API.Helpers.Enums;
+using API.Helpers.ExtraClass;
 using API.Models;
 using System;
 
-namespace API.StateMachines
+namespace API.StateMachineAndUtils
 {
     public class CitationUtilfix
     {
         private static readonly CitationFormatRule[] _formattingRules =
         {
-            new CitationFormatRule
+            // Setara dengan 'new CitationFormatRule' dalam kode C#
+            new() 
             {
                 Type = CitationType.Book,
                 Formatter = citation => $"{citation.Author}. ({citation.PublicationDate?.Year}). {citation.Title}. {citation.PublicationInfo}."
             },
-            new CitationFormatRule
+            new() 
             {
                 Type = CitationType.JournalArticle,
                 Formatter = citation => $"{citation.Author}. ({citation.PublicationDate?.Year}). {citation.Title}. {citation.PublicationInfo}."
             },
-            new CitationFormatRule
+            new() 
             {
                 Type = CitationType.Website,
                 Formatter = citation => $"{citation.Author}. ({citation.PublicationDate?.Year}). {citation.Title}. {citation.PublicationInfo}. Diakses dari {citation.AccessDate}"
             },
-            new CitationFormatRule
+            new() 
             {
                 Type = CitationType.ConferencePaper,
                 Formatter = citation => $"{citation.Author}. ({citation.PublicationDate?.Year}). {citation.Title}. In {citation.PublicationInfo}."
             },
-            new CitationFormatRule
+            new() 
             {
                 Type = CitationType.Thesis,
                 Formatter = citation => $"{citation.Author}. ({citation.PublicationDate?.Year}). {citation.Title}. {citation.PublicationInfo}."
@@ -39,10 +41,11 @@ namespace API.StateMachines
         {
             foreach (var rule in _formattingRules)
             {
-                if (rule.Type == citation.Type)
+                if (rule.Type != citation.Type)
                 {
-                    return rule.Formatter(citation);
+                    continue;
                 }
+                return rule.Formatter(citation);
             }
             // Default case if no rule matches
             return "Format sitasi tidak didukung.";

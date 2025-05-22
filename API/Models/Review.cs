@@ -1,4 +1,5 @@
 ﻿using API.Helpers.Enums;
+using API.Helpers.ExtraClass;
 using API.Repositories;
 using System.ComponentModel.DataAnnotations;
 
@@ -33,6 +34,6 @@ namespace API.Models
 
         public DateTime UpdateAt { get; set; } = DateTime.Now;
 
-        public virtual List<ReviewRepository> Reviews { get; private set; } = []; // Collection of reviews for this request, equal to 'new List<ReviewRepository>()'
+        public virtual List<ReviewRepository> Reviews { get; set; } = []; // Collection of reviews for this request, equal to 'new List<ReviewRepository>()'
     }
 }

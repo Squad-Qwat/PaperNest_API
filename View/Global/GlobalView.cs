@@ -2,13 +2,13 @@
 using Microsoft.AspNetCore.Mvc;
 using View.Student;
 //using View.Lecturer;
-using API.StateMachines;
 using API.Services;
 using API.Models;
 using API.Models.DataBinding;
 using Microsoft.AspNetCore.Authentication;
 using View.Lecturer;
 using Microsoft.AspNetCore.Identity.Data;
+using API.StateMachineAndUtils;
 
 namespace View.Global
 {

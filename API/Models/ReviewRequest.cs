@@ -1,7 +1,7 @@
-﻿using API.Helpers.Enums;
-using System.ComponentModel.DataAnnotations.Schema;
+﻿using System.ComponentModel.DataAnnotations.Schema;
 using System.ComponentModel.DataAnnotations;
 using API.Repositories;
+using API.Helpers.ExtraClass;
 
 namespace API.Models
 {

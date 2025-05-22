@@ -1,4 +1,5 @@
-﻿using API.Models;
+﻿using API.Helpers.Enums;
+using API.Models;
 // using System.Diagnostics;
 
 namespace API.Repositories

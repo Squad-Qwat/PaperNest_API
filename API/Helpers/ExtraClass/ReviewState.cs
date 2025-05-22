@@ -1,10 +1,11 @@
-﻿using API.Models;
+﻿using API.Helpers.Enums;
+using API.Models;
 using API.Repositories;
 using API.Services;
-using API.StateMachines;
+using API.StateMachineAndUtils;
 using Microsoft.AspNetCore.Mvc;
 
-namespace API.Helpers.Enums
+namespace API.Helpers.ExtraClass
 {
     public interface ReviewState
     {

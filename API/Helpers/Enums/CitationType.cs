@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-namespace API.Models
+namespace API.Helpers.Enums
 {
     public enum CitationType
     {
