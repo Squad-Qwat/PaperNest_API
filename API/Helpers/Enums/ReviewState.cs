@@ -63,8 +63,7 @@ namespace API.Helpers.Enums
             ReviewUtil manager = new(); // Setara dengan 'new  ReviewUtil()'
             Console.WriteLine($"Permintaan peninjauan {request} telah disetujui: {result}");
             Console.WriteLine($"Komentar reviewer: {reviewerComment}");
-            manager.ChangeState(request, new DoneState());
-
+            // manager.ChangeState(request, new DoneState());
         }
     }
 

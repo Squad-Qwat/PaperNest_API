@@ -18,6 +18,7 @@ namespace View.Lecturer
         private Workspace? _currentWorkspace;
         private readonly GlobalView _globalView;
         private readonly UserWorkspaceService _userWorkspaceService;
+        private readonly ReviewUtil _reviewUtil; // Add ReviewUtil
 
         public LecturerView(User currentUser, AuthStateMachine authState)
         {
@@ -31,6 +32,7 @@ namespace View.Lecturer
             _currentWorkspace = null;
             _globalView = new GlobalView();
             _userWorkspaceService = new UserWorkspaceService();
+            _reviewUtil = new ReviewUtil(); // Initialize ReviewUtil
         }
 
         public void Start()
@@ -330,20 +332,22 @@ namespace View.Lecturer
                         string statusText = "";
                         if (review != null)
                         {
-                            switch (review.Status)
+                            // Using the Review's State instead of direct ReviewStatus
+                            if (review.State is ApprovedState)
                             {
-                                case ReviewStatus.Approved:
-                                    statusText = "DISETUJUI";
-                                    break;
-                                case ReviewStatus.NeedsRevision:
-                                    statusText = "PERLU REVISI";
-                                    break;
-                                case ReviewStatus.Done:
-                                    statusText = "SELESAI";
-                                    break;
-                                default:
-                                    statusText = review.Status.ToString();
-                                    break;
+                                statusText = "DISETUJUI";
+                            }
+                            else if (review.State is NeedsRevisionState)
+                            {
+                                statusText = "PERLU REVISI";
+                            }
+                            else if (review.State is DoneState)
+                            {
+                                statusText = "SELESAI";
+                            }
+                            else
+                            {
+                                statusText = review.State?.GetType().Name.Replace("State", "").ToUpper() ?? "TIDAK DIKETAHUI";
                             }
                             reviewInfo = $"\nVersi saat ini: [{statusText}] (Klik menu 'Lihat Versi Dokumen' untuk detail)";
                         }
@@ -406,28 +410,30 @@ namespace View.Lecturer
             }
 
             int index = 1;
-            var versionsList = versions.ToList(); // Konversi ke List untuk akses indeks
+            var versionsList = versions.ToList();
             foreach (var version in versionsList)
             {
                 string reviewStatus = "";
-                // Cek apakah sudah di-review
-                var review = _reviewService.GetReviewByDocumentBodyId(version.Id);
+                var review = _reviewService.GetReviewByDocumentBodyId(version.Id); // Attempt to get review
+
                 if (version.IsReviewed && review != null)
                 {
-                    switch (review.Status)
+                    // Check the state of the review using the Review object's State property
+                    if (review.State is ApprovedState)
                     {
-                        case ReviewStatus.Approved:
-                            reviewStatus = "[DISETUJUI]";
-                            break;
-                        case ReviewStatus.NeedsRevision:
-                            reviewStatus = "[PERLU REVISI]";
-                            break;
-                        case ReviewStatus.Done:
-                            reviewStatus = "[SELESAI]";
-                            break;
-                        default:
-                            reviewStatus = $"[{review.Status}]";
-                            break;
+                        reviewStatus = "[DISETUJUI]";
+                    }
+                    else if (review.State is NeedsRevisionState)
+                    {
+                        reviewStatus = "[PERLU REVISI]";
+                    }
+                    else if (review.State is DoneState)
+                    {
+                        reviewStatus = "[SELESAI]";
+                    }
+                    else
+                    {
+                        reviewStatus = $"[{review.State?.GetType().Name.Replace("State", "").ToUpper() ?? "TIDAK DIKETAHUI"}]";
                     }
                 }
                 else
@@ -445,7 +451,6 @@ namespace View.Lecturer
                 Console.WriteLine($"   Nama pengirim: {creator.Name}");
                 Console.WriteLine($"   Deskripsi: {version.Comment}");
 
-                // Tampilkan preview konten (maksimal 50 karakter)
                 string contentPreview = version.Content.Length > 50
                     ? version.Content.Substring(0, 50) + "..."
                     : version.Content;
@@ -487,22 +492,23 @@ namespace View.Lecturer
             {
                 Console.WriteLine("\n=== Hasil Review ===");
 
-                // Tampilkan status review dengan format yang mudah dibaca
                 string statusReview = "";
-                switch (review.Status)
+                // Use the Review's State for display
+                if (review.State is ApprovedState)
                 {
-                    case ReviewStatus.Approved:
-                        statusReview = "DISETUJUI";
-                        break;
-                    case ReviewStatus.NeedsRevision:
-                        statusReview = "PERLU REVISI";
-                        break;
-                    case ReviewStatus.Done:
-                        statusReview = "SELESAI";
-                        break;
-                    default:
-                        statusReview = review.Status.ToString();
-                        break;
+                    statusReview = "DISETUJUI";
+                }
+                else if (review.State is NeedsRevisionState)
+                {
+                    statusReview = "PERLU REVISI";
+                }
+                else if (review.State is DoneState)
+                {
+                    statusReview = "SELESAI";
+                }
+                else
+                {
+                    statusReview = review.State?.GetType().Name.Replace("State", "").ToUpper() ?? "TIDAK DIKETAHUI";
                 }
 
                 Console.WriteLine($"Status: {statusReview}");
@@ -526,7 +532,6 @@ namespace View.Lecturer
             {
                 Console.WriteLine("\nVersi ini belum direview.");
 
-                // Berikan opsi untuk mereview dokumen
                 Console.Write("\nApakah Anda ingin mereview versi ini? (y/n): ");
                 string? choice = Console.ReadLine()?.ToLower();
                 if (choice == "y")
@@ -536,12 +541,10 @@ namespace View.Lecturer
             }
         }
 
-        // Method untuk mereview versi dokumen
         private void ReviewDocumentVersions(Guid documentId)
         {
             Console.WriteLine("\n=== Review Versi Dokumen ===");
 
-            // Dapatkan versi dokumen dari DocumentBodyService
             var versions = _documentBodyService.GetDocumentBodiesByDocumentId(documentId);
 
             if (versions == null || !versions.Any())
@@ -555,7 +558,6 @@ namespace View.Lecturer
             foreach (var version in versionsList)
             {
                 string reviewStatus = "";
-                // Cek apakah sudah di-review
                 Review? review = null;
                 try
                 {
@@ -568,20 +570,22 @@ namespace View.Lecturer
 
                 if (version.IsReviewed && review != null)
                 {
-                    switch (review.Status)
+                    // Use the Review's State for display
+                    if (review.State is ApprovedState)
                     {
-                        case ReviewStatus.Approved:
-                            reviewStatus = "[DISETUJUI]";
-                            break;
-                        case ReviewStatus.NeedsRevision:
-                            reviewStatus = "[PERLU REVISI]";
-                            break;
-                        case ReviewStatus.Done:
-                            reviewStatus = "[SELESAI]";
-                            break;
-                        default:
-                            reviewStatus = $"[{review.Status}]";
-                            break;
+                        reviewStatus = "[DISETUJUI]";
+                    }
+                    else if (review.State is NeedsRevisionState)
+                    {
+                        reviewStatus = "[PERLU REVISI]";
+                    }
+                    else if (review.State is DoneState)
+                    {
+                        reviewStatus = "[SELESAI]";
+                    }
+                    else
+                    {
+                        reviewStatus = $"[{review.State?.GetType().Name.Replace("State", "").ToUpper() ?? "TIDAK DIKETAHUI"}]";
                     }
                 }
                 else
@@ -592,7 +596,6 @@ namespace View.Lecturer
                 Console.WriteLine($"{index}. Versi dari {version.CreatedAt.ToString("dd/MM/yyyy HH:mm:ss")} {reviewStatus}");
                 Console.WriteLine($"   {(version.IsCurrentVersion ? "[AKTIF]" : "")}");
                 Console.WriteLine($"   Deskripsi: {version.Comment}");
-                // Tampilkan preview konten (maksimal 50 karakter)
                 string contentPreview = version.Content.Length > 50
                     ? version.Content.Substring(0, 50) + "..."
                     : version.Content;
@@ -624,24 +627,47 @@ namespace View.Lecturer
             Console.WriteLine("\nKonten:");
             Console.WriteLine(version.Content);
 
-            Review? review = null;
+            Review? existingReview = null; // Renamed to avoid conflict
             bool hasReview = false;
 
             try
             {
-                review = _reviewService.GetReviewByDocumentBodyId(version.Id);
-                hasReview = (review != null);
+                existingReview = _reviewService.GetReviewByDocumentBodyId(version.Id);
+                hasReview = (existingReview != null);
             }
             catch (InvalidOperationException)
             {
-                // Review tidak ditemukan
                 hasReview = false;
             }
 
             if (version.IsReviewed && hasReview)
             {
                 Console.WriteLine("\nDokumen ini sudah direview sebelumnya.");
-                Console.WriteLine($"Status review: {review.Status}");
+                // Display the current state of the existing review
+                string currentReviewStatus = "";
+                if(existingReview == null)
+                {
+                    Console.WriteLine("Tidak ada review untuk saat ini!");
+                    return;
+                }
+                else
+                if (existingReview.State is ApprovedState)
+                {
+                    currentReviewStatus = "DISETUJUI";
+                }
+                else if (existingReview.State is NeedsRevisionState)
+                {
+                    currentReviewStatus = "PERLU REVISI";
+                }
+                else if (existingReview.State is DoneState)
+                {
+                    currentReviewStatus = "SELESAI";
+                }
+                else
+                {
+                    currentReviewStatus = existingReview.State?.GetType().Name.Replace("State", "").ToUpper() ?? "TIDAK DIKETAHUI";
+                }
+                Console.WriteLine($"Status review: {currentReviewStatus}");
 
                 Console.Write("\nApakah Anda ingin membuat review baru? (y/n): ");
                 string? choice = Console.ReadLine()?.ToLower();
@@ -665,18 +691,22 @@ namespace View.Lecturer
                 return;
             }
 
-            // Tentukan status berdasarkan pilihan
+            // Determine status based on choice
             ReviewStatus status;
+            ReviewState newState; // Declare ReviewState variable
             switch (reviewChoice)
             {
                 case "1":
                     status = ReviewStatus.Approved;
+                    newState = new ApprovedState(); // Instantiate ApprovedState
                     break;
                 case "2":
                     status = ReviewStatus.NeedsRevision;
+                    newState = new NeedsRevisionState(); // Instantiate NeedsRevisionState
                     break;
                 case "3":
                     status = ReviewStatus.Done;
+                    newState = new DoneState(); // Instantiate DoneState
                     break;
                 default:
                     Console.WriteLine("Pilihan tidak valid.");
@@ -686,13 +716,37 @@ namespace View.Lecturer
             Console.Write("Masukkan komentar untuk review: ");
             string comment = Console.ReadLine() ?? "";
 
-            // Simpan review
             try
             {
-                _reviewService.AddReview(version.Id, _currentUser.Id, comment, status);
+                if(_currentUser == null)
+                {
+                    Console.WriteLine("User tidak ditemukan.");
+                    return;
+                }
+                // Create a new Review object
+                var newReview = new Review
+                {
+                    Id = Guid.NewGuid(),
+                    FK_DocumentBodyId = version.Id,
+                    FK_UserLecturerId = _currentUser.Id,
+                    Comment = comment,
+                    Status = status, // Still need ReviewStatus for the Review model
+                    State = newState, // Set the initial state
+                    CreatedAt = DateTime.Now
+                };
 
-                // Update IsReviewed di DocumentBody
+                // Add the review to the ReviewService (which would typically save it to a database)
+                // _reviewService.AddReview(newReview); <- Will create AddReview now takes a Review object, currently not implemented
+
+                // Add the review to ReviewUtil, due to non-existant Add review in the review service
+                _reviewUtil.AddReviewRequest(newReview); // Add the review to ReviewUtil's internal list
+
+                // Process the review using ReviewUtil, which will handle state transitions and document updates
+                _reviewUtil.ProcessReview(newReview, status, comment);
+
+                // Update IsReviewed in DocumentBody
                 version.IsReviewed = true;
+                // _documentBodyService.UpdateDocumentBody(version); <- Assuming an UpdateDocumentBody method
 
                 Console.WriteLine("\nReview berhasil disimpan!");
                 Console.WriteLine($"Status review: {status}");

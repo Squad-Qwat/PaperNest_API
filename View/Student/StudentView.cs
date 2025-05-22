@@ -22,6 +22,7 @@ namespace View.Student
         private User? _currentUser;
         private Workspace? _currentWorkspace;
         private readonly GlobalView _globalView;
+        private readonly ReviewUtil _reviewUtil; // Add ReviewUtil
 
         public StudentView(User currentUser, AuthStateMachine authState)
         {
@@ -35,6 +36,7 @@ namespace View.Student
             _documentBodyService = new DocumentBodyService();
             _reviewService = new ReviewService();
             _userWorkspaceService = new UserWorkspaceService();
+            _reviewUtil = new ReviewUtil(); // Initialize ReviewUtil
         }
 
         public void Start()
@@ -441,22 +443,35 @@ namespace View.Student
                     {
                         var review = _reviewService.GetReviewByDocumentBodyId(currentVersion.Id);
                         string statusText = "";
-                        switch (review.Status)
+                        if (review != null)
                         {
-                            case ReviewStatus.Approved:
+                            // Using the Review's State instead of direct ReviewStatus
+                            if (review.State is ApprovedState)
+                            {
                                 statusText = "DISETUJUI";
-                                break;
-                            case ReviewStatus.NeedsRevision:
+                            }
+                            else if (review.State is NeedsRevisionState)
+                            {
                                 statusText = "PERLU REVISI";
-                                break;
-                            case ReviewStatus.Done:
+                            }
+                            else if (review.State is DoneState)
+                            {
                                 statusText = "SELESAI";
-                                break;
-                            default:
-                                statusText = review.Status.ToString();
-                                break;
+                            }
+                            else if (review.State is SubmittedState) // Added SubmittedState
+                            {
+                                statusText = "DIAJUKAN";
+                            }
+                            else if (review.State is UnderReviewState) // Added UnderReviewState
+                            {
+                                statusText = "DALAM REVIEW";
+                            }
+                            else
+                            {
+                                statusText = review.State?.GetType().Name.Replace("State", "").ToUpper() ?? "TIDAK DIKETAHUI";
+                            }
+                            reviewInfo = $"\nVersi saat ini: [{statusText}] (Klik menu 'Lihat Versi Dokumen' untuk detail)";
                         }
-                        reviewInfo = $"\nVersi saat ini: [{statusText}] (Klik menu 'Lihat Versi Dokumen' untuk detail)";
                     }
                     else if (currentVersion != null)
                     {
@@ -562,20 +577,15 @@ namespace View.Student
                 Console.WriteLine("Tidak ada dokumen yang dipilih.");
                 return;
             }
-
             if (_currentUser == null)
             {
                 Console.WriteLine("Anda harus login terlebih dahulu.");
                 return;
             }
-
             Console.WriteLine($"\n=== Edit Konten Dokumen: {document.Title} ===");
-
             // Ambil konten dari dokumen saat ini
             string initialContent = document.SavedContent ?? string.Empty;
-
             Console.WriteLine("Masukkan konten baru (bisa dimodifikasi dari konten sebelumnya):");
-
             // Gunakan hanya metode interaktif
             string newContent = ReadAndEditMultilineText(initialContent);
 
@@ -588,12 +598,87 @@ namespace View.Student
             // Simpan draft langsung ke document.Content
             document.SavedContent = newContent;
             document.UpdateAt = DateTime.Now;
-
             _documentService.Update(document.Id, document);
-
             Console.WriteLine("Konten dokumen berhasil diperbarui!");
             Console.WriteLine("Catatan: Versi baru belum dibuat. Untuk membuat versi baru, silakan pilih menu 'Kirim Versi Baru' di menu Manajemen Versi Dokumen.");
             Console.WriteLine("Draft tersimpan dan dapat dilihat oleh semua anggota workspace.");
+        }
+
+        private bool DeleteDocument(Guid documentId)
+        {
+            Console.WriteLine("\n=== Hapus Dokumen ===");
+            Console.Write("Apakah Anda yakin ingin menghapus dokumen ini? (y/n): ");
+            string? confirmation = Console.ReadLine()?.ToLower();
+
+            if (confirmation == "y")
+            {
+                _documentService.Delete(documentId);
+                Console.WriteLine("Dokumen berhasil dihapus.");
+                return true;
+            }
+            else
+            {
+                Console.WriteLine("Penghapusan dokumen dibatalkan.");
+                return false;
+            }
+        }
+
+        private void EditWorkspace()
+        {
+            if (_currentWorkspace == null)
+            {
+                Console.WriteLine("Tidak ada workspace yang dipilih.");
+                return;
+            }
+
+            Console.WriteLine($"\n=== Edit Workspace: {_currentWorkspace.Title} ===");
+
+            Console.Write($"Judul Baru (kosongkan untuk tetap '{_currentWorkspace.Title}'): ");
+            string? title = Console.ReadLine();
+
+            Console.Write($"Deskripsi Baru (kosongkan untuk tetap '{(string.IsNullOrEmpty(_currentWorkspace.Description) ? "Tidak ada deskripsi" : _currentWorkspace.Description)}'): ");
+            string? description = Console.ReadLine();
+
+            if (!string.IsNullOrEmpty(title))
+            {
+                _currentWorkspace.Title = title;
+            }
+
+            if (!string.IsNullOrEmpty(description))
+            {
+                _currentWorkspace.Description = description;
+            }
+
+            _currentWorkspace.UpdateAt = DateTime.Now;
+
+            _workspaceService.Update(_currentWorkspace.Id, _currentWorkspace);
+            Console.WriteLine("Workspace berhasil diperbarui!");
+        }
+
+        private bool DeleteWorkspace()
+        {
+            if (_currentWorkspace == null)
+            {
+                Console.WriteLine("Tidak ada workspace yang dipilih.");
+                return false;
+            }
+
+            Console.WriteLine("\n=== Hapus Workspace ===");
+            Console.Write("Apakah Anda yakin ingin menghapus workspace ini dan semua dokumen di dalamnya? (y/n): ");
+            string? confirmation = Console.ReadLine()?.ToLower();
+
+            if (confirmation == "y")
+            {
+                _workspaceService.Delete(_currentWorkspace.Id);
+                Console.WriteLine("Workspace berhasil dihapus.");
+                _currentWorkspace = null; // Clear current workspace after deletion
+                return true;
+            }
+            else
+            {
+                Console.WriteLine("Penghapusan workspace dibatalkan.");
+                return false;
+            }
         }
 
         private void ManageDocumentVersions(Document document)
@@ -613,6 +698,7 @@ namespace View.Student
                 Console.WriteLine("2. Kirim Versi Baru");
                 Console.WriteLine("3. Rollback ke Versi Sebelumnya");
                 Console.WriteLine("0. Kembali ke Menu Dokumen");
+
                 Console.Write("Pilih menu: ");
 
                 string? choice = Console.ReadLine();
@@ -692,12 +778,29 @@ namespace View.Student
 
             var newVersion = _documentBodyService.CreateDocumentBody(document.Id, _currentUser.Id, comment, currentContent);
             document.UpdateAt = DateTime.Now;
-
             _documentService.Update(document.Id, document);
+
+            // Create an initial Pending review state for the new version
+            if (_currentUser == null)
+            {
+                Console.WriteLine("User tidak ditemukan.");
+                return;
+            }
+            var initialReview = new Review
+            {
+                Id = Guid.NewGuid(),
+                FK_DocumentBodyId = newVersion.Id,
+                FK_UserLecturerId = Guid.Empty, // No lecturer assigned yet, or you can assign a default/null
+                Comment = "Dokumen baru diajukan untuk review.",
+                Status = ReviewStatus.Pending, // Initial status
+                State = new SubmittedState(), // Set the initial state
+                CreatedAt = DateTime.Now
+            };
+
+            _reviewUtil.AddReviewRequest(initialReview); // Add to ReviewUtil's list
 
             Console.WriteLine("Versi baru dokumen berhasil dikirim!");
             Console.WriteLine("Versi ini perlu direview oleh dosen sebelum Anda dapat membuat versi baru lagi.");
-
         }
 
         // Method untuk melihat semua versi dokumen
@@ -718,24 +821,34 @@ namespace View.Student
             foreach (var version in versionsList)
             {
                 string reviewStatus = "";
+                var review = _reviewService.GetReviewByDocumentBodyId(version.Id); // Attempt to get review
 
-                var review = _reviewService.GetReviewByDocumentBodyId(version.Id);
                 if (version.IsReviewed && review != null)
                 {
-                    switch (review.Status)
+                    // Check the state of the review using the Review object's State property
+                    if (review.State is ApprovedState)
                     {
-                        case ReviewStatus.Approved:
-                            reviewStatus = "[DISETUJUI]";
-                            break;
-                        case ReviewStatus.NeedsRevision:
-                            reviewStatus = "[PERLU REVISI]";
-                            break;
-                        case ReviewStatus.Done:
-                            reviewStatus = "[SELESAI]";
-                            break;
-                        default:
-                            reviewStatus = $"[{review.Status}]";
-                            break;
+                        reviewStatus = "[DISETUJUI]";
+                    }
+                    else if (review.State is NeedsRevisionState)
+                    {
+                        reviewStatus = "[PERLU REVISI]";
+                    }
+                    else if (review.State is DoneState)
+                    {
+                        reviewStatus = "[SELESAI]";
+                    }
+                    else if (review.State is SubmittedState)
+                    {
+                        reviewStatus = "[DIAJUKAN]";
+                    }
+                    else if (review.State is UnderReviewState)
+                    {
+                        reviewStatus = "[DALAM REVIEW]";
+                    }
+                    else
+                    {
+                        reviewStatus = $"[{review.State?.GetType().Name.Replace("State", "").ToUpper() ?? "TIDAK DIKETAHUI"}]";
                     }
                 }
                 else
@@ -789,7 +902,6 @@ namespace View.Student
             Console.WriteLine("\nKonten:");
             Console.WriteLine(version.Content);
 
-
             var review = _reviewService.GetReviewByDocumentBodyId(version.Id);
 
 
@@ -797,22 +909,31 @@ namespace View.Student
             {
                 Console.WriteLine("\n=== Hasil Review ===");
 
-                // Tampilkan status review dengan format yang mudah dibaca
                 string statusReview = "";
-                switch (review.Status)
+                // Use the Review's State for display
+                if (review.State is ApprovedState)
                 {
-                    case ReviewStatus.Approved:
-                        statusReview = "DISETUJUI";
-                        break;
-                    case ReviewStatus.NeedsRevision:
-                        statusReview = "PERLU REVISI";
-                        break;
-                    case ReviewStatus.Done:
-                        statusReview = "DONE";
-                        break;
-                    default:
-                        statusReview = review.Status.ToString();
-                        break;
+                    statusReview = "DISETUJUI";
+                }
+                else if (review.State is NeedsRevisionState)
+                {
+                    statusReview = "PERLU REVISI";
+                }
+                else if (review.State is DoneState)
+                {
+                    statusReview = "SELESAI";
+                }
+                else if (review.State is SubmittedState)
+                {
+                    statusReview = "DIAJUKAN";
+                }
+                else if (review.State is UnderReviewState)
+                {
+                    statusReview = "DALAM REVIEW";
+                }
+                else
+                {
+                    statusReview = review.State?.GetType().Name.Replace("State", "").ToUpper() ?? "TIDAK DIKETAHUI";
                 }
 
                 Console.WriteLine($"Status: {statusReview}");
@@ -831,109 +952,13 @@ namespace View.Student
                 Console.WriteLine("------------");
                 Console.WriteLine(review.Comment);
                 Console.WriteLine("------------");
-
-                Console.WriteLine("\nPanduan tindak lanjut:");
-                switch (review.Status)
-                {
-                    case ReviewStatus.Approved:
-                        Console.WriteLine("Dokumen Anda telah disetujui. Anda dapat melanjutkan ke tahap berikutnya.");
-                        break;
-                    case ReviewStatus.NeedsRevision:
-                        Console.WriteLine("Dokumen Anda memerlukan revisi. Silakan perbaiki sesuai komentar reviewer.");
-                        Console.WriteLine("Setelah selesai merevisi, buat versi baru untuk direview kembali.");
-                        break;
-                    case ReviewStatus.Done:
-                        Console.WriteLine("Dokumen Anda telah selesai dan disetujui !.");
-                        break;
-                }
             }
             else
             {
                 Console.WriteLine("\nVersi ini belum direview.");
-                Console.WriteLine("Versi ini masih menunggu review dari dosen.");
-                Console.WriteLine("Silakan hubungi dosen Anda untuk mempercepat proses review.");
             }
         }
 
-        // Method untuk mengedit workspace
-        private void EditWorkspace()
-        {
-            if (_currentWorkspace == null)
-            {
-                Console.WriteLine("Tidak ada workspace yang dipilih.");
-                return;
-            }
-
-            Console.WriteLine($"\n=== Edit Workspace: {_currentWorkspace.Title} ===");
-
-            Console.Write($"Nama Baru (kosongkan untuk tetap '{_currentWorkspace.Title}'): ");
-            string? title = Console.ReadLine();
-
-            Console.Write($"Deskripsi Baru (kosongkan untuk tetap '{_currentWorkspace.Description ?? "kosong"}'): ");
-            string? description = Console.ReadLine();
-
-            if (!string.IsNullOrEmpty(title))
-            {
-                _currentWorkspace.Title = title;
-            }
-
-            if (!string.IsNullOrEmpty(description))
-            {
-                _currentWorkspace.Description = description;
-            }
-
-            _currentWorkspace.UpdateAt = DateTime.Now;
-
-            _workspaceService.Update(_currentWorkspace.Id, _currentWorkspace);
-
-            Console.WriteLine("Workspace berhasil diperbarui!");
-        }
-
-        // Method untuk menghapus workspace
-        private bool DeleteWorkspace()
-        {
-            if (_currentWorkspace == null)
-            {
-                Console.WriteLine("Tidak ada workspace yang dipilih.");
-                return false;
-            }
-
-            Console.WriteLine($"\n=== Hapus Workspace: {_currentWorkspace.Title} ===");
-            Console.Write("Anda yakin ingin menghapus workspace ini? (y/n): ");
-            string? confirmation = Console.ReadLine();
-
-            if (confirmation?.ToLower() != "y")
-            {
-                Console.WriteLine("Penghapusan workspace dibatalkan.");
-                return false;
-            }
-
-            _workspaceService.Delete(_currentWorkspace.Id);
-            Console.WriteLine("Workspace berhasil dihapus!");
-            _currentWorkspace = null;
-            return true;
-        }
-
-        // Method untuk menghapus dokumen
-        private bool DeleteDocument(Guid documentId)
-        {
-            Console.WriteLine("\n=== Hapus Dokumen ===");
-            Console.Write("Anda yakin ingin menghapus dokumen ini? (y/n): ");
-            string? confirmation = Console.ReadLine();
-
-            if (confirmation?.ToLower() != "y")
-            {
-                Console.WriteLine("Penghapusan dokumen dibatalkan.");
-                return false;
-            }
-
-            _documentService.Delete(documentId);
-
-            Console.WriteLine("Dokumen berhasil dihapus!");
-            return true;
-        }
-
-        // Method untuk rollback ke versi sebelumnya
         private void RollbackDocumentVersion(Document document)
         {
             if (document == null)
@@ -942,222 +967,216 @@ namespace View.Student
                 return;
             }
 
-            Console.WriteLine($"\n=== Rollback Dokumen: {document.Title} ===");
+            Console.WriteLine($"\n=== Rollback Versi Dokumen: {document.Title} ===");
 
             var versions = _documentBodyService.GetDocumentBodiesByDocumentId(document.Id);
 
             if (versions == null || !versions.Any())
             {
-                Console.WriteLine("Belum ada versi dokumen untuk rollback.");
+                Console.WriteLine("Belum ada versi dokumen untuk di-rollback.");
                 return;
             }
 
-            // Konversi ke List untuk akses yang konsisten
-            var versionsList = versions.ToList();
-            int index = 1;
-            List<DocumentBody> nonCurrentVersions = new List<DocumentBody>();
+            // Exclude the current version from the list for rollback
+            var rollbackableVersions = versions.Where(v => !v.IsCurrentVersion).ToList();
 
-            foreach (var version in versionsList)
+            if (!rollbackableVersions.Any())
             {
-                if (!version.IsCurrentVersion)
-                {
-                    nonCurrentVersions.Add(version);
-                    Console.WriteLine($"{nonCurrentVersions.Count}. Versi dari {version.CreatedAt.ToString("dd/MM/yyyy HH:mm:ss")}");
-                    Console.WriteLine($"   Deskripsi: {version.Comment}");
-                    // Tampilkan preview konten (maksimal 50 karakter)
-                    string contentPreview = version.Content.Length > 50
-                        ? version.Content.Substring(0, 50) + "..."
-                        : version.Content;
-                    Console.WriteLine($"   Preview: {contentPreview}");
-                    Console.WriteLine();
-                }
+                Console.WriteLine("Tidak ada versi sebelumnya untuk di-rollback.");
+                return;
+            }
+
+            int index = 1;
+            foreach (var version in rollbackableVersions)
+            {
+                Console.WriteLine($"{index}. Versi dari {version.CreatedAt.ToString("dd/MM/yyyy HH:mm:ss")} (Deskripsi: {version.Comment})");
                 index++;
             }
 
-            if (nonCurrentVersions.Count == 0)
+            Console.Write("Pilih versi untuk di-rollback (nomor) atau 0 untuk kembali: ");
+            if (int.TryParse(Console.ReadLine(), out int choice) && choice > 0 && choice <= rollbackableVersions.Count)
             {
-                Console.WriteLine("Tidak ada versi sebelumnya untuk rollback.");
-                return;
-            }
+                var selectedVersion = rollbackableVersions[choice - 1];
 
-            Console.Write("Pilih versi untuk rollback (nomor) atau 0 untuk kembali: ");
-            if (int.TryParse(Console.ReadLine(), out int choice) && choice > 0 && choice <= nonCurrentVersions.Count)
-            {
-                var selectedVersion = nonCurrentVersions[choice - 1];
+                // _documentBodyService.SetCurrentVersion(document.Id, selectedVersion.Id); <- doesn't exist in the current context
+                document.SavedContent = selectedVersion.Content; // Update document's content to the rolled-back version
+                document.UpdateAt = DateTime.Now;
+                _documentService.Update(document.Id, document);
 
-                Console.Write($"Anda yakin ingin rollback ke versi dari {selectedVersion.CreatedAt}? (y/n): ");
-                string? confirmation = Console.ReadLine();
-
-                if (confirmation?.ToLower() == "y")
-                {
-                    var newVersion = _documentBodyService.RollbackToPreviousDocumentBody(document.Id, selectedVersion.Id);
-                    document.SavedContent = newVersion.Content;
-                    document.UpdateAt = DateTime.Now;
-
-                    _documentService.Update(document.Id, document);
-
-                    Console.WriteLine("Rollback berhasil!");
-                }
-                else
-                {
-                    Console.WriteLine("Rollback dibatalkan.");
-                }
+                Console.WriteLine($"Dokumen berhasil di-rollback ke versi dari {selectedVersion.CreatedAt.ToString("dd/MM/yyyy HH:mm:ss")}.");
             }
         }
 
-        // Metode pengeditan teks interaktif untuk multiline text
+        // Helper untuk input multi-line
         private string ReadAndEditMultilineText(string initialText)
         {
-            // Split text into lines for multiline support
-            List<string> lines = initialText.Split(Environment.NewLine).ToList();
-            if (lines.Count == 0) lines.Add(string.Empty);
+            List<string> lines = new List<string>(initialText.Split(new[] { "\r\n", "\r", "\n" }, StringSplitOptions.None));
+            if (!lines.Any())
+            {
+                lines.Add("");
+            }
 
             int currentLine = 0;
-            bool editing = true;
+            int cursorX = 0; // Relative to the start of the current line's text content (after "X: ")
+            int startY = Console.CursorTop; // Initial cursor position before drawing editor
 
-            Console.Clear();
-            Console.WriteLine("==== EDITOR INTERAKTIF ====");
-            Console.WriteLine("Navigasi: ↑↓ = pindah baris, ←→ = pindah karakter");
-            Console.WriteLine("Esc = keluar dan simpan, Ctrl+C = keluar tanpa simpan");
-            Console.WriteLine("===============================");
+            Console.WriteLine("Mode Edit (tekan Esc untuk selesai):");
+            Console.WriteLine("-----------------------------------");
 
-            // Display all lines
-            Console.WriteLine();
+            // Initial draw
             for (int i = 0; i < lines.Count; i++)
             {
                 Console.WriteLine($"{i + 1}: {lines[i]}");
             }
 
-            // Position cursor at the beginning of first line
-            Console.SetCursorPosition(3, 5); // Adjust for header and line numbers
-            int cursorX = 3;  // Line number + ": " = 3 characters
-            int cursorY = 5;  // Starting line after header
+            // Set initial cursor position
+            Console.SetCursorPosition(3 + lines[currentLine].Length, startY + currentLine + 2); // 3 for "X: " prefix, +2 for header lines
 
+            bool editing = true;
             while (editing)
             {
-                // Read a key press without displaying it
-                var key = Console.ReadKey(true);
+                ConsoleKeyInfo key = Console.ReadKey(intercept: true); // intercept: true hides the key press
 
                 switch (key.Key)
                 {
                     case ConsoleKey.Escape:
-                        editing = false;  // Done editing
+                        editing = false;
                         break;
-
+                    case ConsoleKey.Enter:
+                        // If at the end of the current line, add a new line
+                        if (cursorX - 3 == lines[currentLine].Length)
+                        {
+                            lines.Insert(currentLine + 1, "");
+                        }
+                        currentLine++;
+                        if (currentLine >= lines.Count)
+                        {
+                            currentLine = lines.Count - 1; // Stay on the last line if Enter pressed at end
+                        }
+                        // Redraw all lines from current down to show new line or moved cursor
+                        Console.SetCursorPosition(0, startY + 2);
+                        for (int i = 0; i < lines.Count; i++)
+                        {
+                            Console.WriteLine($"{i + 1}: {lines[i]}{new string(' ', Console.WindowWidth - (lines[i].Length + (i + 1).ToString().Length + 2))}"); // Clear rest of line
+                        }
+                        cursorX = 3 + lines[currentLine].Length; // Move cursor to end of new line
+                        Console.SetCursorPosition(cursorX, startY + currentLine + 2);
+                        break;
                     case ConsoleKey.UpArrow:
                         if (currentLine > 0)
                         {
                             currentLine--;
-                            cursorY--;
-                            // Make sure cursor X position is valid for the new line
-                            cursorX = Math.Min(lines[currentLine].Length + 3, cursorX);
-                            Console.SetCursorPosition(cursorX, cursorY);
+                            cursorX = Math.Min(3 + lines[currentLine].Length, cursorX);
+                            Console.SetCursorPosition(cursorX, startY + currentLine + 2);
                         }
                         break;
-
                     case ConsoleKey.DownArrow:
                         if (currentLine < lines.Count - 1)
                         {
                             currentLine++;
-                            cursorY++;
-                            // Make sure cursor X position is valid for the new line
-                            cursorX = Math.Min(lines[currentLine].Length + 3, cursorX);
-                            Console.SetCursorPosition(cursorX, cursorY);
+                            cursorX = Math.Min(3 + lines[currentLine].Length, cursorX);
+                            Console.SetCursorPosition(cursorX, startY + currentLine + 2);
                         }
                         break;
-
                     case ConsoleKey.LeftArrow:
-                        if (cursorX > 3)  // Don't move left of the line number prefix
+                        if (cursorX > 3) // Don't go past the "X: " prefix
                         {
                             cursorX--;
-                            Console.SetCursorPosition(cursorX, cursorY);
+                            Console.SetCursorPosition(cursorX, Console.CursorTop);
+                        }
+                        else if (currentLine > 0) // Move to end of previous line
+                        {
+                            currentLine--;
+                            cursorX = 3 + lines[currentLine].Length;
+                            Console.SetCursorPosition(cursorX, startY + currentLine + 2);
                         }
                         break;
-
                     case ConsoleKey.RightArrow:
-                        if (cursorX < lines[currentLine].Length + 3)
+                        if (cursorX < 3 + lines[currentLine].Length)
                         {
                             cursorX++;
-                            Console.SetCursorPosition(cursorX, cursorY);
+                            Console.SetCursorPosition(cursorX, Console.CursorTop);
                         }
-                        break;
-
-                    case ConsoleKey.Enter:
-                        // Insert a new line
-                        string currentLineText = lines[currentLine];
-                        int posInLine = cursorX - 3;
-
-                        string beforeCursor = posInLine > 0 ? currentLineText.Substring(0, posInLine) : "";
-                        string afterCursor = posInLine < currentLineText.Length ? currentLineText.Substring(posInLine) : "";
-
-                        lines[currentLine] = beforeCursor;
-                        lines.Insert(currentLine + 1, afterCursor);
-
-                        // Redraw all lines after the current one
-                        for (int i = currentLine; i < lines.Count; i++)
+                        else if (currentLine < lines.Count - 1) // Move to beginning of next line
                         {
-                            Console.SetCursorPosition(0, i + 5);
-                            Console.Write(new string(' ', Console.WindowWidth));  // Clear the line
-                            Console.SetCursorPosition(0, i + 5);
-                            Console.Write($"{i + 1}: {lines[i]}");
+                            currentLine++;
+                            cursorX = 3;
+                            Console.SetCursorPosition(cursorX, startY + currentLine + 2);
                         }
-
-                        currentLine++;
-                        cursorY++;
-                        cursorX = 3;  // Move to beginning of the new line
-                        Console.SetCursorPosition(cursorX, cursorY);
                         break;
-
                     case ConsoleKey.Backspace:
-                        int positionInLine = cursorX - 3;
-                        if (positionInLine > 0)
+                        if (cursorX > 3)
                         {
-                            // Remove character from current line
-                            string lineText = lines[currentLine];
-                            lines[currentLine] = lineText.Remove(positionInLine - 1, 1);
-
-                            // Redraw the current line
-                            Console.SetCursorPosition(0, cursorY);
-                            Console.Write(new string(' ', Console.WindowWidth));  // Clear the line
-                            Console.SetCursorPosition(0, cursorY);
-                            Console.Write($"{currentLine + 1}: {lines[currentLine]}");
-
-                            // Move cursor back one position
+                            int pos = cursorX - 3;
+                            string line = lines[currentLine];
+                            lines[currentLine] = line.Remove(pos - 1, 1);
                             cursorX--;
-                            Console.SetCursorPosition(cursorX, cursorY);
+
+                            Console.SetCursorPosition(0, startY + currentLine + 2);
+                            Console.Write(new string(' ', Console.WindowWidth)); // Clear the line
+                            Console.SetCursorPosition(0, startY + currentLine + 2);
+                            Console.Write($"{currentLine + 1}: {lines[currentLine]}");
+                            Console.SetCursorPosition(cursorX, startY + currentLine + 2);
                         }
                         else if (currentLine > 0)
                         {
-                            // At beginning of line, join with previous line
-                            string previousLine = lines[currentLine - 1];
-                            string lineToJoin = lines[currentLine];
-
-                            // Remove the current line and append its content to the previous line
+                            // Merge with previous line
+                            string currentLineContent = lines[currentLine];
                             lines.RemoveAt(currentLine);
-                            int previousLineLength = previousLine.Length;
-                            lines[currentLine - 1] = previousLine + lineToJoin;
-
-                            // Redraw all lines from previous line onwards
-                            for (int i = currentLine - 1; i < lines.Count; i++)
-                            {
-                                Console.SetCursorPosition(0, i + 5);
-                                Console.Write(new string(' ', Console.WindowWidth));  // Clear the line
-                                Console.SetCursorPosition(0, i + 5);
-                                Console.Write($"{i + 1}: {lines[i]}");
-                            }
-
-                            // Clear the last line that's now empty
-                            Console.SetCursorPosition(0, lines.Count + 5);
-                            Console.Write(new string(' ', Console.WindowWidth));
-
-                            // Update cursor position
                             currentLine--;
-                            cursorY--;
-                            cursorX = 3 + previousLineLength;
-                            Console.SetCursorPosition(cursorX, cursorY);
+                            lines[currentLine] += currentLineContent;
+
+                            // Redraw from the merged line onwards
+                            Console.SetCursorPosition(0, startY + currentLine + 2);
+                            for (int i = currentLine; i < lines.Count; i++)
+                            {
+                                Console.WriteLine($"{i + 1}: {lines[i]}{new string(' ', Console.WindowWidth - (lines[i].Length + (i + 1).ToString().Length + 2))}");
+                            }
+                            Console.WriteLine(new string(' ', Console.WindowWidth)); // Clear the last line if necessary
+
+                            cursorX = 3 + lines[currentLine].Length - currentLineContent.Length; // Position cursor at the start of merged content
+                            Console.SetCursorPosition(cursorX, startY + currentLine + 2);
                         }
                         break;
+                    case ConsoleKey.Delete:
+                        if (cursorX < 3 + lines[currentLine].Length)
+                        {
+                            int pos = cursorX - 3;
+                            string line = lines[currentLine];
+                            lines[currentLine] = line.Remove(pos, 1);
 
+                            Console.SetCursorPosition(0, startY + currentLine + 2);
+                            Console.Write(new string(' ', Console.WindowWidth)); // Clear the line
+                            Console.SetCursorPosition(0, startY + currentLine + 2);
+                            Console.Write($"{currentLine + 1}: {lines[currentLine]}");
+                            Console.SetCursorPosition(cursorX, startY + currentLine + 2);
+                        }
+                        else if (currentLine < lines.Count - 1)
+                        {
+                            // Merge with next line
+                            string nextLineContent = lines[currentLine + 1];
+                            lines.RemoveAt(currentLine + 1);
+                            lines[currentLine] += nextLineContent;
+
+                            // Redraw from the current line onwards
+                            Console.SetCursorPosition(0, startY + currentLine + 2);
+                            for (int i = currentLine; i < lines.Count; i++)
+                            {
+                                Console.WriteLine($"{i + 1}: {lines[i]}{new string(' ', Console.WindowWidth - (lines[i].Length + (i + 1).ToString().Length + 2))}");
+                            }
+                            Console.WriteLine(new string(' ', Console.WindowWidth)); // Clear the last line if necessary
+
+                            Console.SetCursorPosition(cursorX, startY + currentLine + 2);
+                        }
+                        break;
+                    case ConsoleKey.Home:
+                        cursorX = 3;
+                        Console.SetCursorPosition(cursorX, Console.CursorTop);
+                        break;
+                    case ConsoleKey.End:
+                        cursorX = 3 + lines[currentLine].Length;
+                        Console.SetCursorPosition(cursorX, Console.CursorTop);
+                        break;
                     default:
                         // For regular key presses, insert the character at the cursor position
                         if (char.IsLetterOrDigit(key.KeyChar) || char.IsPunctuation(key.KeyChar) || key.KeyChar == ' ')
@@ -1171,24 +1190,21 @@ namespace View.Student
                                 lines[currentLine] = line.Insert(pos, key.KeyChar.ToString());
 
                                 // Redraw the current line
-                                Console.SetCursorPosition(0, cursorY);
+                                Console.SetCursorPosition(0, Console.CursorTop);
                                 Console.Write(new string(' ', Console.WindowWidth));  // Clear the line
-                                Console.SetCursorPosition(0, cursorY);
+                                Console.SetCursorPosition(0, Console.CursorTop);
                                 Console.Write($"{currentLine + 1}: {lines[currentLine]}");
 
                                 // Move cursor forward one position
                                 cursorX++;
-                                Console.SetCursorPosition(cursorX, cursorY);
+                                Console.SetCursorPosition(cursorX, Console.CursorTop);
                             }
                         }
                         break;
                 }
             }
-
             Console.Clear();  // Clear the screen after editing is done
             return string.Join(Environment.NewLine, lines);
         }
-
-
     }
 }

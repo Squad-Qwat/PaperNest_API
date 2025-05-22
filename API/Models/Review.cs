@@ -29,7 +29,7 @@ namespace API.Models
         public ReviewState? State { get; set; } // Current state of the review process
 
         [Required]
-        public DateTime CreatedAt { get; protected set; } = DateTime.Now;
+        public DateTime CreatedAt { get; set; } = DateTime.Now;
 
         public DateTime UpdateAt { get; set; } = DateTime.Now;
 
