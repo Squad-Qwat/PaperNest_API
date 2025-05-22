@@ -50,5 +50,12 @@ namespace API.Repositories
                 .OrderByDescending(db => db.CreatedAt)
                 .FirstOrDefault();
         }
+
+        //UnitTest only
+        public static void ClearAllDocumentBodies()
+        {
+            _documentBodies.Clear();
+        }
+
     }
 }

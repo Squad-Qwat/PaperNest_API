@@ -14,8 +14,4 @@
     <Folder Include="Helpers\Globals\" />
   </ItemGroup>
 
-  <ItemGroup>
-    <ProjectReference Include="..\UnitTesting\UnitTesting.csproj" />
-  </ItemGroup>
-
 </Project>
