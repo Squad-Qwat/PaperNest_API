@@ -1,5 +1,6 @@
 ﻿using API.Helpers.Enums;
 using API.Models;
+using API.Services;
 using Microsoft.AspNetCore.Mvc;
 
 namespace API.StateMachines
@@ -10,6 +11,7 @@ namespace API.StateMachines
         // In a real application, this would be an injected IResearchRequestRepository.
         private static readonly List<ReviewRequest> _researchRequests = []; // Setara dengan 'new List<ResearchRequest>()'
         private static readonly List<Review> _reviewRequest = []; // Setara dengan 'new List<Review>()'
+        private static readonly DocumentBodyService dbs = new(); // Setara dengan 'new DocumentBodyService()'
 
         public void AddResearchRequest(ReviewRequest request)
         {
@@ -68,22 +70,21 @@ namespace API.StateMachines
                 }
 
                 // Invalidate previous current version of the Document
-                var previousCurrent = DocumentService.GetVersions(document.Id)
-                                                     .FirstOrDefault(db => db.IsCurrentVersion);
+                var previousCurrent = dbs.GetCurrentVersion(document.Id);
                 if (previousCurrent != null)
                 {
                     previousCurrent.IsCurrentVersion = false;
                 }
 
-                // Set the submitted DocumentBody as the new CurrentDocumentBody for the Document
-                var submittedBody = DocumentService.GetDocumentBodyById(request.DocumentBodyId);
+                // Set the submitted Document as the new CurrentDocumentBody for the Document
+                var submittedBody = dbs.GetDocumentBodiesByDocumentId(request.DocumentBodyId).FirstOrDefault(db => db.IsCurrentVersion);
                 if (submittedBody != null)
                 {
                     submittedBody.IsCurrentVersion = true;
-                    document.CurrentDocumentBodyId = submittedBody.Id;
-                    document.LocalContentDraft = null; // Clear draft after merge
-                    document.HasDraft = false;
-                    document.Updated_at = DateTime.Now;
+                    // document.CurrentDocumentBodyId = submittedBody.Id;
+                    document.SavedContent = null; // Clear draft after merge
+                    // document.HasDraft = false;
+                    document.UpdateAt = DateTime.Now;
                     // No need to call DocumentService.Update here as DocumentService operates on its own static list.
                 }
             }
