@@ -19,7 +19,7 @@ namespace API.Models
         public User User { get; set; }
 
         [Required]
-        public ReviewStatus Status { get; set; } = ReviewStatus.Pending;
+        public ReviewStatus Status { get; set; } = ReviewStatus.NeedsRevision;
 
         [Required]
         public DateTime CreatedAt { get; protected set; } = DateTime.Now;
