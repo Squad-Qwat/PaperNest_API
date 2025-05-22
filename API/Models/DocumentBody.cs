@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using System.Reflection.Metadata;
 
 namespace API.Models
 {
@@ -22,5 +23,15 @@ namespace API.Models
 
         [Required]
         public DateTime CreatedAt { get; protected set; } = DateTime.Now;
+
+        // Constructor for EF
+        public DocumentBody() { }
+
+        public DocumentBody(string content, Guid documentId)
+        {
+            Content = content;
+            FK_DocumentId = documentId;
+            IsCurrentVersion = true; // By default, newly created is current
+        }
     }
 }

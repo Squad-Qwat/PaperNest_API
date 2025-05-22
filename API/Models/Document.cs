@@ -8,7 +8,7 @@ namespace API.Models
         public Guid Id { get; set; } = Guid.NewGuid();
 
         [Required, MaxLength(200)]
-        public string Title { get; set; }
+        public string? Title { get; set; }
 
         public string? SavedContent { get; set; }
 
@@ -17,7 +17,11 @@ namespace API.Models
 
         public Workspace? Workspace { get; set; }
 
-        public DateTime CreatedAt { get; protected set; } = DateTime.Now;
+        [Required]
+        public Guid FK_UserId { get; set; }
+        public User? User { get; set; }
+
+        public DateTime CreatedAt { get; set; } = DateTime.Now;
 
         public DateTime UpdateAt { get; set; }
     }

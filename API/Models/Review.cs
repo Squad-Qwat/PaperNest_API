@@ -6,9 +6,9 @@ namespace API.Models
     public class Review
     {
         [Key, Required]
-        public Guid Id { get; set; } = Guid.NewGuid();
+        public Guid Id { get; set; }
 
-        public string Comment { get; set; } = string.Empty;
+        public string Comment { get; set; }
 
         [Required]
         public Guid FK_DocumentBodyId { get; set; }
@@ -26,5 +26,15 @@ namespace API.Models
 
         public DateTime UpdateAt { get; set; } = DateTime.Now;
 
+        public Review() { }
+
+        public Review(Guid id, ReviewStatus status,Guid documentBodyId, Guid userId, string comment)
+        {
+            Id = id;
+            Status = status;
+            Comment = comment;
+            FK_DocumentBodyId = documentBodyId;
+            FK_UserId = userId;
+        }
     }
 }

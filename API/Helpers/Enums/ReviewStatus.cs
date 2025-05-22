@@ -4,6 +4,7 @@
     {
         Approved,
         NeedsRevision,
+        Pending,
         Done
     }
 }
