@@ -5,10 +5,10 @@ namespace API.StateMachines
 {
     public static class CitationFormatter
     {
-        // Define a delegate for the formatting function
+        // Define a delegate for the formatting function (Basically C# method template)
         private delegate string FormatCitationDelegate(Citation citation, string finalUrl, string retrievedFromUrlPart);
 
-        // The "table" that maps CitationType to its formatting logic
+        // The "table" that maps CitationType to its formatting logic (in the constructor)
         private static readonly Dictionary<CitationType, FormatCitationDelegate> _formatters;
 
         static CitationFormatter()
@@ -28,7 +28,7 @@ namespace API.StateMachines
             string finalUrl = GetFinalUrl(citation);
             string retrievedFromUrlPart = string.IsNullOrWhiteSpace(finalUrl) ? "" : $"Diakses dari {finalUrl}";
 
-            // Use the table to get the appropriate formatter
+            // Use the table to get the appropriate formatter (call the delegate)
             if (_formatters.TryGetValue(citation.Type, out FormatCitationDelegate? formatter))
             {
                 string apaString = formatter(citation, finalUrl, retrievedFromUrlPart);
