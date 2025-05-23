@@ -16,7 +16,7 @@ builder.Services.AddScoped<DocumentService>();
 builder.Services.AddScoped<UserService>();
 builder.Services.AddScoped<UserWorkspaceService>();
 builder.Services.AddScoped<WorkspaceService>();
-
+builder.Services.AddScoped<CitationService>();
 
 var app = builder.Build();
 
