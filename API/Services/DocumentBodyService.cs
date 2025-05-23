@@ -1,6 +1,7 @@
 ﻿using API.Models;
 using API.Repositories;
 using System.Diagnostics;
+using System.Reflection.Metadata;
 
 namespace API.Services
 {
@@ -32,6 +33,7 @@ namespace API.Services
         public DocumentBody CreateDocumentBody(
             Guid documentId,
             Guid userCreatorId,
+            string comment,
             string content
             )
         {
@@ -52,6 +54,7 @@ namespace API.Services
             var documentBody = new DocumentBody
             {
                 Content = content,
+                Comment = comment,
                 FK_DocumentId = documentId,
                 FK_UserCreaotorId = userCreatorId,
                 IsCurrentVersion = isCurrentVersion
@@ -85,6 +88,55 @@ namespace API.Services
                 return DocumentBodyRepository.DeleteDocumentBody(documentId, documentBodyId);
             }
             return false;
+        }
+
+        public bool CanCreateNewVersion(Guid documentId)
+        {
+            if (documentId == Guid.Empty)
+            {
+                throw new ArgumentException("DocumentId tidak boleh kosong");
+            }
+            
+            var currentVersion = DocumentBodyRepository.GetCurrentVersion(documentId);
+            
+            if (currentVersion == null)
+            {
+                return true;
+            }
+            
+            if (currentVersion.IsReviewed)
+            {
+                return true;
+            }
+            
+            return false;
+        }
+
+        public DocumentBody RollbackToPreviousDocumentBody(
+            Guid documentId,
+            Guid documentBodyId
+            )
+        {
+            if (documentId == Guid.Empty)
+            {
+                throw new ArgumentException("DocumentId tidak boleh kosong");
+            }
+            if (documentBodyId == Guid.Empty)
+            {
+                throw new ArgumentException("DocumentBodyId tidak boleh kosong");
+            }
+            var documentBody = DocumentBodyRepository.GetDocumentBodyById(documentId, documentBodyId);
+            if (documentBody != null)
+            {
+                var currentVersion = DocumentBodyRepository.GetCurrentVersion(documentId);
+                if (currentVersion != null)
+                {
+                    currentVersion.IsCurrentVersion = false;
+                }
+                documentBody.IsCurrentVersion = true;
+                return documentBody;
+            }
+            throw new Exception("Document body not found");
         }
     }
 }

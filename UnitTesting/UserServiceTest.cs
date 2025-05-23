@@ -8,9 +8,12 @@ namespace UnitTesting
     [DoNotParallelize]
     public class UserServiceTests
     {
+        private UserService _userService;
+
         [TestInitialize]
         public void Setup()
         {
+            _userService = new UserService();
             UserRepository.userRepository.Clear();
         }
 
@@ -28,7 +31,7 @@ namespace UnitTesting
             };
 
             // Act
-            UserService.Create(newUser);
+            _userService.Create(newUser);
 
             // Assert
             Assert.AreEqual(1, UserRepository.userRepository.Count);
@@ -39,7 +42,7 @@ namespace UnitTesting
         [ExpectedException(typeof(ArgumentNullException))]
         public void Create_WithNullUser_ThrowsArgumentNullException()
         {
-            UserService.Create(null);
+            _userService.Create(null);
         }
         #endregion
 
@@ -54,7 +57,7 @@ namespace UnitTesting
             UserRepository.userRepository.Add(user2);
 
             // Act
-            var result = UserService.GetAll();
+            var result = _userService.GetAll();
 
             // Assert
             Assert.AreEqual(2, result.Count());
@@ -66,7 +69,7 @@ namespace UnitTesting
         public void GetAll_WhenEmpty_ReturnsEmptyList()
         {
             // Act
-            var result = UserService.GetAll();
+            var result = _userService.GetAll();
 
             // Assert
             Assert.AreEqual(0, result.Count());
@@ -82,7 +85,7 @@ namespace UnitTesting
             UserRepository.userRepository.Add(user);
 
             // Act
-            var result = UserService.GetById(user.Id);
+            var result = _userService.GetById(user.Id);
 
             // Assert
             Assert.IsNotNull(result);
@@ -94,7 +97,7 @@ namespace UnitTesting
         public void GetById_WhenNotExists_ReturnsNull()
         {
             // Act
-            var result = UserService.GetById(Guid.NewGuid());
+            var result = _userService.GetById(Guid.NewGuid());
 
             // Assert
             Assert.IsNull(result);
@@ -104,7 +107,7 @@ namespace UnitTesting
         [ExpectedException(typeof(ArgumentException))]
         public void GetById_WithEmptyGuid_ThrowsArgumentException()
         {
-            UserService.GetById(Guid.Empty);
+            _userService.GetById(Guid.Empty);
         }
         #endregion
 
@@ -127,7 +130,7 @@ namespace UnitTesting
             };
 
             // Act
-            UserService.Update(existingUser.Id, updatedUser);
+            _userService.Update(existingUser.Id, updatedUser);
 
             // Assert
             Assert.AreEqual("New Name", existingUser.Name);
@@ -138,7 +141,7 @@ namespace UnitTesting
         [ExpectedException(typeof(ArgumentException))]
         public void Update_WithEmptyGuid_ThrowsArgumentException()
         {
-            UserService.Update(Guid.Empty, new User());
+            _userService.Update(Guid.Empty, new User());
         }
         #endregion
 
@@ -155,7 +158,7 @@ namespace UnitTesting
             UserRepository.userRepository.Add(user);
 
             // Act
-            var result = UserService.ResetPassword("test@example.com", "newpassword");
+            var result = _userService.ResetPassword("test@example.com", "newpassword");
 
             // Assert
             Assert.IsTrue(result);
@@ -166,7 +169,7 @@ namespace UnitTesting
         public void ResetPassword_WhenUserNotExists_ReturnsFalse()
         {
             // Act
-            var result = UserService.ResetPassword("nonexistent@example.com", "newpassword");
+            var result = _userService.ResetPassword("nonexistent@example.com", "newpassword");
 
             // Assert
             Assert.IsFalse(result);
@@ -182,7 +185,7 @@ namespace UnitTesting
             UserRepository.userRepository.Add(user);
 
             // Act
-            UserService.ChangeEmail("old@example.com", "new@example.com");
+            _userService.ChangeEmail("old@example.com", "new@example.com");
 
             // Assert
             Assert.AreEqual("new@example.com", user.Email);
@@ -199,21 +202,21 @@ namespace UnitTesting
             UserRepository.userRepository.Add(user2);
 
             // Act
-            UserService.ChangeEmail("user1@example.com", "user2@example.com");
+            _userService.ChangeEmail("user1@example.com", "user2@example.com");
         }
 
         [TestMethod]
         [ExpectedException(typeof(InvalidOperationException))]
         public void ChangeEmail_WhenOldEmailNotFound_ThrowsInvalidOperationException()
         {
-            UserService.ChangeEmail("nonexistent@example.com", "new@example.com");
+            _userService.ChangeEmail("nonexistent@example.com", "new@example.com");
         }
 
         [TestMethod]
         [ExpectedException(typeof(ArgumentException))]
         public void ChangeEmail_WithEmptyNewEmail_ThrowsArgumentException()
         {
-            UserService.ChangeEmail("old@example.com", string.Empty);
+            _userService.ChangeEmail("old@example.com", string.Empty);
         }
         #endregion
 
@@ -227,18 +230,18 @@ namespace UnitTesting
             var userId = user.Id;
 
             // Act
-            UserService.Delete(userId);
+            _userService.Delete(userId);
 
             // Assert
             Assert.AreEqual(0, UserRepository.userRepository.Count);
-            Assert.IsNull(UserService.GetById(userId));
+            Assert.IsNull(_userService.GetById(userId));
         }
 
         [TestMethod]
         [ExpectedException(typeof(ArgumentException))]
         public void Delete_WithEmptyGuid_ThrowsArgumentException()
         {
-            UserService.Delete(Guid.Empty);
+            _userService.Delete(Guid.Empty);
         }
         #endregion
     }

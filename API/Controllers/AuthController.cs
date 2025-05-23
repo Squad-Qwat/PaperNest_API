@@ -11,6 +11,13 @@ namespace PaperNest_API.Controllers
     [Route("api/auth")]
     public class AuthController : Controller
     {
+        private readonly UserService _userService;
+
+        public AuthController(UserService userService)
+        {
+            _userService = userService;
+        }
+
         [HttpPost("register")]
         public IActionResult Register([FromBody] RegisterRequest newUser)
         {
@@ -19,15 +26,7 @@ namespace PaperNest_API.Controllers
                 return BadRequest(ModelState);
             }
 
-            var new_user_obj = new User
-            {
-                Name = newUser.Name,
-                Email = newUser.Email,
-                Password = newUser.Password,
-                Role = string.IsNullOrEmpty(newUser.Role) ? UserRole.Student.ToString() : UserRole.Lecturer.ToString()
-            };
-
-            UserService.Create(new_user_obj);
+            var new_user_obj = _userService.Register(newUser.Email, newUser.Password, newUser.Name ,newUser.Username, newUser.Role);
 
             return CreatedAtAction(nameof(Register), new { id = newUser.Id }, new
             {
@@ -44,7 +43,7 @@ namespace PaperNest_API.Controllers
                 return BadRequest(ModelState);
             }
 
-            var authorizedUser = UserRepository.userRepository.FirstOrDefault(u => (u.Email!.ToLowerInvariant() == existingUser.Email!.ToLowerInvariant()) && (u.Password == existingUser.Password));
+            var authorizedUser = _userService.Login(existingUser.Email, existingUser.Password);
 
             if (authorizedUser == null)
             {
@@ -73,7 +72,7 @@ namespace PaperNest_API.Controllers
                 return BadRequest(ModelState);
             }
 
-            bool success = UserService.ResetPassword(userEmail, newPassword);
+            bool success = _userService.ResetPassword(userEmail, newPassword);
 
             if (!success)
             {
@@ -97,7 +96,7 @@ namespace PaperNest_API.Controllers
                 return BadRequest(ModelState);
             }
 
-            UserService.ChangeEmail(newEmail.OldEmail, newEmail.NewEmail);
+            _userService.ChangeEmail(newEmail.OldEmail, newEmail.NewEmail);
 
             return Ok(new
             {

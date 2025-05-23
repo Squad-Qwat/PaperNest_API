@@ -42,18 +42,14 @@ namespace API.Services
             ReviewRepository.AddReview(documentBodyId, userId, comment, status);
         }
 
-        public Review GetReviewByDocumentBodyId(Guid documentBodyId)
+        public Review? GetReviewByDocumentBodyId(Guid documentBodyId)
         {
             if (documentBodyId == Guid.Empty)
             {
                 throw new ArgumentException("DocumentBodyId tidak boleh kosong", nameof(documentBodyId));
             }
             var review = ReviewRepository.GetReviewByDocumentBodyId(documentBodyId);
-            if (review == null)
-            {
-                throw new InvalidOperationException("Review tidak ditemukan untuk DocumentBodyId yang diberikan");
-            }
-            return review;
+            return review; // Kembalikan null jika review tidak ditemukan daripada melempar exception
         }
 
         public bool RemoveReview(Guid reviewId)

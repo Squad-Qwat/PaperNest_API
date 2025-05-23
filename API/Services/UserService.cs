@@ -6,7 +6,7 @@ namespace API.Services
 {
     public class UserService
     {
-        public static void Create(User newUser)
+        public void Create(User newUser)
         {
             Debug.Assert(newUser != null, "New User can not null here");
 
@@ -17,7 +17,7 @@ namespace API.Services
             Debug.Assert(UserRepository.userRepository.Count == initialLength + 1, "User was not added correctly");
         }
 
-        public static IEnumerable<User> GetAll()
+        public IEnumerable<User> GetAll()
         {
             var users = UserRepository.userRepository;
 
@@ -26,7 +26,7 @@ namespace API.Services
             return users;
         }
 
-        public static User? GetById(Guid userId)
+        public User? GetById(Guid userId)
         {
             Debug.Assert(userId != Guid.Empty, "User Id can not be empty");
 
@@ -34,7 +34,61 @@ namespace API.Services
 
         }
 
-        public static void Update(Guid userId, User newUser)
+        public User Register(string userEmail, string userPassword, string userName, string userUsername,  string userRole = "Mahasiswa")
+        {
+            Debug.Assert(userEmail != string.Empty, "User email can not be empty");
+            Debug.Assert(userPassword != string.Empty, "User password can not be empty");
+            Debug.Assert(userName != string.Empty, "User name can not be empty");
+            Debug.Assert(userUsername != string.Empty, "User username can not be empty");
+            Debug.Assert(userRole != string.Empty, "User role can not be empty");
+
+            var checkEmail = GetByEmail(userEmail);
+            var checkUsername = GetByUsername(userUsername);
+
+            Debug.Assert(checkEmail == null, "User email already exists");
+            Debug.Assert(checkUsername == null, "User username already exists");
+
+            var newUser = new User
+            {
+                Email = userEmail,
+                Password = userPassword,
+                Name = userName,
+                Username = userUsername,
+                Role = userRole,
+                UpdateAt = DateTime.Now
+            };
+            Create(newUser);
+            return newUser;
+        }
+
+        public User? GetByEmail(string userEmail)
+        {
+            Debug.Assert(userEmail != string.Empty, "User email can not be empty");
+            return UserRepository.userRepository.FirstOrDefault(u => u.Email == userEmail);
+        }
+
+        public User? GetByUsername(string userUsername)
+        {
+            Debug.Assert(userUsername != string.Empty, "User username can not be empty");
+            return UserRepository.userRepository.FirstOrDefault(u => u.Username == userUsername);
+        }
+
+        public User? GetByEmailOrUsernameAndPassword(string userEmailOrUsername, string userPassword)
+        {
+            Debug.Assert(userEmailOrUsername != string.Empty, "User email or username can not be empty");
+            Debug.Assert(userPassword != string.Empty, "User password can not be empty");
+            return UserRepository.userRepository.FirstOrDefault(u => (u.Email == userEmailOrUsername || u.Username == userEmailOrUsername) && u.Password == userPassword);
+        }
+
+        public User Login(string userEmailOrUsername,string userPassword)
+        {
+            Debug.Assert(userEmailOrUsername != string.Empty, "User email or username can not be empty");
+            Debug.Assert(userPassword != string.Empty, "User password can not be empty");
+
+            return GetByEmailOrUsernameAndPassword(userEmailOrUsername, userPassword);
+        }
+
+        public void Update(Guid userId, User newUser)
         {
             Debug.Assert(userId != Guid.Empty, "User Id can not be empty");
 
@@ -51,7 +105,7 @@ namespace API.Services
             }
         }
 
-        public static bool ResetPassword(string userEmail, string newUserPassword)
+        public bool ResetPassword(string userEmail, string newUserPassword)
         {
             var existingUser = UserRepository.userRepository.FirstOrDefault(u => u.Email == userEmail);
 
@@ -66,7 +120,7 @@ namespace API.Services
             return false;
         }
 
-        public static void ChangeEmail(string oldUserEmail, string newUserEmail)
+        public void ChangeEmail(string oldUserEmail, string newUserEmail)
         {
             Debug.Assert(newUserEmail != string.Empty, "User email can not be empty");
 
@@ -93,7 +147,7 @@ namespace API.Services
             }
         }
 
-        public static void Delete(Guid deletedUserId)
+        public void Delete(Guid deletedUserId)
         {
             Debug.Assert(deletedUserId != Guid.Empty, "User Id can not be empty");
 

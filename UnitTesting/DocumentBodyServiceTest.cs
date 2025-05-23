@@ -163,11 +163,10 @@ namespace UnitTesting
             
             var documentId = Guid.NewGuid();
             var userCreatorId = Guid.NewGuid();
+            var comment = "New Comment";
             var content = "New Content";
 
-            
-            var result = _documentBodyService.CreateDocumentBody(documentId,userCreatorId, content);
-
+            var result = _documentBodyService.CreateDocumentBody(documentId,userCreatorId, comment ,content);
             
             Assert.IsNotNull(result);
             Assert.AreEqual(documentId, result.FK_DocumentId);
@@ -191,7 +190,7 @@ namespace UnitTesting
             DocumentBodyRepository.AddDocumentBody(existingDocumentBody);
 
             
-            var result = _documentBodyService.CreateDocumentBody(documentId, userCreatorId ,"New Content");
+            var result = _documentBodyService.CreateDocumentBody(documentId, userCreatorId, "New Comment" ,"New Content");
 
             
             Assert.IsNotNull(result);
@@ -205,7 +204,7 @@ namespace UnitTesting
         public void CreateDocumentBody_WithEmptyContent_ThrowsArgumentException()
         {
             
-            _documentBodyService.CreateDocumentBody(Guid.NewGuid(), Guid.NewGuid() ,"");
+            _documentBodyService.CreateDocumentBody(Guid.NewGuid(), Guid.NewGuid() , "" ,"");
         }
 
         [TestMethod]
@@ -213,7 +212,7 @@ namespace UnitTesting
         public void CreateDocumentBody_WithNullContent_ThrowsArgumentException()
         {
             
-            _documentBodyService.CreateDocumentBody(Guid.NewGuid(), Guid.NewGuid() ,null);
+            _documentBodyService.CreateDocumentBody(Guid.NewGuid(), Guid.NewGuid() , null ,null);
         }
 
         [TestMethod]
@@ -221,7 +220,7 @@ namespace UnitTesting
         public void CreateDocumentBody_WithWhitespaceContent_ThrowsArgumentException()
         {
             
-            _documentBodyService.CreateDocumentBody(Guid.NewGuid(), Guid.NewGuid() ,"   ");
+            _documentBodyService.CreateDocumentBody(Guid.NewGuid(), Guid.NewGuid() , "   " ,"   ");
         }
 
         [TestMethod]
@@ -229,7 +228,7 @@ namespace UnitTesting
         public void CreateDocumentBody_WithEmptyGuid_ThrowsArgumentException()
         {
             
-            _documentBodyService.CreateDocumentBody(Guid.Empty, Guid.Empty, "Content");
+            _documentBodyService.CreateDocumentBody(Guid.Empty, Guid.Empty, "Comment" ,"Content");
         }
         #endregion
 
@@ -335,6 +334,102 @@ namespace UnitTesting
         {
             _documentBodyService.RemoveDocumentBody(Guid.Empty, Guid.Empty);
         }
+
+        [TestMethod]
+        public void RemoveDocumentBody_WithNonExistentDocumentId_ReturnsFalse()
+        {
+            var documentBody = new DocumentBody { Content = "Test Content", FK_DocumentId = Guid.NewGuid() };
+            DocumentBodyRepository.AddDocumentBody(documentBody);
+            var documentBodyId = documentBody.Id;
+            var documentId = Guid.NewGuid();
+            var result = _documentBodyService.RemoveDocumentBody(documentId, documentBodyId);
+            Assert.IsFalse(result);
+            Assert.AreEqual(1, DocumentBodyRepository.DocumentBodies.Count);
+        }
+
+        [TestMethod]
+        public void RemoveDocumentBody_WithNonExistentDocumentBodyId_ReturnsFalse()
+        {
+            var documentBody = new DocumentBody { Content = "Test Content", FK_DocumentId = Guid.NewGuid() };
+            DocumentBodyRepository.AddDocumentBody(documentBody);
+            var documentBodyId = Guid.NewGuid();
+            var documentId = documentBody.FK_DocumentId;
+            var result = _documentBodyService.RemoveDocumentBody(documentId, documentBodyId);
+            Assert.IsFalse(result);
+            Assert.AreEqual(1, DocumentBodyRepository.DocumentBodies.Count);
+        }
+
+        [TestMethod]
+        public void CanCreateNewVersion_WhenCurrentVersionExists_ReturnsTrue()
+        {
+            var documentId = Guid.NewGuid();
+            var currentVersion = new DocumentBody
+            {
+                FK_DocumentId = documentId,
+                Content = "Current Content",
+                IsCurrentVersion = true
+            };
+            DocumentBodyRepository.AddDocumentBody(currentVersion);
+            var result = _documentBodyService.CanCreateNewVersion(documentId);
+            Assert.IsTrue(result);
+        }
+
+        [TestMethod]
+        public void CanCreateNewVersion_WhenNoCurrentVersion_ReturnsFalse()
+        {
+            var documentId = Guid.NewGuid();
+            var nonCurrentVersion = new DocumentBody
+            {
+                FK_DocumentId = documentId,
+                Content = "Non-current Content",
+                IsCurrentVersion = false
+            };
+            DocumentBodyRepository.AddDocumentBody(nonCurrentVersion);
+            var result = _documentBodyService.CanCreateNewVersion(documentId);
+            Assert.IsFalse(result);
+        }
+
+        [TestMethod]
+        public void RollbackToPreviousDocumentBody_WhenPreviousVersionExists_ReturnsDocumentBody()
+        {
+            var documentId = Guid.NewGuid();
+            var previousVersion = new DocumentBody
+            {
+                FK_DocumentId = documentId,
+                Content = "Previous Content",
+                IsCurrentVersion = false
+            };
+            var currentVersion = new DocumentBody
+            {
+                FK_DocumentId = documentId,
+                Content = "Current Content",
+                IsCurrentVersion = true
+            };
+            DocumentBodyRepository.AddDocumentBody(previousVersion);
+            DocumentBodyRepository.AddDocumentBody(currentVersion);
+            var result = _documentBodyService.RollbackToPreviousDocumentBody(documentId, previousVersion.Id);
+            
+            Assert.IsNotNull(result);
+            Assert.IsFalse(previousVersion.IsCurrentVersion);
+            Assert.IsTrue(currentVersion.IsCurrentVersion);
+        }
+
+        [TestMethod]
+        public void RollbackToPreviousDocumentBody_WhenNoPreviousVersion_ReturnsNull()
+        {
+            var documentId = Guid.NewGuid();
+            var currentVersion = new DocumentBody
+            {
+                FK_DocumentId = documentId,
+                Content = "Current Content",
+                IsCurrentVersion = true
+            };
+            DocumentBodyRepository.AddDocumentBody(currentVersion);
+            var result = _documentBodyService.RollbackToPreviousDocumentBody(documentId, Guid.NewGuid());
+
+            Assert.IsNull(result);
+        }
+
         #endregion
     }
 }

@@ -9,9 +9,12 @@ namespace UnitTesting
     [DoNotParallelize]
     public class WorkspaceServiceTests
     {
+        private WorkspaceService _workspaceService;
+
         [TestInitialize]
         public void Setup()
         {
+            _workspaceService = new WorkspaceService();
             WorkspaceRepository.workspaceRepository.Clear();
             UserRepository.userWorkspaceRepository.Clear();
         }
@@ -28,7 +31,7 @@ namespace UnitTesting
             };
 
             // Act
-            WorkspaceService.Create(workspace);
+            _workspaceService.Create(workspace);
 
             // Assert
             Assert.AreEqual(1, WorkspaceRepository.workspaceRepository.Count());
@@ -47,7 +50,7 @@ namespace UnitTesting
             WorkspaceRepository.workspaceRepository.Add(workspace2);
 
             // Act
-            var result = WorkspaceService.GetAll();
+            var result = _workspaceService.GetAll();
 
             // Assert
             Assert.AreEqual(2, result.Count());
@@ -59,7 +62,7 @@ namespace UnitTesting
         public void GetAll_WhenEmpty_ReturnsEmptyList()
         {
             // Act
-            var result = WorkspaceService.GetAll();
+            var result = _workspaceService.GetAll();
 
             // Assert
             Assert.AreEqual(0, result.Count());
@@ -79,7 +82,7 @@ namespace UnitTesting
             WorkspaceRepository.workspaceRepository.Add(workspace);
 
             // Act
-            var result = WorkspaceService.GetById(workspace.Id);
+            var result = _workspaceService.GetById(workspace.Id);
 
             // Assert
             Assert.IsNotNull(result);
@@ -91,7 +94,7 @@ namespace UnitTesting
         public void GetById_WhenNotExists_ReturnsNull()
         {
             // Act
-            var result = WorkspaceService.GetById(Guid.NewGuid());
+            var result = _workspaceService.GetById(Guid.NewGuid());
 
             // Assert
             Assert.IsNull(result);
@@ -121,7 +124,7 @@ namespace UnitTesting
             WorkspaceRepository.workspaceRepository.Add(otherWorkspace);
 
             // Act
-            var result = WorkspaceService.GetByUserId(userId).ToList();
+            var result = _workspaceService.GetByUserId(userId).ToList();
 
             // Assert
             Assert.AreEqual(2, result.Count);
@@ -134,7 +137,7 @@ namespace UnitTesting
         public void GetByUserId_WhenNoneExist_ReturnsEmptyList()
         {
             // Act
-            var result = WorkspaceService.GetByUserId(Guid.NewGuid());
+            var result = _workspaceService.GetByUserId(Guid.NewGuid());
 
             // Assert
             Assert.AreEqual(0, result.Count());
@@ -151,7 +154,7 @@ namespace UnitTesting
             var userId = Guid.NewGuid();
 
             // Act
-            var result = WorkspaceService.JoinWorkspace(workspace.Id, userId);
+            var result = _workspaceService.JoinWorkspace(workspace.Id, userId);
 
             // Assert
             Assert.IsNotNull(result);
@@ -176,7 +179,7 @@ namespace UnitTesting
             UserRepository.userWorkspaceRepository.Add(existingUserWorkspace);
 
             // Act
-            var result = WorkspaceService.JoinWorkspace(workspace.Id, userId);
+            var result = _workspaceService.JoinWorkspace(workspace.Id, userId);
 
             // Assert
             Assert.AreEqual(existingUserWorkspace, result);
@@ -186,7 +189,7 @@ namespace UnitTesting
         public void JoinWorkspace_WhenWorkspaceNotExists_ReturnsNull()
         {
             // Act
-            var result = WorkspaceService.JoinWorkspace(Guid.NewGuid(), Guid.NewGuid());
+            var result = _workspaceService.JoinWorkspace(Guid.NewGuid(), Guid.NewGuid());
 
             // Assert
             Assert.IsNull(result);
@@ -212,7 +215,7 @@ namespace UnitTesting
             };
 
             // Act
-            WorkspaceService.Update(existingWorkspace.Id, updatedWorkspace);
+            _workspaceService.Update(existingWorkspace.Id, updatedWorkspace);
 
             // Assert
             Assert.AreEqual("New Title", existingWorkspace.Title);
@@ -231,7 +234,7 @@ namespace UnitTesting
             };
 
             // Act
-            WorkspaceService.Update(Guid.NewGuid(), updatedWorkspace);
+            _workspaceService.Update(Guid.NewGuid(), updatedWorkspace);
 
             // Assert
             Assert.AreEqual(0, WorkspaceRepository.workspaceRepository.Count());
@@ -247,11 +250,11 @@ namespace UnitTesting
             WorkspaceRepository.workspaceRepository.Add(workspace);
 
             // Act
-            WorkspaceService.Delete(workspace.Id);
+            _workspaceService.Delete(workspace.Id);
 
             // Assert
             Assert.AreEqual(0, WorkspaceRepository.workspaceRepository.Count());
-            Assert.IsNull(WorkspaceService.GetById(workspace.Id));
+            Assert.IsNull(_workspaceService.GetById(workspace.Id));
         }
 
         [TestMethod]
@@ -262,7 +265,7 @@ namespace UnitTesting
             WorkspaceRepository.workspaceRepository.Add(workspace);
 
             // Act
-            WorkspaceService.Delete(Guid.NewGuid());
+            _workspaceService.Delete(Guid.NewGuid());
 
             // Assert
             Assert.AreEqual(1, WorkspaceRepository.workspaceRepository.Count());
@@ -295,7 +298,7 @@ namespace UnitTesting
             });
 
             // Act
-            var result = WorkspaceService.GetJoinedWorkspaces(userId).ToList();
+            var result = _workspaceService.GetJoinedWorkspaces(userId).ToList();
 
             // Assert
             Assert.AreEqual(2, result.Count);
@@ -308,7 +311,7 @@ namespace UnitTesting
         public void GetJoinedWorkspaces_WhenNoneExist_ReturnsEmptyList()
         {
             // Act
-            var result = WorkspaceService.GetJoinedWorkspaces(Guid.NewGuid());
+            var result = _workspaceService.GetJoinedWorkspaces(Guid.NewGuid());
 
             // Assert
             Assert.AreEqual(0, result.Count());

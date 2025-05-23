@@ -7,10 +7,16 @@ namespace PaperNest_API.Controllers
     [ApiController, Route("/api/users")]
     public class UserController : Controller
     {
+        public readonly UserService _userService;
+        public UserController(UserService userService)
+        {
+            _userService = userService;
+        }
+
         [HttpGet]
         public IActionResult GetAllUser()
         {
-            var user = UserService.GetAll();
+            var user = _userService.GetAll();
 
             return Ok(new
             {
@@ -22,7 +28,7 @@ namespace PaperNest_API.Controllers
         [HttpGet("{id}")]
         public IActionResult GetUserById(Guid id)
         {
-            var user = UserService.GetById(id);
+            var user = _userService.GetById(id);
 
             if (user == null)
             {
@@ -39,7 +45,7 @@ namespace PaperNest_API.Controllers
         [HttpPut("{id}")]
         public IActionResult UpdateUser(Guid id, [FromBody] User user)
         {
-            var existingUser = UserService.GetById(id);
+            var existingUser = _userService.GetById(id);
 
             if (existingUser == null)
             {
@@ -58,7 +64,7 @@ namespace PaperNest_API.Controllers
         [HttpDelete("id")]
         public IActionResult DeleteUser(Guid id)
         {
-            UserService.Delete(id);
+            _userService.Delete(id);
 
             return Ok(new
             {

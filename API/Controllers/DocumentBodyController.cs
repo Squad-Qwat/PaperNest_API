@@ -1,4 +1,5 @@
-﻿using API.Services;
+﻿using API.Models.DataBinding;
+using API.Services;
 using Microsoft.AspNetCore.Mvc;
 
 namespace API.Controllers
@@ -20,9 +21,9 @@ namespace API.Controllers
         }
 
         [HttpPost("{documentId}/version")]
-        public IActionResult CreateVersion(Guid documentId,[FromQuery] Guid userCreatorId, [FromBody] string content)
+        public IActionResult CreateVersion(Guid documentId,[FromQuery] Guid userCreatorId, [FromBody] CreateDocumentBody createDocumentBody)
         {
-            var version = _documentBodyService.CreateDocumentBody(documentId, userCreatorId, content);
+            var version = _documentBodyService.CreateDocumentBody(documentId, userCreatorId, createDocumentBody.Comment, createDocumentBody.Content);
             return CreatedAtAction(nameof(GetVersions), new { documentId }, version);
         }
 
@@ -30,6 +31,17 @@ namespace API.Controllers
         public IActionResult GetVersionInDocument(Guid documentId,Guid documentBodyId)
         {
             var version = _documentBodyService.GetDocumentBodyById(documentId, documentBodyId);
+            if (version == null)
+            {
+                return NotFound();
+            }
+            return Ok(version);
+        }
+
+        [HttpGet("{documentId}/version/current")]
+        public IActionResult GetCurrentVersion(Guid documentId)
+        {
+            var version = _documentBodyService.GetCurrentVersion(documentId);
             if (version == null)
             {
                 return NotFound();

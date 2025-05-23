@@ -8,10 +8,17 @@ namespace PaperNest_API.Controllers
     [ApiController, Route("api/workspaces")]
     public class WorkspaceController : Controller
     {
+        private readonly WorkspaceService _workspaceService;
+
+        public WorkspaceController(WorkspaceService workspaceService)
+        {
+            _workspaceService = workspaceService;
+        }
+
         [HttpGet]
         public IActionResult GetAllWorkspaces()
         {
-            var workspaces = WorkspaceService.GetAll();
+            var workspaces = _workspaceService.GetAll();
 
             return Ok(new
             {
@@ -23,7 +30,7 @@ namespace PaperNest_API.Controllers
         [HttpGet("{id}")]
         public IActionResult GetWorkspaceById(Guid workspaceId)
         {
-            var workspace = WorkspaceService.GetById(workspaceId);
+            var workspace = _workspaceService.GetById(workspaceId);
 
             if (workspace == null)
             {
@@ -43,7 +50,7 @@ namespace PaperNest_API.Controllers
         [HttpGet("user/{userId}")]
         public IActionResult GetWorkspacesByUserId(Guid userId)
         {
-            var workspaces = WorkspaceService.GetByUserId(userId);
+            var workspaces = _workspaceService.GetByUserId(userId);
 
             return Ok(new
             {
@@ -55,7 +62,7 @@ namespace PaperNest_API.Controllers
         [HttpGet("joined/{userId}")]
         public IActionResult GetJoinedWorkspaces(Guid userId)
         {
-            var workspaces = WorkspaceService.GetJoinedWorkspaces(userId);
+            var workspaces = _workspaceService.GetJoinedWorkspaces(userId);
 
             return Ok(new
             {
@@ -67,7 +74,7 @@ namespace PaperNest_API.Controllers
         [HttpPost]
         public IActionResult CreateWorkspace([FromBody] Workspace workspace)
         {
-            WorkspaceService.Create(workspace);
+            _workspaceService.Create(workspace);
 
             return CreatedAtAction(nameof(GetWorkspaceById), new { id = workspace.Id }, new
             {
@@ -79,7 +86,7 @@ namespace PaperNest_API.Controllers
         [HttpPost("join")]
         public IActionResult JoinWorkspace(Guid workspaceId, Guid userId, WorkspaceRole role = WorkspaceRole.Lecturer)
         {
-            var userWorkspace = WorkspaceService.JoinWorkspace(workspaceId, userId, role);
+            var userWorkspace = _workspaceService.JoinWorkspace(workspaceId, userId, role);
             
             if (userWorkspace == null)
             {
@@ -89,7 +96,7 @@ namespace PaperNest_API.Controllers
                 });
             }
             
-            var workspace = WorkspaceService.GetById(workspaceId);
+            var workspace = _workspaceService.GetById(workspaceId);
             
             return Ok(new
             {
@@ -105,7 +112,7 @@ namespace PaperNest_API.Controllers
         [HttpPut("{id}")]
         public IActionResult UpdateWorkspace(Guid id, [FromBody] Workspace workspace)
         {
-            var existingWorkspace = WorkspaceService.GetById(id);
+            var existingWorkspace = _workspaceService.GetById(id);
 
             if (existingWorkspace == null)
             {
@@ -115,19 +122,19 @@ namespace PaperNest_API.Controllers
                 });
             }
 
-            WorkspaceService.Update(id, workspace);
+            _workspaceService.Update(id, workspace);
 
             return Ok(new
             {
                 message = "Success update workspace",
-                data = WorkspaceService.GetById(id)
+                data = _workspaceService.GetById(id)
             });
         }
 
         [HttpDelete("{id}")]
         public IActionResult DeleteWorkspace(Guid id)
         {
-            var existingWorkspace = WorkspaceService.GetById(id);
+            var existingWorkspace = _workspaceService.GetById(id);
 
             if (existingWorkspace == null)
             {
@@ -137,7 +144,7 @@ namespace PaperNest_API.Controllers
                 });
             }
 
-            WorkspaceService.Delete(id);
+            _workspaceService.Delete(id);
 
             return Ok(new
             {

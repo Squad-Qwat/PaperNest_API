@@ -11,6 +11,8 @@ namespace UnitTesting
     [DoNotParallelize]
     public class DocumentServiceTests
     {
+        private DocumentService _documentService;
+
         [TestInitialize]
         public void Setup()
         {
@@ -30,7 +32,7 @@ namespace UnitTesting
             };
 
             // Act
-            DocumentService.Create(document);
+            _documentService.Create(document);
 
             // Assert
             Assert.AreEqual(1, DocumentRepository.documentRepository.Count());
@@ -49,7 +51,7 @@ namespace UnitTesting
             DocumentRepository.documentRepository.Add(document2);
 
             // Act
-            var result = DocumentService.GetAll();
+            var result = _documentService.GetAll();
 
             // Assert
             Assert.AreEqual(2, result.Count());
@@ -61,7 +63,7 @@ namespace UnitTesting
         public void GetAll_WhenEmpty_ReturnsEmptyList()
         {
             // Act
-            var result = DocumentService.GetAll();
+            var result = _documentService.GetAll();
 
             // Assert
             Assert.AreEqual(0, result.Count());
@@ -81,7 +83,7 @@ namespace UnitTesting
             DocumentRepository.documentRepository.Add(document);
 
             // Act
-            var result = DocumentService.GetById(document.Id);
+            var result = _documentService.GetById(document.Id);
 
             // Assert
             Assert.IsNotNull(result);
@@ -93,7 +95,7 @@ namespace UnitTesting
         public void GetById_WhenNotExists_ReturnsNull()
         {
             // Act
-            var result = DocumentService.GetById(Guid.NewGuid());
+            var result = _documentService.GetById(Guid.NewGuid());
 
             // Assert
             Assert.IsNull(result);
@@ -119,7 +121,7 @@ namespace UnitTesting
             DocumentRepository.documentRepository.Add(otherDocument);
 
             // Act
-            var result = DocumentService.GetByUserId(userId).ToList();
+            var result = _documentService.GetByUserId(userId).ToList();
 
             // Assert
             Assert.AreEqual(2, result.Count);
@@ -132,7 +134,7 @@ namespace UnitTesting
         public void GetByUserId_WhenNoneExist_ReturnsEmptyList()
         {
             // Act
-            var result = DocumentService.GetByUserId(Guid.NewGuid());
+            var result = _documentService.GetByUserId(Guid.NewGuid());
 
             // Assert
             Assert.AreEqual(0, result.Count());
@@ -155,7 +157,7 @@ namespace UnitTesting
             DocumentRepository.documentRepository.Add(otherDocument);
 
             // Act
-            var result = DocumentService.GetByWorkspaceId(workspaceId).ToList();
+            var result = _documentService.GetByWorkspaceId(workspaceId).ToList();
 
             // Assert
             Assert.AreEqual(2, result.Count);
@@ -168,7 +170,7 @@ namespace UnitTesting
         public void GetByWorkspaceId_WhenNoneExist_ReturnsEmptyList()
         {
             // Act
-            var result = DocumentService.GetByWorkspaceId(Guid.NewGuid());
+            var result = _documentService.GetByWorkspaceId(Guid.NewGuid());
 
             // Assert
             Assert.AreEqual(0, result.Count());
@@ -194,7 +196,7 @@ namespace UnitTesting
             };
 
             // Act
-            DocumentService.Update(existingDocument.Id, updatedDocument);
+            _documentService.Update(existingDocument.Id, updatedDocument);
 
             // Assert
             Assert.AreEqual("New Title", existingDocument.Title);
@@ -214,7 +216,7 @@ namespace UnitTesting
             };
 
             // Act
-            DocumentService.Update(nonExistentId, updatedDocument);
+            _documentService.Update(nonExistentId, updatedDocument);
 
             // Assert
             Assert.AreEqual(0, DocumentRepository.documentRepository.Count());
@@ -231,11 +233,11 @@ namespace UnitTesting
             var documentId = document.Id;
 
             // Act
-            DocumentService.Delete(documentId);
+            _documentService.Delete(documentId);
 
             // Assert
             Assert.AreEqual(0, DocumentRepository.documentRepository.Count());
-            Assert.IsNull(DocumentService.GetById(documentId));
+            Assert.IsNull(_documentService.GetById(documentId));
         }
 
         [TestMethod]
@@ -246,7 +248,7 @@ namespace UnitTesting
             DocumentRepository.documentRepository.Add(document);
 
             // Act
-            DocumentService.Delete(Guid.NewGuid());
+            _documentService.Delete(Guid.NewGuid());
 
             // Assert
             Assert.AreEqual(1, DocumentRepository.documentRepository.Count());

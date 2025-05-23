@@ -7,10 +7,17 @@ namespace PaperNest_API.Controllers
     [ApiController, Route("api/documents")]
     public class DocumentController : Controller
     {
+        public readonly DocumentService _documentService;
+
+        public DocumentController(DocumentService documentService)
+        {
+            _documentService = documentService;
+        }
+
         [HttpGet]
         public IActionResult GetAllDocuments()
         {
-            var documents = DocumentService.GetAll();
+            var documents = _documentService.GetAll();
 
             return Ok(new
             {
@@ -22,7 +29,7 @@ namespace PaperNest_API.Controllers
         [HttpGet("{id}")]
         public IActionResult GetDocumentById(Guid documentId)
         {
-            var document = DocumentService.GetById(documentId);
+            var document = _documentService.GetById(documentId);
 
             if (document == null)
             {
@@ -42,7 +49,7 @@ namespace PaperNest_API.Controllers
         [HttpGet("user/{userId}")]
         public IActionResult GetDocumentsByUserId(Guid userId)
         {
-            var documents = DocumentService.GetByUserId(userId);
+            var documents = _documentService.GetByUserId(userId);
 
             return Ok(new
             {
@@ -54,7 +61,7 @@ namespace PaperNest_API.Controllers
         [HttpGet("workspace/{workspaceId}")]
         public IActionResult GetDocumentsByWorkspaceId(Guid workspaceId)
         {
-            var documents = DocumentService.GetByWorkspaceId(workspaceId);
+            var documents = _documentService.GetByWorkspaceId(workspaceId);
 
             return Ok(new
             {
@@ -66,7 +73,7 @@ namespace PaperNest_API.Controllers
         [HttpPost]
         public IActionResult CreateDocument([FromBody] Document newDocument)
         {
-            DocumentService.Create(newDocument);
+            _documentService.Create(newDocument);
 
             return CreatedAtAction(nameof(GetDocumentById), new { id = newDocument.Id }, new
             {
@@ -78,7 +85,7 @@ namespace PaperNest_API.Controllers
         [HttpPut("{id}")]
         public IActionResult UpdateDocument(Guid id, [FromBody] Document updatedDocument)
         {
-            var existingDocument = DocumentService.GetById(id);
+            var existingDocument = _documentService.GetById(id);
 
             if (existingDocument == null)
             {
@@ -88,19 +95,19 @@ namespace PaperNest_API.Controllers
                 });
             }
 
-            DocumentService.Update(id, updatedDocument);
+            _documentService.Update(id, updatedDocument);
 
             return Ok(new
             {
                 message = "Success to update document",
-                data = DocumentService.GetById(id)
+                data = _documentService.GetById(id)
             });
         }
 
         [HttpDelete("{id}")]
         public IActionResult DeleteDocument(Guid documentId)
         {
-            var existingDocument = DocumentService.GetById(documentId);
+            var existingDocument = _documentService.GetById(documentId);
 
             if (existingDocument == null)
             {
@@ -110,7 +117,7 @@ namespace PaperNest_API.Controllers
                 });
             }
 
-            DocumentService.Delete(documentId);
+            _documentService.Delete(documentId);
 
             return Ok(new
             {

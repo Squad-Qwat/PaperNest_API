@@ -1,32 +1,41 @@
 using API.Helpers.Enums;
 using API.Models;
 using API.Repositories;
+using Microsoft.AspNetCore.Authorization.Infrastructure;
+using System.Diagnostics;
 
 namespace API.Services
 {
     public class WorkspaceService
     {
-        public static void Create(Workspace newWorkspace)
+        public void Create(Workspace newWorkspace)
         {
             WorkspaceRepository.workspaceRepository.Add(newWorkspace);
         }
 
-        public static IEnumerable<Workspace> GetAll()
+        public  IEnumerable<Workspace> GetAll()
         {
             return WorkspaceRepository.workspaceRepository;
         }
 
-        public static Workspace? GetById(Guid workspaceId)
+        public  Workspace? GetById(Guid workspaceId)
         {
             return WorkspaceRepository.workspaceRepository.FirstOrDefault(w => w.Id == workspaceId);
         }
 
-        public static IEnumerable<Workspace> GetByUserId(Guid userId)
+
+
+        public  IEnumerable<Workspace> GetByUserId(Guid userId)
         {
-            return WorkspaceRepository.workspaceRepository.Where(uw => uw.UserWorkspaces.Any(w => w.FK_UserId == userId));
+            var userWorkspace = UserWorkspaceRepository.GetUserWorkspacesByUserId(userId);
+            var workspaceIds = userWorkspace.Select(uw => uw.FK_WorkspaceId).ToList();
+            var workspaces = WorkspaceRepository.workspaceRepository
+                .Where(w => workspaceIds.Contains(w.Id))
+                .ToList();
+            return workspaces;
         }
 
-        public static UserWorkspace? JoinWorkspace(Guid workspaceId, Guid userId, WorkspaceRole role = WorkspaceRole.Lecturer)
+        public  UserWorkspace? JoinWorkspace(Guid workspaceId, Guid userId, WorkspaceRole role = WorkspaceRole.Lecturer)
         {
             var workspace = GetById(workspaceId);
 
@@ -35,8 +44,9 @@ namespace API.Services
                 return null;
             }
             
-            var existingUserWorkspace = UserRepository.userWorkspaceRepository
-                .FirstOrDefault(uw => uw.Id == workspaceId && uw.FK_UserId == userId);
+            // Gunakan UserWorkspaceRepository daripada akses langsung ke UserRepository
+            var existingUserWorkspace = UserWorkspaceRepository.GetUserWorkspacesByUserId(userId)
+                .FirstOrDefault(uw => uw.FK_WorkspaceId == workspaceId);
                 
             if (existingUserWorkspace != null)
             {
@@ -48,16 +58,15 @@ namespace API.Services
                 FK_UserId = userId,
                 FK_WorkspaceId = workspaceId,
                 WorkspaceRole = role,
-
-
                 UpdateAt = DateTime.Now
             };
             
-            UserRepository.userWorkspaceRepository.Add(userWorkspace);
+            // Gunakan UserWorkspaceRepository daripada akses langsung ke UserRepository
+            UserWorkspaceRepository.AddUserWorkspace(userWorkspace);
             return userWorkspace;
         }
 
-        public static void Update(Guid workspaceId, Workspace newWorkspace)
+        public  void Update(Guid workspaceId, Workspace newWorkspace)
         {
             var existingWorkspace = GetById(workspaceId);
 
@@ -70,7 +79,7 @@ namespace API.Services
             }
         }
 
-        public static void Delete(Guid deletedWorkspaceId)
+        public  void Delete(Guid deletedWorkspaceId)
         {
             var existingWorkspace = GetById(deletedWorkspaceId);
 
@@ -80,13 +89,31 @@ namespace API.Services
             }
         }
         
-        public static IEnumerable<Workspace> GetJoinedWorkspaces(Guid userId)
+        public  IEnumerable<Workspace> GetJoinedWorkspaces(Guid userId)
         {
-            var userWorkspaces = UserRepository.userWorkspaceRepository
-                .Where(uw => uw.FK_UserId == userId)
+            // Gunakan UserWorkspaceRepository untuk mendapatkan workspace yang diikuti oleh user
+            var userWorkspaces = UserWorkspaceRepository.GetUserWorkspacesByUserId(userId)
                 .Select(uw => uw.FK_WorkspaceId);
                 
             return WorkspaceRepository.workspaceRepository.Where(w => userWorkspaces.Contains(w.Id));
+        }
+
+        public WorkspaceRole GetUserRoleInWorkspace(Guid userId, Guid workspaceId)
+        {
+            if (userId == Guid.Empty || workspaceId == Guid.Empty)
+            {
+                return WorkspaceRole.Member; 
+            }
+
+            var userWorkspaces = UserWorkspaceRepository.GetUserWorkspacesByUserId(userId);
+            var userWorkspace = userWorkspaces.FirstOrDefault(uw => uw.FK_WorkspaceId == workspaceId);
+
+            if (userWorkspace != null)
+            {
+                return userWorkspace.WorkspaceRole;
+            }
+
+            return WorkspaceRole.Member;
         }
     }
 }
