@@ -160,20 +160,34 @@ namespace View.Global
             Console.Write("Password: ");
             string? password = Console.ReadLine();
 
+            if (!ValidateInput(name, "Nama") || !ValidateInput(email, "Email") || 
+                !ValidateInput(username, "Username") || !ValidateInput(password, "Password"))
+            {
+                return;
+            }
+
+            // Validasi role dengan angka
+            string role = "";
+            
             Console.WriteLine("Pilih Role:");
             Console.WriteLine("1. Mahasiswa");
             Console.WriteLine("2. Dosen");
             Console.Write("Pilihan Anda: ");
             string? roleChoice = Console.ReadLine();
 
-            if (!ValidateInput(name, "Nama") || !ValidateInput(email, "Email") || 
-                !ValidateInput(username, "Username") || !ValidateInput(password, "Password") ||
-                !ValidateInput(roleChoice, "Role"))
+            if (roleChoice == "1")
             {
-                return;
+                role = "Mahasiswa";
             }
-
-            string role = roleChoice == "1" ? "Mahasiswa" : "Dosen";
+            else if (roleChoice == "2")
+            {
+                role = "Dosen";
+            }
+            else
+            {
+                Console.WriteLine("Tidak ada pilihan tersebut. Registrasi dibatalkan.");
+                return; // Keluar dari metode Register jika role tidak valid
+            }
 
             var user = new RegisterRequest
             {

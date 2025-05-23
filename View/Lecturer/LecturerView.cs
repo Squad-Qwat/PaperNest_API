@@ -13,6 +13,7 @@ namespace View.Lecturer
        private readonly DocumentService _documentService;
        private readonly DocumentBodyService _documentBodyService;
        private readonly ReviewService _reviewService;
+       private readonly CitationService _citationService;
        private readonly AuthStateMachine _authState;
        private User? _currentUser;
        private Workspace? _currentWorkspace;
@@ -26,6 +27,7 @@ namespace View.Lecturer
            _documentService = new DocumentService();
            _documentBodyService = new DocumentBodyService();
            _reviewService = new ReviewService();
+           _citationService = new CitationService();
            _authState = authState;
            _currentUser = currentUser;
            _currentWorkspace = null;
@@ -362,6 +364,7 @@ namespace View.Lecturer
 
                 Console.WriteLine("\n1. Lihat Versi Dokumen");
                 Console.WriteLine("2. Review Dokumen");
+                Console.WriteLine("3. Lihat Sitasi Dokumen");
                 Console.WriteLine("0. Kembali ke Menu Workspace");
 
                 Console.Write("Pilih menu: ");
@@ -375,6 +378,9 @@ namespace View.Lecturer
                         break;
                     case "2":
                         ReviewDocumentVersions(document.Id);
+                        break;
+                    case "3":
+                        ViewDocumentCitations(document);
                         break;
                     case "0":
                         backToWorkspaceMenu = true;
@@ -633,15 +639,46 @@ namespace View.Lecturer
 
            if (version.IsReviewed && hasReview)
            {
-               Console.WriteLine("\nDokumen ini sudah direview sebelumnya.");
-               Console.WriteLine($"Status review: {review.Status}");
-
-               Console.Write("\nApakah Anda ingin membuat review baru? (y/n): ");
-               string? choice = Console.ReadLine()?.ToLower();
-               if (choice != "y")
+               Console.WriteLine("\n=== Review Sudah Diberikan ===");
+               
+               // Tampilkan status review dengan format yang mudah dibaca
+               string statusReview = "";
+               switch (review.Status)
                {
-                   return;
+                   case ReviewStatus.Approved:
+                       statusReview = "DISETUJUI";
+                       break;
+                   case ReviewStatus.NeedsRevision:
+                       statusReview = "PERLU REVISI";
+                       break;
+                   case ReviewStatus.Done:
+                       statusReview = "SELESAI";
+                       break;
+                   default:
+                       statusReview = review.Status.ToString();
+                       break;
                }
+               
+               Console.WriteLine($"Status: {statusReview}");
+               
+               var lecturer = _userService.GetById(review.FK_UserLecturerId);
+               if (lecturer != null)
+               {
+                   Console.WriteLine($"Reviewer: {lecturer.Name}");
+               }
+               else
+               {
+                   Console.WriteLine("Reviewer: Tidak Diketahui");
+               }
+               Console.WriteLine($"Tanggal: {review.CreatedAt.ToString("dd/MM/yyyy HH:mm:ss")}");
+               Console.WriteLine("Komentar:");
+               Console.WriteLine("------------");
+               Console.WriteLine(review.Comment);
+               Console.WriteLine("------------");
+               
+               Console.WriteLine("\nDokumen ini sudah direview dan tidak dapat diubah lagi.");
+               Console.WriteLine("Review yang sudah diberikan bersifat final.");
+               return;
            }
 
            Console.WriteLine("\n=== Buat Review ===");
@@ -705,6 +742,280 @@ namespace View.Lecturer
            catch (Exception ex) {
                Console.WriteLine($"\nGagal menyimpan review: {ex.Message}");
            }
+       }
+
+       // Method untuk melihat sitasi dokumen (khusus untuk dosen - read-only)
+       private void ViewDocumentCitations(Document document)
+       {
+           if (document == null)
+           {
+               Console.WriteLine("Tidak ada dokumen yang dipilih.");
+               return;
+           }
+
+           bool backToDocumentMenu = false;
+
+           while (!backToDocumentMenu)
+           {
+               Console.WriteLine($"\n=== Sitasi dalam Dokumen: {document.Title} ===");
+               Console.WriteLine("1. Lihat Semua Sitasi");
+               Console.WriteLine("2. Lihat Detail Sitasi Tertentu");
+               Console.WriteLine("3. Lihat Format APA Sitasi");
+               Console.WriteLine("0. Kembali ke Menu Dokumen");
+               Console.Write("Pilih menu: ");
+
+               string? choice = Console.ReadLine();
+
+               switch (choice)
+               {
+                   case "1":
+                       ViewAllCitations(document.Id);
+                       break;
+                   case "2":
+                       ViewCitationDetail(document.Id);
+                       break;
+                   case "3":
+                       ViewCitationAPAFormat(document.Id);
+                       break;
+                   case "0":
+                       backToDocumentMenu = true;
+                       break;
+                   default:
+                       Console.WriteLine("Menu tidak valid. Silakan coba lagi.");
+                       break;
+               }
+
+               if (!backToDocumentMenu)
+               {
+                   Console.WriteLine("\nTekan tombol apa saja untuk melanjutkan...");
+                   Console.ReadKey();
+                   Console.Clear();
+               }
+           }
+       }
+
+       // Method untuk melihat semua sitasi dalam dokumen
+       private void ViewAllCitations(Guid documentId)
+       {
+           Console.WriteLine("\n=== Daftar Semua Sitasi dalam Dokumen ===");
+
+           var citations = _citationService.GetCitationsByDocumentId(documentId);
+
+           if (citations == null || !citations.Any())
+           {
+               Console.WriteLine("Belum ada sitasi untuk dokumen ini.");
+               Console.WriteLine("Mahasiswa belum menambahkan referensi apapun ke dokumen ini.");
+               return;
+           }
+
+           int index = 1;
+           foreach (var citation in citations)
+           {
+               Console.WriteLine($"{index}. {citation.Title} ({GetCitationTypeDisplay(citation.Type)})");
+               Console.WriteLine($"   Penulis: {citation.Author}");
+               Console.WriteLine($"   Informasi Publikasi: {citation.PublicationInfo}");
+               
+               if (citation.PublicationDate.HasValue)
+               {
+                   Console.WriteLine($"   Tanggal Publikasi: {citation.PublicationDate.Value.ToString("dd/MM/yyyy")}");
+               }
+
+               if (!string.IsNullOrEmpty(citation.AccessDate))
+               {
+                   Console.WriteLine($"   Tanggal Akses: {citation.AccessDate}");
+               }
+
+               if (!string.IsNullOrEmpty(citation.DOI))
+               {
+                   Console.WriteLine($"   DOI: {citation.DOI}");
+               }
+
+               Console.WriteLine($"   Ditambahkan pada: {citation.CreatedAt.ToString("dd/MM/yyyy HH:mm:ss")}");
+               Console.WriteLine();
+               index++;
+           }
+
+           Console.WriteLine($"\nTotal sitasi: {citations.Count()}");
+           Console.WriteLine("\nCatatan: Sebagai dosen, Anda hanya dapat melihat sitasi yang telah dibuat oleh mahasiswa.");
+           Console.WriteLine("Untuk memberikan feedback tentang sitasi, gunakan fitur review dokumen.");
+       }
+
+       // Method untuk melihat detail sitasi tertentu
+       private void ViewCitationDetail(Guid documentId)
+       {
+           Console.WriteLine("\n=== Detail Sitasi ===");
+
+           var citations = _citationService.GetCitationsByDocumentId(documentId).ToList();
+
+           if (citations == null || !citations.Any())
+           {
+               Console.WriteLine("Belum ada sitasi untuk dokumen ini.");
+               return;
+           }
+
+           int index = 1;
+           foreach (var citation in citations)
+           {
+               Console.WriteLine($"{index}. {citation.Title} ({GetCitationTypeDisplay(citation.Type)})");
+               Console.WriteLine($"   Penulis: {citation.Author}");
+               index++;
+           }
+
+           Console.Write("Pilih sitasi untuk melihat detail (nomor) atau 0 untuk kembali: ");
+           if (!int.TryParse(Console.ReadLine(), out int choice) || choice < 1 || choice > citations.Count)
+           {
+               if (choice != 0) Console.WriteLine("Pilihan tidak valid.");
+               return;
+           }
+
+           var selectedCitation = citations[choice - 1];
+
+           Console.WriteLine($"\n=== Detail Sitasi: {selectedCitation.Title} ===");
+           Console.WriteLine($"ID: {selectedCitation.Id}");
+           Console.WriteLine($"Tipe: {GetCitationTypeDisplay(selectedCitation.Type)}");
+           Console.WriteLine($"Judul: {selectedCitation.Title}");
+           Console.WriteLine($"Penulis: {selectedCitation.Author}");
+           Console.WriteLine($"Informasi Publikasi: {selectedCitation.PublicationInfo}");
+
+           if (selectedCitation.PublicationDate.HasValue)
+           {
+               Console.WriteLine($"Tanggal Publikasi: {selectedCitation.PublicationDate.Value.ToString("dd/MM/yyyy")}");
+           }
+           else
+           {
+               Console.WriteLine("Tanggal Publikasi: Tidak dicantumkan");
+           }
+
+           if (!string.IsNullOrEmpty(selectedCitation.AccessDate))
+           {
+               Console.WriteLine($"Tanggal Akses: {selectedCitation.AccessDate}");
+           }
+
+           if (!string.IsNullOrEmpty(selectedCitation.DOI))
+           {
+               Console.WriteLine($"DOI: {selectedCitation.DOI}");
+           }
+
+           Console.WriteLine($"Ditambahkan pada: {selectedCitation.CreatedAt.ToString("dd/MM/yyyy HH:mm:ss")}");
+           Console.WriteLine($"Terakhir diperbarui: {selectedCitation.UpdatedAt.ToString("dd/MM/yyyy HH:mm:ss")}");
+
+           // Tampilkan format APA untuk sitasi ini
+           string? apaFormat = _citationService.GetFormattedCitationAPA(selectedCitation.Id);
+           if (!string.IsNullOrEmpty(apaFormat))
+           {
+               Console.WriteLine($"\nFormat APA:");
+               Console.WriteLine($"{apaFormat}");
+           }
+       }
+
+       // Method untuk melihat format APA sitasi
+       private void ViewCitationAPAFormat(Guid documentId)
+       {
+           Console.WriteLine("\n=== Format APA Sitasi ===");
+
+           var citations = _citationService.GetCitationsByDocumentId(documentId).ToList();
+
+           if (citations == null || !citations.Any())
+           {
+               Console.WriteLine("Belum ada sitasi untuk dokumen ini.");
+               return;
+           }
+
+           Console.WriteLine("Pilih opsi untuk melihat format APA:");
+           Console.WriteLine("1. Lihat semua sitasi dalam format APA");
+           Console.WriteLine("2. Lihat format APA sitasi tertentu");
+           Console.WriteLine("0. Kembali");
+           Console.Write("Pilihan: ");
+
+           string? choice = Console.ReadLine();
+
+           switch (choice)
+           {
+               case "1":
+                   ViewAllCitationsInAPAFormat(citations);
+                   break;
+               case "2":
+                   ViewSpecificCitationAPAFormat(citations);
+                   break;
+               case "0":
+                   return;
+               default:
+                   Console.WriteLine("Pilihan tidak valid.");
+                   break;
+           }
+       }
+
+       // Method untuk melihat semua sitasi dalam format APA
+       private void ViewAllCitationsInAPAFormat(List<Citation> citations)
+       {
+           Console.WriteLine("\n=== Daftar Referensi (Format APA) ===");
+           Console.WriteLine("Berikut adalah semua sitasi dalam dokumen ini menggunakan format APA:\n");
+
+           int index = 1;
+           foreach (var citation in citations.OrderBy(c => c.Author))
+           {
+               string? apaFormat = _citationService.GetFormattedCitationAPA(citation.Id);
+               if (!string.IsNullOrEmpty(apaFormat))
+               {
+                   Console.WriteLine($"{index}. {apaFormat}");
+                   Console.WriteLine();
+                   index++;
+               }
+           }
+
+           Console.WriteLine("---");
+           Console.WriteLine("Catatan: Daftar di atas sudah diurutkan berdasarkan nama penulis sesuai standar APA.");
+           Console.WriteLine("Sebagai dosen, Anda dapat menggunakan ini untuk mengevaluasi kualitas referensi mahasiswa.");
+       }
+
+       // Method untuk melihat format APA sitasi tertentu
+       private void ViewSpecificCitationAPAFormat(List<Citation> citations)
+       {
+           Console.WriteLine("\n=== Pilih Sitasi untuk Format APA ===");
+
+           int index = 1;
+           foreach (var citation in citations)
+           {
+               Console.WriteLine($"{index}. {citation.Title} ({GetCitationTypeDisplay(citation.Type)})");
+               Console.WriteLine($"   Penulis: {citation.Author}");
+               index++;
+           }
+
+           Console.Write("Pilih sitasi untuk melihat format APA (nomor) atau 0 untuk kembali: ");
+           if (!int.TryParse(Console.ReadLine(), out int choice) || choice < 1 || choice > citations.Count)
+           {
+               if (choice != 0) Console.WriteLine("Pilihan tidak valid.");
+               return;
+           }
+
+           var selectedCitation = citations[choice - 1];
+           string? apaFormat = _citationService.GetFormattedCitationAPA(selectedCitation.Id);
+
+           Console.WriteLine($"\n=== Format APA untuk: {selectedCitation.Title} ===");
+           if (!string.IsNullOrEmpty(apaFormat))
+           {
+               Console.WriteLine(apaFormat);
+               Console.WriteLine("\nCatatan: Format di atas mengikuti standar American Psychological Association (APA) Style 7th Edition.");
+           }
+           else
+           {
+               Console.WriteLine("Tidak dapat membuat format APA untuk sitasi ini.");
+               Console.WriteLine("Kemungkinan ada informasi yang kurang lengkap dalam sitasi.");
+           }
+       }
+
+       // Helper method untuk mendapatkan nama tipe sitasi dalam bahasa Indonesia
+       private string GetCitationTypeDisplay(CitationType type)
+       {
+           return type switch
+           {
+               CitationType.Book => "Buku",
+               CitationType.JournalArticle => "Artikel Jurnal",
+               CitationType.Website => "Website",
+               CitationType.ConferencePaper => "Makalah Konferensi",
+               CitationType.Thesis => "Tesis/Disertasi",
+               _ => type.ToString()
+           };
        }
    }
 }
