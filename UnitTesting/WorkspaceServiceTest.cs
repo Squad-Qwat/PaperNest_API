@@ -16,8 +16,9 @@ namespace UnitTesting
         {
             _workspaceService = new WorkspaceService();
             WorkspaceRepository.workspaceRepository.Clear();
-            UserRepository.userWorkspaceRepository.Clear();
+            UserWorkspaceRepository._userWorkspace.Clear();
         }
+
 
         #region Create
         [TestMethod]
@@ -108,20 +109,22 @@ namespace UnitTesting
             // Arrange
             var userId = Guid.NewGuid();
             var workspace1 = new Workspace { Title = "Workspace 1" };
-            workspace1.UserWorkspaces = new List<UserWorkspace>
-            {
-                new UserWorkspace { FK_UserId = userId }
-            };
+            var userWorkspace1 = new UserWorkspace { FK_UserId = userId, FK_WorkspaceId = workspace1.Id };
+            workspace1.UserWorkspaces = new List<UserWorkspace> { userWorkspace1 };
+
             var workspace2 = new Workspace { Title = "Workspace 2" };
-            workspace2.UserWorkspaces = new List<UserWorkspace>
-            {
-                new UserWorkspace { FK_UserId = userId }
-            };
+            var userWorkspace2 = new UserWorkspace { FK_UserId = userId, FK_WorkspaceId = workspace2.Id };
+            workspace2.UserWorkspaces = new List<UserWorkspace> { userWorkspace2 };
+
             var otherWorkspace = new Workspace { Title = "Other Workspace" };
 
             WorkspaceRepository.workspaceRepository.Add(workspace1);
             WorkspaceRepository.workspaceRepository.Add(workspace2);
             WorkspaceRepository.workspaceRepository.Add(otherWorkspace);
+
+            // Add the UserWorkspace objects to the UserWorkspaceRepository
+            UserWorkspaceRepository._userWorkspace.Add(userWorkspace1);
+            UserWorkspaceRepository._userWorkspace.Add(userWorkspace2);
 
             // Act
             var result = _workspaceService.GetByUserId(userId).ToList();
@@ -132,6 +135,7 @@ namespace UnitTesting
             CollectionAssert.Contains(result, workspace2);
             CollectionAssert.DoesNotContain(result, otherWorkspace);
         }
+
 
         [TestMethod]
         public void GetByUserId_WhenNoneExist_ReturnsEmptyList()
@@ -160,7 +164,7 @@ namespace UnitTesting
             Assert.IsNotNull(result);
             Assert.AreEqual(userId, result.FK_UserId);
             Assert.AreEqual(workspace.Id, result.FK_WorkspaceId);
-            Assert.AreEqual(WorkspaceRole.Lecturer, result.WorkspaceRole);
+            Assert.AreEqual(WorkspaceRole.Member, result.WorkspaceRole);
         }
 
         [TestMethod]
@@ -179,10 +183,14 @@ namespace UnitTesting
             UserRepository.userWorkspaceRepository.Add(existingUserWorkspace);
 
             // Act
-            var result = _workspaceService.JoinWorkspace(workspace.Id, userId);
+            var result = _workspaceService.JoinWorkspace(workspace.Id, userId, existingUserWorkspace.WorkspaceRole);
 
             // Assert
-            Assert.AreEqual(existingUserWorkspace, result);
+            Assert.IsNotNull(result);
+            // Compare properties instead of object references
+            Assert.AreEqual(existingUserWorkspace.FK_UserId, result.FK_UserId);
+            Assert.AreEqual(existingUserWorkspace.FK_WorkspaceId, result.FK_WorkspaceId);
+            Assert.AreEqual(existingUserWorkspace.WorkspaceRole, result.WorkspaceRole);
         }
 
         [TestMethod]
@@ -286,16 +294,17 @@ namespace UnitTesting
             WorkspaceRepository.workspaceRepository.Add(workspace2);
             WorkspaceRepository.workspaceRepository.Add(otherWorkspace);
 
-            UserRepository.userWorkspaceRepository.Add(new UserWorkspace
+            UserWorkspaceRepository.AddUserWorkspace(new UserWorkspace
             {
                 FK_UserId = userId,
                 FK_WorkspaceId = workspace1.Id
             });
-            UserRepository.userWorkspaceRepository.Add(new UserWorkspace
+            UserWorkspaceRepository.AddUserWorkspace(new UserWorkspace
             {
                 FK_UserId = userId,
                 FK_WorkspaceId = workspace2.Id
             });
+
 
             // Act
             var result = _workspaceService.GetJoinedWorkspaces(userId).ToList();

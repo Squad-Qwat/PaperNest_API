@@ -1,4 +1,5 @@
-﻿using API.Models;
+﻿using API.Helpers.Enums;
+using API.Models;
 using API.Repositories;
 using API.Services;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -360,38 +361,64 @@ namespace UnitTesting
         }
 
         [TestMethod]
-        public void CanCreateNewVersion_WhenCurrentVersionExists_ReturnsTrue()
+        public void CanCreateNewVersion_WhenCurrentVersionExists_AndIsReviewed_ReturnsTrue()
         {
+            // Arrange
             var documentId = Guid.NewGuid();
             var currentVersion = new DocumentBody
             {
                 FK_DocumentId = documentId,
                 Content = "Current Content",
-                IsCurrentVersion = true
+                IsCurrentVersion = true,
+                IsReviewed = true // Versi sudah direview
             };
             DocumentBodyRepository.AddDocumentBody(currentVersion);
+            
+            // Act
             var result = _documentBodyService.CanCreateNewVersion(documentId);
+            
+            // Assert
             Assert.IsTrue(result);
         }
 
         [TestMethod]
-        public void CanCreateNewVersion_WhenNoCurrentVersion_ReturnsFalse()
+        public void CanCreateNewVersion_WhenCurrentVersionExists_AndNotReviewed_ReturnsFalse()
         {
+            // Arrange
             var documentId = Guid.NewGuid();
-            var nonCurrentVersion = new DocumentBody
+            var currentVersion = new DocumentBody
             {
                 FK_DocumentId = documentId,
-                Content = "Non-current Content",
-                IsCurrentVersion = false
+                Content = "Current Content",
+                IsCurrentVersion = true,
+                IsReviewed = false // Versi belum direview
             };
-            DocumentBodyRepository.AddDocumentBody(nonCurrentVersion);
+            DocumentBodyRepository.AddDocumentBody(currentVersion);
+            
+            // Act
             var result = _documentBodyService.CanCreateNewVersion(documentId);
+            
+            // Assert
             Assert.IsFalse(result);
+        }
+
+        [TestMethod]
+        public void CanCreateNewVersion_WhenNoVersion_ReturnsTrue()
+        {
+            // Arrange
+            var documentId = Guid.NewGuid();
+            
+            // Act
+            var result = _documentBodyService.CanCreateNewVersion(documentId);
+            
+            // Assert
+            Assert.IsTrue(result);
         }
 
         [TestMethod]
         public void RollbackToPreviousDocumentBody_WhenPreviousVersionExists_ReturnsDocumentBody()
         {
+            // Arrange
             var documentId = Guid.NewGuid();
             var previousVersion = new DocumentBody
             {
@@ -407,27 +434,39 @@ namespace UnitTesting
             };
             DocumentBodyRepository.AddDocumentBody(previousVersion);
             DocumentBodyRepository.AddDocumentBody(currentVersion);
+            
+            // Act
             var result = _documentBodyService.RollbackToPreviousDocumentBody(documentId, previousVersion.Id);
             
+            // Assert
             Assert.IsNotNull(result);
-            Assert.IsFalse(previousVersion.IsCurrentVersion);
-            Assert.IsTrue(currentVersion.IsCurrentVersion);
+            Assert.AreEqual(previousVersion.Id, result.Id);
+            Assert.IsTrue(result.IsCurrentVersion);
+            Assert.IsFalse(currentVersion.IsCurrentVersion);
         }
 
         [TestMethod]
-        public void RollbackToPreviousDocumentBody_WhenNoPreviousVersion_ReturnsNull()
+        [ExpectedException(typeof(Exception))]
+        public void RollbackToPreviousDocumentBody_WhenNoPreviousVersion_ThrowsException()
         {
+            // Arrange
             var documentId = Guid.NewGuid();
-            var currentVersion = new DocumentBody
-            {
-                FK_DocumentId = documentId,
-                Content = "Current Content",
-                IsCurrentVersion = true
-            };
-            DocumentBodyRepository.AddDocumentBody(currentVersion);
-            var result = _documentBodyService.RollbackToPreviousDocumentBody(documentId, Guid.NewGuid());
+            // Tidak ada versi yang ditambahkan ke DocumentBodyRepository
+            
+            // Act - Expect exception dengan pesan "Document body not found"
+            _documentBodyService.RollbackToPreviousDocumentBody(documentId, Guid.NewGuid());
+        }
 
-            Assert.IsNull(result);
+        [TestMethod]
+        [ExpectedException(typeof(Exception))]
+        public void RollbackToPreviousDocumentBody_WhenPreviousVersionNotExists_ThrowsException()
+        {
+            // Arrange
+            var documentId = Guid.NewGuid();
+            var nonExistentDocumentBodyId = Guid.NewGuid();
+            
+            // Act - Expect exception dengan pesan "Document body not found"
+            _documentBodyService.RollbackToPreviousDocumentBody(documentId, nonExistentDocumentBodyId);
         }
 
         #endregion

@@ -16,7 +16,9 @@ namespace UnitTesting
         [TestInitialize]
         public void Setup()
         {
+            _documentService = new DocumentService();
             DocumentRepository.documentRepository.Clear();
+            UserWorkspaceRepository.UserWorkspace.Clear();
         }
 
         #region Create
@@ -108,26 +110,45 @@ namespace UnitTesting
         {
             // Arrange
             var userId = Guid.NewGuid();
-            var workspace = new Workspace { };
-            var userWorkspace = new UserWorkspace { FK_UserId = userId, User = new User { } };
-            workspace.UserWorkspaces = new List<UserWorkspace> { userWorkspace };
+            var workspaceId = Guid.NewGuid();
+            
+            // Create documents with the workspace ID
+            var document1 = new Document 
+            { 
+                Title = "Doc 1", 
+                FK_WorkspaceId = workspaceId
+            };
+            var document2 = new Document 
+            { 
+                Title = "Doc 2", 
+                FK_WorkspaceId = workspaceId
+            };
+            var otherDocument = new Document 
+            { 
+                Title = "Other Doc", 
+                FK_WorkspaceId = Guid.NewGuid() // Different workspace
+            };
 
-            var document1 = new Document { Title = "Doc 1", Workspace = workspace };
-            var document2 = new Document { Title = "Doc 2", Workspace = workspace };
-            var otherDocument = new Document { Title = "Other Doc", Workspace = new Workspace() };
-
+            // Add documents to repository
             DocumentRepository.documentRepository.Add(document1);
             DocumentRepository.documentRepository.Add(document2);
             DocumentRepository.documentRepository.Add(otherDocument);
 
-            // Act
+            // Create a user-workspace relationship
+            UserWorkspaceRepository.AddUserWorkspace(new UserWorkspace 
+            { 
+                FK_UserId = userId, 
+                FK_WorkspaceId = workspaceId
+            });
+
+            // Act - Run the method we're testing
             var result = _documentService.GetByUserId(userId).ToList();
 
-            // Assert
+            // Assert - Check the results match our expectations
             Assert.AreEqual(2, result.Count);
-            CollectionAssert.Contains(result, document1);
-            CollectionAssert.Contains(result, document2);
-            CollectionAssert.DoesNotContain(result, otherDocument);
+            Assert.IsTrue(result.Contains(document1));
+            Assert.IsTrue(result.Contains(document2));
+            Assert.IsFalse(result.Contains(otherDocument));
         }
 
         [TestMethod]
@@ -147,10 +168,23 @@ namespace UnitTesting
         {
             // Arrange
             var workspaceId = Guid.NewGuid();
-            var workspace = new Workspace { };
-            var document1 = new Document { Workspace = workspace };
-            var document2 = new Document { Workspace = workspace };
-            var otherDocument = new Document { Workspace = new Workspace() };
+            
+            // Buat dokumen yang terkait dengan workspaceId
+            var document1 = new Document 
+            { 
+                Title = "Doc 1", 
+                FK_WorkspaceId = workspaceId
+            };
+            var document2 = new Document 
+            { 
+                Title = "Doc 2", 
+                FK_WorkspaceId = workspaceId
+            };
+            var otherDocument = new Document 
+            { 
+                Title = "Other Doc", 
+                FK_WorkspaceId = Guid.NewGuid()
+            };
 
             DocumentRepository.documentRepository.Add(document1);
             DocumentRepository.documentRepository.Add(document2);

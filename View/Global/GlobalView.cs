@@ -7,6 +7,7 @@ using API.Services;
 using API.Models;
 using API.Models.DataBinding;
 using Microsoft.AspNetCore.Authentication;
+using View.Lecturer;
 
 namespace View.Global
 {
@@ -120,8 +121,8 @@ namespace View.Global
                     else if (user.Role == "Dosen")
                     {
                         Console.Clear();
-                        //var lecturerView = new LecturerView(user, _authState);
-                        //lecturerView.Start();
+                        var lecturerView = new LecturerView(user, _authState);
+                        lecturerView.Start();
                         _currentUser = null;
                         _authState.ActivateTrigger(AuthStateMachine.Trigger.LOGOUT);
                     }
@@ -182,6 +183,21 @@ namespace View.Global
                 Password = password!,
                 Role = role
             };
+
+            var checkEmail = _userService.GetByEmail(user.Email);
+            var checkUsername = _userService.GetByUsername(user.Username);
+            
+            if(checkEmail != null)
+            {
+                Console.WriteLine("Email sudah terdaftar. Silakan gunakan email lain.");
+                return;
+            }
+
+            if (checkUsername != null)
+            {
+                Console.WriteLine("Username sudah terdaftar. Silakan gunakan username lain.");
+                return;
+            }
 
             try
             {

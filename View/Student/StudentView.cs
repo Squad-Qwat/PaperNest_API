@@ -203,8 +203,6 @@ namespace View.Student
             // Untuk mahasiswa, tampilkan workspace yang dimiliki
             var results = _workspaceService.GetByUserId(_currentUser.Id);
             
-            Console.WriteLine("\n[DEBUG] ", results);
-
 
             if (results != null)
            {
@@ -716,11 +714,11 @@ namespace View.Student
    }
     
     int index = 1;
-    var versionsList = versions.ToList(); // Konversi ke List untuk akses indeks yang konsisten
+    var versionsList = versions.ToList(); 
     foreach (var version in versionsList)
     {
         string reviewStatus = "";
-        // Cek apakah sudah di-review
+        
         var review = _reviewService.GetReviewByDocumentBodyId(version.Id);
         if (version.IsReviewed && review != null)
         {
@@ -744,10 +742,17 @@ namespace View.Student
         {
             reviewStatus = "[BELUM DIREVIEW]";
         }
-        
+
+        var creator = _userService.GetById(version.FK_UserCreaotorId);
+
         Console.WriteLine($"{index}. Versi dari {version.CreatedAt.ToString("dd/MM/yyyy HH:mm:ss")} {reviewStatus}");
-        Console.WriteLine($"   {(version.IsCurrentVersion ? "[AKTIF]" : "")}");
+        if (version.IsCurrentVersion)
+        {
+            Console.WriteLine($"   {("[AKTIF]")}");
+        }
+        Console.WriteLine($"   Nama pengirim: {creator.Name}");
         Console.WriteLine($"   Deskripsi: {version.Comment}");
+
         // Tampilkan preview konten (maksimal 50 karakter)
         string contentPreview = version.Content.Length > 50 
             ? version.Content.Substring(0, 50) + "..." 
@@ -773,9 +778,12 @@ namespace View.Student
                Console.WriteLine("Versi tidak ditemukan.");
                return;
            }
-            
-           Console.WriteLine($"\n=== Detail Versi {version.Id} ===");
-           Console.WriteLine($"Dibuat pada: {version.CreatedAt.ToString("dd/MM/yyyy HH:mm:ss")}");
+
+            var creator = _userService.GetById(version.FK_UserCreaotorId);
+
+            Console.WriteLine($"\n=== Detail Versi {version.Id} ===");
+           Console.WriteLine($"Nama pembuat: {creator.Name}");
+            Console.WriteLine($"Dibuat pada: {version.CreatedAt.ToString("dd/MM/yyyy HH:mm:ss")}");
            Console.WriteLine($"Status: {(version.IsCurrentVersion ? "Aktif" : "Tidak Aktif")}");
            Console.WriteLine($"Deskripsi: {version.Comment}");
            Console.WriteLine("\nKonten:");

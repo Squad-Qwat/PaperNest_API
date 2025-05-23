@@ -195,14 +195,15 @@ namespace UnitTesting
         }
 
         [TestMethod]
-        [ExpectedException(typeof(InvalidOperationException))]
-        public void GetReviewByDocumentBodyId_WhenNotExists_ThrowsInvalidOperationException()
+        public void GetReviewByDocumentBodyId_WhenNotExists_ReturnsNull()
         {
             
             var nonExistentDocumentBodyId = Guid.NewGuid();
 
             
-            _reviewService.GetReviewByDocumentBodyId(nonExistentDocumentBodyId);
+            var result = _reviewService.GetReviewByDocumentBodyId(nonExistentDocumentBodyId);
+            
+            Assert.IsNull(result);
         }
 
         [TestMethod]

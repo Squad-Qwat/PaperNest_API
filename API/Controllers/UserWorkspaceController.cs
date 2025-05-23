@@ -13,16 +13,56 @@ namespace API.Controllers
         {
             _userWorkspaceService = userWorkspaceService;
         }
+        
+        [HttpGet]
+        public IActionResult GetAllUserWorkspaces()
+        {
+            var userWorkspaces = _userWorkspaceService.GetAllUserWorkspaces();
+            return Ok(userWorkspaces);
+        }
+        
+        [HttpGet("id/{id}")]
+        public IActionResult GetUserWorkspaceById(Guid id)
+        {
+            try
+            {
+                var userWorkspace = _userWorkspaceService.GetUserWorkspaceById(id);
+                if (userWorkspace == null)
+                {
+                    return NotFound(new { message = "Relasi user-workspace tidak ditemukan" });
+                }
+                return Ok(userWorkspace);
+            }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+            catch (Exception)
+            {
+                return StatusCode(500, new { message = "Terjadi kesalahan saat mengambil relasi user-workspace" });
+            }
+        }
 
         [HttpGet("{userId}")]
         public IActionResult GetUserWorkspaces(Guid userId)
         {
-            var workspaces = _userWorkspaceService.GetUserWorkspacesByUserId(userId);
-            if (workspaces == null || !workspaces.Any())
+            try
             {
-                return NotFound();
+                var workspaces = _userWorkspaceService.GetUserWorkspacesByUserId(userId);
+                if (workspaces == null || !workspaces.Any())
+                {
+                    return NotFound(new { message = "User tidak memiliki workspace" });
+                }
+                return Ok(workspaces);
             }
-            return Ok(workspaces);
+            catch (ArgumentException ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+            catch (Exception)
+            {
+                return StatusCode(500, new { message = "Terjadi kesalahan saat mengambil workspace user" });
+            }
         }
 
         [HttpPost("{userId}/{workspaceId}")]

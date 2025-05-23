@@ -23,8 +23,6 @@ namespace API.Services
             return WorkspaceRepository.workspaceRepository.FirstOrDefault(w => w.Id == workspaceId);
         }
 
-
-
         public  IEnumerable<Workspace> GetByUserId(Guid userId)
         {
             var userWorkspace = UserWorkspaceRepository.GetUserWorkspacesByUserId(userId);
@@ -35,7 +33,7 @@ namespace API.Services
             return workspaces;
         }
 
-        public  UserWorkspace? JoinWorkspace(Guid workspaceId, Guid userId, WorkspaceRole role = WorkspaceRole.Lecturer)
+        public  UserWorkspace? JoinWorkspace(Guid workspaceId, Guid userId, WorkspaceRole role = WorkspaceRole.Member)
         {
             var workspace = GetById(workspaceId);
 
