@@ -5,18 +5,18 @@ namespace API.Repositories
 {
     public class CitationRepository
     {
-        // A static list to simulate a database collection for Citation objects.
-        // This list will hold all Citation instances managed by this repository.
-        private static readonly List<Citation> _citations = []; // Setara dengan 'new List<Citation>()'
-        private static Citation? citationForService; // A placeholder for a single Citation instance.
+        
+        
+        private static readonly List<Citation> _citations = []; 
+        private static Citation? citationForService; 
 
-        // Default constructor. Initializes the repository.
+        
         public CitationRepository()
         {
             citationForService = new Citation();
         }
 
-        // For first time initialization of the new Citation object.
+        
         public CitationRepository(Guid id, CitationType type, string title, string author, string publicationInfo, Guid documentID)
         {
             citationForService = new Citation
@@ -30,7 +30,7 @@ namespace API.Repositories
             };
         }
 
-        // For updating the Citation Object.
+        
         public CitationRepository(Guid id, CitationType type, string title, string author, string publicationInfo, Guid documentID, DateTime updatedAt)
         {
             citationForService = new Citation
@@ -52,8 +52,8 @@ namespace API.Repositories
             {
                 if (value != null)
                 {
-                    _citations.Clear(); // Clear existing data
-                    _citations.AddRange(value); // Add new data
+                    _citations.Clear(); 
+                    _citations.AddRange(value); 
                 }
             }
         }
@@ -62,9 +62,9 @@ namespace API.Repositories
         {
             if (citation == null)
             {
-                throw new ArgumentNullException(nameof(citation), "Citation cannot be null.");
+                throw new ArgumentNullException(nameof(citation), "Citasi tidak boleh null");
             }
-            // Ensure the ID is set if it's empty (though the model defaults it)
+            
             if (citation.Id == Guid.Empty)
             {
                 citation.Id = Guid.NewGuid();
@@ -76,7 +76,7 @@ namespace API.Repositories
         {
             if (citationId == Guid.Empty)
             {
-                throw new ArgumentException("Citation ID cannot be empty.", nameof(citationId));
+                throw new ArgumentException("ID citasi tidak boleh kosong", nameof(citationId));
             }
             return _citations.FirstOrDefault(c => c.Id == citationId);
         }
@@ -85,29 +85,29 @@ namespace API.Repositories
         {
             if (documentId == Guid.Empty)
             {
-                throw new ArgumentException("Document ID cannot be empty.", nameof(documentId));
+                throw new ArgumentException("ID dokumen tidak boleh kosong", nameof(documentId));
             }
-            // Order by Created_at for consistent retrieval, newest first
+            
             return _citations.Where(c => c.FK_DocumentId == documentId)
-                            .OrderByDescending(c => c.CreatedAt); // Ensure using Created_at property
+                            .OrderByDescending(c => c.CreatedAt); 
         }
 
         public static bool UpdateCitation(Citation updatedCitation)
         {
             if (updatedCitation == null)
             {
-                throw new ArgumentNullException(nameof(updatedCitation), "Updated citation cannot be null.");
+                throw new ArgumentNullException(nameof(updatedCitation), "Citasi yang diupdate tidak boleh null");
             }
             if (updatedCitation.Id == Guid.Empty)
             {
-                throw new ArgumentException("Updated citation ID cannot be empty.", nameof(updatedCitation));
+                throw new ArgumentException("ID citasi yang diupdate tidak boleh kosong", nameof(updatedCitation));
             }
 
             var existingCitation = _citations.FirstOrDefault(c => c.Id == updatedCitation.Id);
 
             if (existingCitation != null)
             {
-                // Update all modifiable properties
+                
                 existingCitation.Type = updatedCitation.Type;
                 existingCitation.Title = updatedCitation.Title;
                 existingCitation.Author = updatedCitation.Author;
@@ -115,19 +115,19 @@ namespace API.Repositories
                 existingCitation.PublicationDate = updatedCitation.PublicationDate;
                 existingCitation.AccessDate = updatedCitation.AccessDate;
                 existingCitation.DOI = updatedCitation.DOI;
-                // existingCitation.FK_DocumentId = updatedCitation.FK_DocumentId; // Uncomment if FK_DocumentId can be updated
-                existingCitation.UpdatedAt = DateTime.Now; // Set update timestamp
+                
+                existingCitation.UpdatedAt = DateTime.Now; 
 
                 return true;
             }
-            return false; // Citation not found
+            return false; 
         }
 
         public static bool DeleteCitation(Guid citationId)
         {
             if (citationId == Guid.Empty)
             {
-                throw new ArgumentException("Citation ID cannot be empty.", nameof(citationId));
+                throw new ArgumentException("ID citasi tidak boleh kosong", nameof(citationId));
             }
             var citationToRemove = _citations.FirstOrDefault(c => c.Id == citationId);
             if (citationToRemove != null)

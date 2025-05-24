@@ -6,11 +6,11 @@ namespace API.Controllers
 {
     [ApiController]
     [Route("api/citations")]
-    public class CitationController : ControllerBase // Use ControllerBase for API controllers without view support
+    public class CitationController : ControllerBase 
     {
         private readonly CitationService _citationService;
 
-        // Constructor for dependency injection of CitationService
+        
         public CitationController(CitationService citationService)
         {
             _citationService = citationService;
@@ -19,12 +19,19 @@ namespace API.Controllers
         [HttpGet]
         public IActionResult GetAllCitations()
         {
-            var citations = _citationService.GetAllCitations();
-            return Ok(new
+            try
             {
-                message = "Success get all citations",
-                data = citations
-            });
+                var citations = _citationService.GetAllCitations();
+                return Ok(new
+                {
+                    message = "Berhasil mengambil semua citasi",
+                    data = citations
+                });
+            }
+            catch (Exception)
+            {
+                return StatusCode(500, new { message = "Terjadi kesalahan saat mengambil semua citasi" });
+            }
         }
 
         [HttpGet("{id}")]
@@ -35,17 +42,21 @@ namespace API.Controllers
                 var citation = _citationService.GetCitationById(id);
                 if (citation == null)
                 {
-                    return NotFound(new { message = "Citation not found" });
+                    return NotFound(new { message = "Citasi tidak ditemukan" });
                 }
                 return Ok(new
                 {
-                    message = "Success get citation by ID",
+                    message = "Berhasil mengambil citasi berdasarkan ID",
                     data = citation
                 });
             }
             catch (ArgumentException ex)
             {
                 return BadRequest(new { message = ex.Message });
+            }
+            catch (Exception)
+            {
+                return StatusCode(500, new { message = "Terjadi kesalahan saat mengambil citasi" });
             }
         }
 
@@ -57,13 +68,17 @@ namespace API.Controllers
                 var citations = _citationService.GetCitationsByDocumentId(documentId);
                 return Ok(new
                 {
-                    message = "Success get citations by document ID",
+                    message = "Berhasil mengambil citasi berdasarkan ID dokumen",
                     data = citations
                 });
             }
             catch (ArgumentException ex)
             {
                 return BadRequest(new { message = ex.Message });
+            }
+            catch (Exception)
+            {
+                return StatusCode(500, new { message = "Terjadi kesalahan saat mengambil citasi dokumen" });
             }
         }
 
@@ -72,11 +87,11 @@ namespace API.Controllers
         {
             try
             {
-                // Note: The service method takes individual parameters, not the full object directly.
-                // We map the request body properties to the service method parameters.
+                
+                
                 if (newCitationRequest.Title == null || newCitationRequest.Author == null || newCitationRequest.PublicationInfo == null)
                 {
-                    return BadRequest(new { message = "Title, Author, and PublicationInfo are required." });
+                    return BadRequest(new { message = "Title, Author, dan PublicationInfo wajib diisi" });
                 }
 
 
@@ -93,7 +108,7 @@ namespace API.Controllers
 
                 return CreatedAtAction(nameof(GetCitationById), new { id = createdCitation.Id }, new
                 {
-                    message = "Success create new citation",
+                    message = "Berhasil membuat citasi baru",
                     data = createdCitation
                 });
             }
@@ -101,9 +116,9 @@ namespace API.Controllers
             {
                 return BadRequest(new { message = ex.Message });
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                return StatusCode(500, new { message = "An error occurred while creating the citation.", error = ex.Message });
+                return StatusCode(500, new { message = "Terjadi kesalahan saat membuat citasi" });
             }
         }
 
@@ -112,19 +127,19 @@ namespace API.Controllers
         {
             try
             {
-                // Ensure the ID in the route matches the ID in the request body (if provided)
+                
                 if (id != updatedCitationRequest.Id && updatedCitationRequest.Id != Guid.Empty)
                 {
-                    return BadRequest(new { message = "Mismatched ID in route and request body." });
+                    return BadRequest(new { message = "ID di route dan request body tidak cocok" });
                 }
 
                 if (updatedCitationRequest.Title == null || updatedCitationRequest.Author == null || updatedCitationRequest.PublicationInfo == null)
                 {
-                    return BadRequest(new { message = "Title, Author, and PublicationInfo are required." });
+                    return BadRequest(new { message = "Title, Author, dan PublicationInfo wajib diisi" });
                 }
 
                 var updatedCitation = _citationService.UpdateCitation(
-                    id, // Use the ID from the route
+                    id, 
                     updatedCitationRequest.Type,
                     updatedCitationRequest.Title,
                     updatedCitationRequest.Author,
@@ -136,12 +151,12 @@ namespace API.Controllers
 
                 if (updatedCitation == null)
                 {
-                    return NotFound(new { message = "Citation not found or update failed" });
+                    return NotFound(new { message = "Citasi tidak ditemukan atau gagal diupdate" });
                 }
 
                 return Ok(new
                 {
-                    message = "Success to update citation",
+                    message = "Berhasil mengupdate citasi",
                     data = updatedCitation
                 });
             }
@@ -149,9 +164,9 @@ namespace API.Controllers
             {
                 return BadRequest(new { message = ex.Message });
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                return StatusCode(500, new { message = "An error occurred while updating the citation.", error = ex.Message });
+                return StatusCode(500, new { message = "Terjadi kesalahan saat mengupdate citasi" });
             }
         }
 
@@ -163,20 +178,20 @@ namespace API.Controllers
                 var isDeleted = _citationService.DeleteCitation(id);
                 if (!isDeleted)
                 {
-                    return NotFound(new { message = "Citation not found" });
+                    return NotFound(new { message = "Citasi tidak ditemukan" });
                 }
                 return Ok(new
                 {
-                    message = "Citation has been deleted"
+                    message = "Citasi berhasil dihapus"
                 });
             }
             catch (ArgumentException ex)
             {
                 return BadRequest(new { message = ex.Message });
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                return StatusCode(500, new { message = "An error occurred while deleting the citation.", error = ex.Message });
+                return StatusCode(500, new { message = "Terjadi kesalahan saat menghapus citasi" });
             }
         }
 
@@ -188,11 +203,11 @@ namespace API.Controllers
                 var formattedCitation = _citationService.GetFormattedCitationAPA(id);
                 if (formattedCitation == null)
                 {
-                    return NotFound(new { message = "Citation not found or could not be formatted." });
+                    return NotFound(new { message = "Citasi tidak ditemukan atau tidak dapat diformat" });
                 }
                 return Ok(new
                 {
-                    message = "Success get APA style citation",
+                    message = "Berhasil mengambil citasi dalam format APA",
                     data = formattedCitation
                 });
             }
@@ -200,9 +215,9 @@ namespace API.Controllers
             {
                 return BadRequest(new { message = ex.Message });
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                return StatusCode(500, new { message = "An error occurred while formatting the citation.", error = ex.Message });
+                return StatusCode(500, new { message = "Terjadi kesalahan saat memformat citasi" });
             }
         }
     }

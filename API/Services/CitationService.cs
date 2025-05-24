@@ -16,7 +16,7 @@ namespace API.Services
         {
             if (citationId == Guid.Empty)
             {
-                throw new ArgumentException("Citation ID cannot be empty.", nameof(citationId));
+                throw new ArgumentException("ID citasi tidak boleh kosong", nameof(citationId));
             }
             return CitationRepository.GetCitationById(citationId);
         }
@@ -25,7 +25,7 @@ namespace API.Services
         {
             if (documentBodyId == Guid.Empty)
             {
-                throw new ArgumentException("DocumentBody ID cannot be empty.", nameof(documentBodyId));
+                throw new ArgumentException("ID DocumentBody tidak boleh kosong", nameof(documentBodyId));
             }
             return CitationRepository.GetCitationsByDocumentId(documentBodyId);
         }
@@ -41,19 +41,19 @@ namespace API.Services
         {
             if (string.IsNullOrWhiteSpace(title))
             {
-                throw new ArgumentException("Citation title cannot be null or empty.", nameof(title));
+                throw new ArgumentException("Judul citasi tidak boleh kosong", nameof(title));
             }
             if (string.IsNullOrWhiteSpace(author))
             {
-                throw new ArgumentException("Citation author cannot be null or empty.", nameof(author));
+                throw new ArgumentException("Penulis citasi tidak boleh kosong", nameof(author));
             }
             if (string.IsNullOrWhiteSpace(publicationInfo))
             {
-                throw new ArgumentException("Citation publication info cannot be null or empty.", nameof(publicationInfo));
+                throw new ArgumentException("Informasi publikasi citasi tidak boleh kosong", nameof(publicationInfo));
             }
             if (documentId == Guid.Empty)
             {
-                throw new ArgumentException("Document ID cannot be empty.", nameof(documentId));
+                throw new ArgumentException("ID dokumen tidak boleh kosong", nameof(documentId));
             }
 
             var newCitation = new Citation
@@ -87,19 +87,19 @@ namespace API.Services
         {
             if (citationId == Guid.Empty)
             {
-                throw new ArgumentException("Citation ID cannot be empty.", nameof(citationId));
+                throw new ArgumentException("ID citasi tidak boleh kosong", nameof(citationId));
             }
             if (string.IsNullOrWhiteSpace(title))
             {
-                throw new ArgumentException("Citation title cannot be null or empty.", nameof(title));
+                throw new ArgumentException("Judul citasi tidak boleh kosong", nameof(title));
             }
             if (string.IsNullOrWhiteSpace(author))
             {
-                throw new ArgumentException("Citation author cannot be null or empty.", nameof(author));
+                throw new ArgumentException("Penulis citasi tidak boleh kosong", nameof(author));
             }
             if (string.IsNullOrWhiteSpace(publicationInfo))
             {
-                throw new ArgumentException("Citation publication info cannot be null or empty.", nameof(publicationInfo));
+                throw new ArgumentException("Informasi publikasi citasi tidak boleh kosong", nameof(publicationInfo));
             }
 
             var existingCitation = CitationRepository.GetCitationById(citationId);
@@ -129,7 +129,7 @@ namespace API.Services
         {
             if (citationId == Guid.Empty)
             {
-                throw new ArgumentException("Citation ID cannot be empty.", nameof(citationId));
+                throw new ArgumentException("ID citasi tidak boleh kosong", nameof(citationId));
             }
             return CitationRepository.DeleteCitation(citationId);
         }
@@ -138,7 +138,7 @@ namespace API.Services
         {
             if (citationId == Guid.Empty)
             {
-                throw new ArgumentException("Citation ID cannot be empty.", nameof(citationId));
+                throw new ArgumentException("ID citasi tidak boleh kosong", nameof(citationId));
             }
 
             var citation = CitationRepository.GetCitationById(citationId);

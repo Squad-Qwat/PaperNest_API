@@ -6,6 +6,5 @@ namespace API.Repositories
     {
         public static List<User> userRepository = new List<User>();
         
-        // UserWorkspace data should only be managed in UserWorkspaceRepository
     }
 }
