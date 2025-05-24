@@ -8,8 +8,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Folder Include="Student\" />
-    <Folder Include="Student\" />
+    <Folder Include="Pages\Student\" />
   </ItemGroup>
 
   <ItemGroup>

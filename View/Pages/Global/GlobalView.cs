@@ -1,15 +1,16 @@
 ﻿using PaperNest_API.Controllers;
 using Microsoft.AspNetCore.Mvc;
-using View.Student;
+using View.Pages.Student;
 //using View.Lecturer;
 using API.StateMachines;
 using API.Services;
 using API.Models;
 using API.Models.DataBinding;
 using Microsoft.AspNetCore.Authentication;
-using View.Lecturer;
+using View.Pages.Lecturer;
+using View.Utils;
 
-namespace View.Global
+namespace View.Pages.Global
 {
     public class GlobalView
     {
@@ -25,17 +26,19 @@ namespace View.Global
             _userService = new UserService();
             _currentUser = null;
             _isRunning = true;
+
+            Localization.Load("global_view_localization.json", "en");
         }
 
         public void Start()
         {
-            Console.WriteLine("=== PaperNest - Sistem Manajemen Karya Tulis Ilmiah ===");
+            Console.WriteLine(Localization.GetLangKey("app.title"));
 
             while (_isRunning)
             {
                 DisplayLoginMenu();
 
-                Console.WriteLine("\nTekan tombol apa saja untuk melanjutkan...");
+                Console.WriteLine(Localization.GetLangKey("app.pressAnyKeyToContinue"));
                 Console.ReadKey();
                 Console.Clear();
             }
@@ -43,12 +46,12 @@ namespace View.Global
 
         private void DisplayLoginMenu()
         {
-            Console.WriteLine("\n=== Menu Autentikasi ===");
-            Console.WriteLine("1. Login");
-            Console.WriteLine("2. Register");
-            Console.WriteLine("3. Lupa Password");
-            Console.WriteLine("0. Keluar");
-            Console.Write("Pilih menu: ");
+            Console.WriteLine(Localization.GetLangKey("authMenu.title"));
+            Console.WriteLine(Localization.GetLangKey("authMenu.login"));
+            Console.WriteLine(Localization.GetLangKey("authMenu.register"));
+            Console.WriteLine(Localization.GetLangKey("authMenu.forgotPassword"));
+            Console.WriteLine(Localization.GetLangKey("authMenu.exit"));
+            Console.Write(Localization.GetLangKey("mainMenu.selectOption"));
 
             string? choice = Console.ReadLine();
 
@@ -65,22 +68,22 @@ namespace View.Global
                     break;
                 case "0":
                     _isRunning = false;
-                    Console.WriteLine("Terima kasih telah menggunakan PaperNest. Keluar dari aplikasi...");
+                    Console.WriteLine(Localization.GetLangKey("authMenu.exitMessage"));
                     Environment.Exit(0);
                     break;
                 default:
-                    Console.WriteLine("Menu tidak valid. Silakan coba lagi.");
+                    Console.WriteLine(Localization.GetLangKey("app.invalidMenu"));
                     break;
             }
         }
 
         private void Login()
         {
-            Console.WriteLine("\n=== Login ===");
-            Console.Write("Email/Username: ");
+            Console.WriteLine(Localization.GetLangKey("login.title"));
+            Console.Write(Localization.GetLangKey("login.emailUsername"));
             string? email = Console.ReadLine();
 
-            Console.Write("Password: ");
+            Console.Write(Localization.GetLangKey("login.password"));
             string? password = Console.ReadLine();
 
             if (!ValidateInput(email, "Email") || !ValidateInput(password, "Password"))
@@ -99,16 +102,16 @@ namespace View.Global
             if (result != null)
             {
                 _authState.ActivateTrigger(AuthStateMachine.Trigger.LOGIN);
-                Console.WriteLine("Login berhasil!");
+                Console.WriteLine(Localization.GetLangKey("login.success"));
 
                 var user = result;
 
                 if (user != null)
                 {
                     _currentUser = user;
-                    Console.WriteLine($"Selamat datang, {user.Name}!");
-                    Console.WriteLine("Memasuki sistem...");
-                    System.Threading.Thread.Sleep(1000);
+                    Console.WriteLine($"{Localization.GetLangKey("login.welcome")} {user.Name}!");
+                    Console.WriteLine(Localization.GetLangKey("login.enteringSystem"));
+                    Thread.Sleep(1000);
 
                     if (user.Role == "Mahasiswa")
                     {
@@ -128,39 +131,39 @@ namespace View.Global
                     }
                     else
                     {
-                        Console.WriteLine("Role tidak dikenali. Silakan hubungi administrator.");
+                        Console.WriteLine(Localization.GetLangKey("login.roleNotRecognized"));
                         _currentUser = null;
                         _authState.ActivateTrigger(AuthStateMachine.Trigger.LOGOUT);
                     }
                 }
                 else
                 {
-                    Console.WriteLine("Terjadi kesalahan saat mengambil data pengguna.");
+                    Console.WriteLine(Localization.GetLangKey("login.errorFetchingUserData"));
                 }
             }
             else if (result is UnauthorizedObjectResult)
             {
-                Console.WriteLine("Username atau password salah. Silakan coba lagi.");
+                Console.WriteLine(Localization.GetLangKey("login.invalidCredentials"));
             }
         }
 
         private void Register()
         {
-            Console.WriteLine("\n=== Register ===");
+            Console.WriteLine(Localization.GetLangKey("register.title"));
 
-            Console.Write("Nama: ");
+            Console.Write(Localization.GetLangKey("register.name"));
             string? name = Console.ReadLine();
 
-            Console.Write("Email: ");
+            Console.Write(Localization.GetLangKey("register.email"));
             string? email = Console.ReadLine();
 
-            Console.Write("Username: ");
+            Console.Write(Localization.GetLangKey("register.username"));
             string? username = Console.ReadLine();
 
-            Console.Write("Password: ");
+            Console.Write(Localization.GetLangKey("register.password"));
             string? password = Console.ReadLine();
 
-            if (!ValidateInput(name, "Nama") || !ValidateInput(email, "Email") || 
+            if (!ValidateInput(name, "Nama") || !ValidateInput(email, "Email") ||
                 !ValidateInput(username, "Username") || !ValidateInput(password, "Password"))
             {
                 return;
@@ -168,11 +171,11 @@ namespace View.Global
 
             // Validasi role dengan angka
             string role = "";
-            
-            Console.WriteLine("Pilih Role:");
-            Console.WriteLine("1. Mahasiswa");
-            Console.WriteLine("2. Dosen");
-            Console.Write("Pilihan Anda: ");
+
+            Console.WriteLine(Localization.GetLangKey("register.selectRole"));
+            Console.WriteLine(Localization.GetLangKey("register.roleStudent"));
+            Console.WriteLine(Localization.GetLangKey("register.roleLecturer"));
+            Console.Write(Localization.GetLangKey("register.yourChoice"));
             string? roleChoice = Console.ReadLine();
 
             if (roleChoice == "1")
@@ -200,45 +203,45 @@ namespace View.Global
 
             var checkEmail = _userService.GetByEmail(user.Email);
             var checkUsername = _userService.GetByUsername(user.Username);
-            
-            if(checkEmail != null)
+
+            if (checkEmail != null)
             {
-                Console.WriteLine("Email sudah terdaftar. Silakan gunakan email lain.");
+                Console.WriteLine(Localization.GetLangKey("register.emailAlreadyRegistered"));
                 return;
             }
 
             if (checkUsername != null)
             {
-                Console.WriteLine("Username sudah terdaftar. Silakan gunakan username lain.");
+                Console.WriteLine(Localization.GetLangKey("register.usernameAlreadyRegistered"));
                 return;
             }
 
             try
             {
                 _userService.Register(user.Email, user.Password, user.Name, user.Username, user.Role);
-                Console.WriteLine("Registrasi berhasil! Silakan login.");
+                Console.WriteLine(Localization.GetLangKey("register.success"));
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Registrasi gagal: {ex.Message}");
+                Console.WriteLine($"{Localization.GetLangKey("register.failed")} {ex.Message}");
             }
         }
 
         private void ForgotPassword()
         {
-            Console.WriteLine("\n=== Lupa Password ===");
-            Console.Write("Email: ");
+            Console.WriteLine(Localization.GetLangKey("password.title"));
+            Console.Write(Localization.GetLangKey("password.email"));
             string? email = Console.ReadLine();
 
-            if (!ValidateInput(email, "Email"))
+            if (!ValidateInput(email, Localization.GetLangKey("password.email")))
             {
                 return;
             }
 
-            Console.Write("Password Baru: ");
+            Console.Write(Localization.GetLangKey("password.pasword"));
             string? newPassword = Console.ReadLine();
 
-            if (!ValidateInput(newPassword, "Password Baru"))
+            if (!ValidateInput(newPassword, Localization.GetLangKey("password.password")))
             {
                 return;
             }
@@ -248,11 +251,11 @@ namespace View.Global
                 bool success = _userService.ResetPassword(email!, newPassword!);
                 if (success)
                 {
-                    Console.WriteLine("Password berhasil direset! Silakan login dengan password baru.");
+                    Console.WriteLine(Localization.GetLangKey("password.resetSuccess"));
                 }
                 else
                 {
-                    Console.WriteLine("Email tidak ditemukan dalam sistem.");
+                    Console.WriteLine(Localization.GetLangKey("password.emailNotFound"));
                 }
             }
             catch (Exception ex)
@@ -265,7 +268,7 @@ namespace View.Global
         {
             if (string.IsNullOrEmpty(input))
             {
-                Console.WriteLine($"{fieldName} tidak boleh kosong!");
+                Console.WriteLine($"{fieldName} {Localization.GetLangKey("validateInput.error")}");
                 return false;
             }
             return true;
