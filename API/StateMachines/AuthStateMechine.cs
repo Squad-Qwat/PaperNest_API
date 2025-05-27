@@ -5,33 +5,22 @@
         public enum AuthState { BELUM_LOGIN, SUDAH_LOGIN };
         public enum Trigger { LOGIN, LOGOUT };
 
-        public class Transition
-        {
-            public AuthState PrevState { get; }
-            public AuthState NextState { get; }
-            public Trigger Trigger { get; }
-
-            public Transition(AuthState prevState, AuthState nextState, Trigger trigger)
-            {
-                PrevState = prevState;
-                NextState = nextState;
-                Trigger = trigger;
-            }
-        }
+        // where the transition used to be
 
         private AuthState currentState;
-        private List<Transition> transitions;
+        private readonly List<Transition> transitions;
 
         public AuthStateMachine()
         {
             currentState = AuthState.BELUM_LOGIN;
-            transitions = new List<Transition>
-            {
-                new Transition(AuthState.BELUM_LOGIN, AuthState.SUDAH_LOGIN, Trigger.LOGIN),
-                new Transition(AuthState.SUDAH_LOGIN, AuthState.BELUM_LOGIN, Trigger.LOGOUT),
-                new Transition(AuthState.BELUM_LOGIN, AuthState.BELUM_LOGIN, Trigger.LOGOUT),
-                new Transition(AuthState.SUDAH_LOGIN, AuthState.SUDAH_LOGIN, Trigger.LOGIN)
-            };
+            transitions =
+            // Equivalent to 'new List<Transition>(){}'
+            [
+                new(AuthState.BELUM_LOGIN, AuthState.SUDAH_LOGIN, Trigger.LOGIN), // Equivalent to 'new Transition(AuthState.BELUM_LOGIN, AuthState.SUDAH_LOGIN, Trigger.LOGIN)'
+                new(AuthState.SUDAH_LOGIN, AuthState.BELUM_LOGIN, Trigger.LOGOUT), // Equivalent to 'new Transition(AuthState.SUDAH_LOGIN, AuthState.BELUM_LOGIN, Trigger.LOGOUT)'
+                new(AuthState.BELUM_LOGIN, AuthState.BELUM_LOGIN, Trigger.LOGOUT), // Equivalent to 'new Transition(AuthState.BELUM_LOGIN, AuthState.BELUM_LOGIN, Trigger.LOGOUT)'
+                new(AuthState.SUDAH_LOGIN, AuthState.SUDAH_LOGIN, Trigger.LOGIN) // Equivalent to 'new Transition(AuthState.SUDAH_LOGIN, AuthState.SUDAH_LOGIN, Trigger.LOGIN)'
+            ];
         }
 
         private AuthState GetNextState(AuthState prevState, Trigger trigger)
@@ -59,4 +48,3 @@
         }
     }
 }
-
