@@ -437,20 +437,22 @@ namespace View.Pages.Student
             do
             {
 
-                // Tambahkan informasi tentang status review terbaru
+                // Tambahkan informasi tentang status review terbaru, untuk uji coba sebaiknya dikomentar terlebih dahulu.
                 string reviewInfo;
                 var versions = _documentBodyService.GetDocumentBodiesByDocumentId(document.Id);
                 if (versions == null || !versions.Any())
                 {
-                    reviewInfo = "Belum ada versi dokumen yang dibuat.";
+                    Console.WriteLine("Belum ada versi dokumen yang dibuat.");
+                    Console.WriteLine("Silakan buat versi pertama untuk melanjutkan.");
+                    return;
                 }
 
                 var currentVersion = _documentBodyService.GetCurrentVersion(document.Id);
                 if (currentVersion == null || !currentVersion.IsReviewed)
                 {
-                    reviewInfo = "\nVersi saat ini belum direview. Silakan buat versi baru untuk direview oleh dosen Anda.";
+                    Console.WriteLine("\nVersi saat ini belum direview. Silakan buat versi baru untuk direview oleh dosen Anda.");
+                    return;
                 }
-
                 if (currentVersion == null)
                 {
                     Console.WriteLine("Tidak ada versi dokumen yang ditemukan.");
@@ -492,11 +494,12 @@ namespace View.Pages.Student
                  */
                 reviewInfo = $"\nVersi saat ini: [{statusText}] (Klik menu 'Lihat Versi Dokumen' untuk detail)";
 
+
                 Console.WriteLine($"\n=== Dokumen: {document.Title} ===");
                 Console.WriteLine($"Konten: {document.SavedContent ?? "Tidak ada konten"}");
                 Console.WriteLine($"Dibuat pada: {document.CreatedAt:dd/MM/yyyy HH:mm:ss}"); // Setara dengan document.CreatedAt.ToString("dd/MM/yyyy HH:mm:ss")
 
-                // Tampilkan info review untuk semua pengguna
+                // Tampilkan info review untuk semua pengguna, sebaiknya dikomentar apabila melakukan pengujian.
                 Console.WriteLine(reviewInfo);
 
                 // Menu lengkap untuk mahasiswa
