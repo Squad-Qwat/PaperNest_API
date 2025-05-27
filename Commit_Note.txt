@@ -1,0 +1,68 @@
+What's this about:
+
+adding file that needs to be ignored in .gitignore
+
+Adding dependencies in order to make the CLI (View console project) and testing (UnitTesting) works
+
+git pull issue has been resolved, must recreate the project and
+re-inserted the directory and the file myself.
+
+Create new class ReviewState.cs to adheres to state-based construction
+technique, refactor both ReviewState.cs and Review.cs so LecturerView.cs
+and StudentView.cs can interact with it.
+
+Create new class DocumentService.cs to handle uncommited (local save) document
+progress in an application, modify the Review.cs and DocumentBody.cs so
+the DocumentService.cs works, only resolved the null warning issue in
+the Document.cs
+
+Fixed the class ReviewUtil.cs, primarily in the processReview
+method.
+
+add the solution as things to be ignored in .gitignore.
+
+Somehow, i forgot to save Console App view Project, fixed now.
+
+Fix the DocumentService, following the new update, might need to fix the
+documentRepository.cs and UserService.cs after this.
+
+Internet issues resolved, refactor much of this codebase due to C# class
+inside model directory used to mimic SQL table, so had to make another constructor
+in classes inside repository directory.
+
+Rest of the changes is according to changes from dev-abiyyu branch, add
+the changes from dev-abiyyu branch to fix the class in UniTesting
+project.
+
+Add Citation class (Model, repository, service, util, and controller) to
+be used by API, and testing the citation service class in the
+UnitTesting project.
+
+Updated the Citation part so it might be a litle specific, create the
+fix version so it truly reflects the table-driven method (Question: Is
+delegate data type and class basically C# template for method?), this Citation
+part is also use to reflect the stair-step table-driven contruction.
+
+Refactor the code so it uses if-else inversion technique to enhance
+readability (View classes hasn't been refactored that much the day the
+last commit is submitted to GitHub), refactor the view classes to
+enchance readability.
+
+Move the helpers to each subdirectory as the first identifier, rename
+the stateMachine to include Utils too, since the Utils won't be moved to
+helpers.
+
+Refactor the AuthController.cs with adding new files from dev-abiyyu
+branch, also to fix MSTest project as it cause the error (From some
+reason, the only error left in this code is Metadata error, where a part
+of file required by MSTest project UnitTesting.csproj doesn't exists
+inside ASPNetCore Web Project API.csproj).
+
+Fix: There was a dependency error in Citation unit test class.
+
+Updated the view classes in the Console App project View from dev
+branch, refactor the LecturerView.cs and StudentView.cs in order to
+interact with ReviewState.cs through ReviewUtil.cs (for private use in
+this branch, DO NOT pull this branch for any reason).
+
+Forgot to mention: I refactored the review and user workspace respository classes along with it's service classes to add update in the respective controller classes.

@@ -35,281 +35,285 @@ namespace View.Pages.Lecturer
             _userWorkspaceService = new UserWorkspaceService();
         }
 
-       public void Start()
-       {
-           bool isRunning = true;
+        public void Start()
+        {
+            bool isRunning = true;
 
-           Console.WriteLine("=== PaperNest - Sistem Manajemen Karya Tulis Ilmiah ===");
-           Console.WriteLine("=== Panel Dosen ===");
+            Console.WriteLine("=== PaperNest - Sistem Manajemen Karya Tulis Ilmiah ===");
+            Console.WriteLine("=== Panel Dosen ===");
 
-           while (isRunning)
-           {
-               if (_currentUser == null || _authState.GetCurrentState() == AuthStateMachine.AuthState.BELUM_LOGIN)
-               {
+            do
+            {
+                if (_currentUser == null || _authState.GetCurrentState() == AuthStateMachine.AuthState.BELUM_LOGIN)
+                {
                     _globalView.Start();
                 }
-               else
-               {
-                   DisplayMainMenu();
-               }
-
-               Console.WriteLine("\nTekan tombol apa saja untuk melanjutkan...");
-               Console.ReadKey();
-               Console.Clear();
-           }
-       }
-
-       private void DisplayMainMenu()
-       {
-           Console.WriteLine($"\n=== Menu Utama - Selamat datang, {_currentUser?.Name} ===");
-           Console.WriteLine("1. Lihat Workspace");
-           Console.WriteLine("2. Bergabung dengan Workspace");
-           Console.WriteLine("8. Lihat Profil");
-           Console.WriteLine("9. Logout");
-           Console.Write("Pilih menu: ");
-
-           string? choice = Console.ReadLine();
-
-           switch (choice)
-           {
-               case "1":
-                   ViewWorkspaces();
-                   break;
-               case "2":
-                   JoinWorkspace();
-                   break;
-               case "8":
-                   DisplayUserProfile();
-                   break;
-               case "9":
-                   Logout();
-                   break;
-               default:
-                   Console.WriteLine("Menu tidak valid. Silakan coba lagi.");
-                   break;
-           }
-       }
-
-       private void Logout()
-       {
-           _currentUser = null;
-           _authState.ActivateTrigger(AuthStateMachine.Trigger.LOGOUT);
-           Console.WriteLine("Logout berhasil.");
-       }
-
-       private void DisplayUserProfile()
-       {
-           if (_currentUser == null)
-           {
-               Console.WriteLine("Tidak ada user yang sedang login.");
-               return;
-           }
-
-           Console.WriteLine("\n=== Profil User ===");
-           Console.WriteLine($"ID: {_currentUser.Id}");
-           Console.WriteLine($"Nama: {_currentUser.Name}");
-           Console.WriteLine($"Email: {_currentUser.Email}");
-           Console.WriteLine($"Username: {_currentUser.Username}");
-           Console.WriteLine($"Role: {_currentUser.Role}");
-           Console.WriteLine($"Dibuat pada: {_currentUser.CreatedAt}");
-       }
-
-       private void ViewWorkspaces()
-       {
-           if (_currentUser == null)
-           {
-               Console.WriteLine("Anda harus login terlebih dahulu.");
-               return;
-           }
-    
-           Console.WriteLine("\n=== Daftar Workspace ===");
-    
-           // tampilkan workspace yang diikuti
-           var results = _workspaceService.GetByUserId(_currentUser.Id);
-    
-           if (results != null)
-           {
-                var workspaces = results;
-                
-                if (workspaces == null || !workspaces.Any())
+                else
                 {
-                    Console.WriteLine("Anda belum bergabung dengan workspace manapun.");
-                    Console.WriteLine("Gunakan menu 'Bergabung dengan Workspace' untuk bergabung.");
-                    return;
+                    DisplayMainMenu();
                 }
-                
-                int index = 1;
-                foreach (var workspace in workspaces)
-                {
-                    string description = workspace.Description ?? "Tidak ada deskripsi";
-                    string createdAt = workspace.CreatedAt.ToString("dd/MM/yyyy HH:mm:ss");
-                    
-                    Console.WriteLine($"{index}. {workspace.Title} [ID: {workspace.Id}]");
-                    Console.WriteLine($"   Deskripsi: {description}");
-                    Console.WriteLine($"   Dibuat pada: {createdAt}");
-                    Console.WriteLine();
-                    index++;
-                }
-                
-                Console.Write("Pilih workspace (nomor) atau 0 untuk kembali: ");
-                if (int.TryParse(Console.ReadLine(), out int choice) && choice > 0 && choice <= workspaces.Count())
-                {
-                    _currentWorkspace = workspaces.ElementAt(choice - 1);
-                    WorkspaceMenu();
-                }
-           }
-           else
-           {
-               Console.WriteLine("Gagal mendapatkan daftar workspace.");
-           }
-       }
 
-       private void JoinWorkspace()
-       {
-           if (_currentUser == null)
-           {
-               Console.WriteLine("Anda harus login terlebih dahulu.");
-               return;
-           }
-    
-           Console.WriteLine("\n=== Bergabung dengan Workspace ===");
-           Console.WriteLine("Masukkan ID Workspace untuk bergabung.");
-           Console.WriteLine("Anda dapat meminta ID Workspace dari mahasiswa pengelola workspace.");
-    
-           Console.Write("\nID Workspace: ");
-           string? workspaceIdStr = Console.ReadLine();
-    
-           if (string.IsNullOrEmpty(workspaceIdStr) || !Guid.TryParse(workspaceIdStr, out Guid workspaceId))
-           {
-               Console.WriteLine("ID Workspace tidak valid. Pastikan format ID benar.");
-               return;
-           }
-    
-           // Cek apakah workspace ada
-           var workspace = _workspaceService.GetById(workspaceId);
-    
-           if (workspace != null)
-           {
-               Console.WriteLine($"Workspace ditemukan: {workspace.Title}");
-               Console.WriteLine($"Deskripsi: {workspace.Description ?? "Tidak ada deskripsi"}");
-    
-               Console.Write("\nApakah Anda yakin ingin bergabung dengan workspace ini? (y/n): ");
-               string? confirmation = Console.ReadLine()?.ToLower();
-    
-               if (confirmation == "y")
-               {
-                   // Bergabung dengan workspace sebagai dosen (Lecturer)
-                   _userWorkspaceService.AddUserWorkspaceAsLecturer(_currentUser.Id, workspaceId);
-                   Console.WriteLine("\nBerhasil bergabung dengan workspace!");
-                   Console.WriteLine("Anda sekarang dapat melihat dokumen dan memberikan review pada workspace ini.");
-               }
-               else
-               {
-                   Console.WriteLine("\nBergabung dengan workspace dibatalkan.");
-               }
-           }
-           else
-           {
-               Console.WriteLine("Workspace tidak ditemukan. Silakan periksa ID workspace.");
-           }
-       }
+                Console.WriteLine("\nTekan tombol apa saja untuk melanjutkan...");
+                Console.ReadKey();
+                Console.Clear();
+            } while (isRunning);
+        }
 
-       private void WorkspaceMenu()
-       {
-           if (_currentWorkspace == null)
-           {
-               Console.WriteLine("Tidak ada workspace yang dipilih.");
-               return;
-           }
-    
-           bool backToMainMenu = false;
-    
-           // Cek role pengguna saat ini di workspace ini
-           WorkspaceRole userRole = _workspaceService.GetUserRoleInWorkspace(_currentUser.Id, _currentWorkspace.Id);
-    
-           while (!backToMainMenu)
-           {
-               Console.WriteLine($"\n=== Workspace: {_currentWorkspace.Title} ===");
-               Console.WriteLine($"ID: {_currentWorkspace.Id}");
-               Console.WriteLine($"Role Anda: {userRole}");
-               
-               // Menu untuk dosen - melihat dan mereview dokumen
-               Console.WriteLine("1. Lihat Dokumen");
-               
-               Console.WriteLine("0. Kembali ke Menu Utama");
-               
-               Console.Write("Pilih menu: ");
-               
-               string? choice = Console.ReadLine();
-               
-               switch (choice)
-               {
-                   case "1":
-                       ViewDocuments();
-                       break;
-                   case "0":
-                       backToMainMenu = true;
-                       _currentWorkspace = null;
-                       break;
-                   default:
-                       Console.WriteLine("Menu tidak valid. Silakan coba lagi.");
-                       break;
-               }
-               
-               if (!backToMainMenu)
-               {
-                   Console.WriteLine("\nTekan tombol apa saja untuk melanjutkan...");
-                   Console.ReadKey();
-                   Console.Clear();
-               }
-           }
-       }
+        private void DisplayMainMenu()
+        {
+            Console.WriteLine($"\n=== Menu Utama - Selamat datang, {_currentUser?.Name} ===");
+            Console.WriteLine("1. Lihat Workspace");
+            Console.WriteLine("2. Bergabung dengan Workspace");
+            Console.WriteLine("8. Lihat Profil");
+            Console.WriteLine("9. Logout");
+            Console.Write("Pilih menu: ");
 
-       private void ViewDocuments()
-       {
-           if (_currentWorkspace == null)
-           {
-               Console.WriteLine("Tidak ada workspace yang dipilih.");
-               return;
-           }
-    
-           Console.WriteLine($"\n=== Dokumen di Workspace: {_currentWorkspace.Title} ===");
-    
-           var result = _documentService.GetByWorkspaceId(_currentWorkspace.Id);
-    
-           if (result != null)
-           {
-                var documents = result;
-                
-                if (documents == null || !documents.Any())
+            string? choice = Console.ReadLine();
+
+            switch (choice)
+            {
+                case "1":
+                    ViewWorkspaces();
+                    break;
+                case "2":
+                    JoinWorkspace();
+                    break;
+                case "8":
+                    DisplayUserProfile();
+                    break;
+                case "9":
+                    Logout();
+                    break;
+                default:
+                    Console.WriteLine("Menu tidak valid. Silakan coba lagi.");
+                    break;
+            }
+        }
+
+        private void Logout()
+        {
+            _currentUser = null;
+            _authState.ActivateTrigger(AuthStateMachine.Trigger.LOGOUT);
+            Console.WriteLine("Logout berhasil.");
+        }
+
+        private void DisplayUserProfile()
+        {
+            if (_currentUser == null)
+            {
+                Console.WriteLine("Tidak ada user yang sedang login.");
+                return;
+            }
+
+            Console.WriteLine("\n=== Profil User ===");
+            Console.WriteLine($"ID: {_currentUser.Id}");
+            Console.WriteLine($"Nama: {_currentUser.Name}");
+            Console.WriteLine($"Email: {_currentUser.Email}");
+            Console.WriteLine($"Username: {_currentUser.Username}");
+            Console.WriteLine($"Role: {_currentUser.Role}");
+            Console.WriteLine($"Dibuat pada: {_currentUser.CreatedAt}");
+        }
+
+        private void ViewWorkspaces()
+        {
+            if (_currentUser == null)
+            {
+                Console.WriteLine("Anda harus login terlebih dahulu.");
+                return;
+            }
+
+            Console.WriteLine("\n=== Daftar Workspace ===");
+
+            // tampilkan workspace yang diikuti
+            var results = _workspaceService.GetByUserId(_currentUser.Id);
+
+            if (results == null)
+            {
+                Console.WriteLine("Gagal mendapatkan daftar workspace.");
+                return;
+            }
+
+            var workspaces = results;
+
+            if (workspaces == null || !workspaces.Any())
+            {
+                Console.WriteLine("Anda belum bergabung dengan workspace manapun.");
+                Console.WriteLine("Gunakan menu 'Bergabung dengan Workspace' untuk bergabung.");
+                return;
+            }
+
+            int index = 1;
+            foreach (var workspace in workspaces)
+            {
+                string description = workspace.Description ?? "Tidak ada deskripsi";
+                string createdAt = workspace.CreatedAt.ToString("dd/MM/yyyy HH:mm:ss");
+
+                Console.WriteLine($"{index}. {workspace.Title} [ID: {workspace.Id}]");
+                Console.WriteLine($"   Deskripsi: {description}");
+                Console.WriteLine($"   Dibuat pada: {createdAt}");
+                Console.WriteLine();
+                index++;
+            }
+
+            Console.Write("Pilih workspace (nomor) atau 0 untuk kembali: ");
+            if (int.TryParse(Console.ReadLine(), out int choice) && choice > 0 && choice <= workspaces.Count())
+            {
+                _currentWorkspace = workspaces.ElementAt(choice - 1);
+                WorkspaceMenu();
+            }
+        }
+
+        private void JoinWorkspace()
+        {
+            if (_currentUser == null)
+            {
+                Console.WriteLine("Anda harus login terlebih dahulu.");
+                return;
+            }
+
+            Console.WriteLine("\n=== Bergabung dengan Workspace ===");
+            Console.WriteLine("Masukkan ID Workspace untuk bergabung.");
+            Console.WriteLine("Anda dapat meminta ID Workspace dari mahasiswa pengelola workspace.");
+
+            Console.Write("\nID Workspace: ");
+            string? workspaceIdStr = Console.ReadLine();
+
+            if (string.IsNullOrEmpty(workspaceIdStr) || !Guid.TryParse(workspaceIdStr, out Guid workspaceId))
+            {
+                Console.WriteLine("ID Workspace tidak valid. Pastikan format ID benar.");
+                return;
+            }
+
+            // Cek apakah workspace ada
+            var workspace = _workspaceService.GetById(workspaceId);
+
+            if (workspace == null)
+            {
+                Console.WriteLine("Workspace tidak ditemukan. Silakan periksa ID workspace.");
+                return;
+            }
+
+            Console.WriteLine($"Workspace ditemukan: {workspace.Title}");
+            Console.WriteLine($"Deskripsi: {workspace.Description ?? "Tidak ada deskripsi"}");
+
+            Console.Write("\nApakah Anda yakin ingin bergabung dengan workspace ini? (y/n): ");
+            string? confirmation = Console.ReadLine()?.ToLower();
+
+            if (confirmation == "y")
+            {
+                // Bergabung dengan workspace sebagai dosen (Lecturer)
+                _userWorkspaceService.AddUserWorkspaceAsLecturer(_currentUser.Id, workspaceId);
+                Console.WriteLine("\nBerhasil bergabung dengan workspace!");
+                Console.WriteLine("Anda sekarang dapat melihat dokumen dan memberikan review pada workspace ini.");
+            }
+            else
+            {
+                Console.WriteLine("\nBergabung dengan workspace dibatalkan.");
+            }
+        }
+
+        private void WorkspaceMenu()
+        {
+            if (_currentWorkspace == null)
+            {
+                Console.WriteLine("Tidak ada workspace yang dipilih.");
+                return;
+            }
+
+            if (_currentUser == null)
+            {
+                Console.WriteLine("Anda harus login terlebih dahulu.");
+                return;
+            }
+
+            bool backToMainMenu = false;
+
+            // Cek role pengguna saat ini di workspace ini
+            WorkspaceRole userRole = _workspaceService.GetUserRoleInWorkspace(_currentUser.Id, _currentWorkspace.Id);
+
+
+            do
+            {
+                Console.WriteLine($"\n=== Workspace: {_currentWorkspace?.Title} ===");
+                Console.WriteLine($"ID: {_currentWorkspace?.Id}");
+                Console.WriteLine($"Role Anda: {userRole}");
+
+                // Menu untuk dosen - melihat dan mereview dokumen
+                Console.WriteLine("1. Lihat Dokumen");
+
+                Console.WriteLine("0. Kembali ke Menu Utama");
+
+                Console.Write("Pilih menu: ");
+
+                string? choice = Console.ReadLine();
+
+                switch (choice)
                 {
-                    Console.WriteLine("Belum ada dokumen di workspace ini.");
-                    return;
+                    case "1":
+                        ViewDocuments();
+                        break;
+                    case "0":
+                        backToMainMenu = true;
+                        _currentWorkspace = null;
+                        break;
+                    default:
+                        Console.WriteLine("Menu tidak valid. Silakan coba lagi.");
+                        break;
                 }
-                
-                int index = 1;
-                foreach (var document in documents)
-                { 
-                    Console.WriteLine($"{index}. {document.Title}");
-                    Console.WriteLine($"   Dibuat pada: {document.CreatedAt.ToString("dd/MM/yyyy HH:mm:ss")}");
-                    Console.WriteLine();
-                    index++;
-                }
-                
-                Console.Write("Pilih dokumen (nomor) atau 0 untuk kembali: ");
-                if (int.TryParse(Console.ReadLine(), out int choice) && choice > 0 && choice <= documents.Count())
-                {
-                    var selectedDocument = documents.ElementAt(choice - 1);
-                    DocumentMenu(selectedDocument);
-                }
-           }
-           else
-           {
-               Console.WriteLine("Gagal mendapatkan daftar dokumen.");
-           }
-       }
 
-       private void DocumentMenu(Document document)
+                if (!backToMainMenu)
+                {
+                    Console.WriteLine("\nTekan tombol apa saja untuk melanjutkan...");
+                    Console.ReadKey();
+                    Console.Clear();
+                }
+            } while (!backToMainMenu);
+        }
+
+        private void ViewDocuments()
+        {
+            if (_currentWorkspace == null)
+            {
+                Console.WriteLine("Tidak ada workspace yang dipilih.");
+                return;
+            }
+
+            Console.WriteLine($"\n=== Dokumen di Workspace: {_currentWorkspace.Title} ===");
+
+            var result = _documentService.GetByWorkspaceId(_currentWorkspace.Id);
+
+            if (result == null)
+            {
+                Console.WriteLine("Gagal mendapatkan daftar dokumen.");
+                return;
+            }
+
+            var documents = result;
+
+            if (documents == null || !documents.Any())
+            {
+                Console.WriteLine("Belum ada dokumen di workspace ini.");
+                return;
+            }
+
+            int index = 1;
+            foreach (var document in documents)
+            {
+                Console.WriteLine($"{index}. {document.Title}");
+                Console.WriteLine($"   Dibuat pada: {document.CreatedAt:dd/MM/yyyy HH:mm:ss}"); // Setara dengan $"{document.CreatedAt.ToString("dd/MM/yyyy HH:mm:ss")}"
+                Console.WriteLine();
+                index++;
+            }
+
+            Console.Write("Pilih dokumen (nomor) atau 0 untuk kembali: ");
+            if (int.TryParse(Console.ReadLine(), out int choice) && choice > 0 && choice <= documents.Count())
+            {
+                var selectedDocument = documents.ElementAt(choice - 1);
+                DocumentMenu(selectedDocument);
+            }
+        }
+
+        private void DocumentMenu(Document document)
        {
            if (document == null)
            {
@@ -319,42 +323,66 @@ namespace View.Pages.Lecturer
 
            bool backToWorkspaceMenu = false;
 
-           while (!backToWorkspaceMenu)
+           do
            {
-                string reviewInfo = "";
+                string reviewInfo;
                 var versions = _documentBodyService.GetDocumentBodiesByDocumentId(document.Id);
-                if (versions != null && versions.Any())
+                if (versions == null || !versions.Any())
                 {
-                    var currentVersion = _documentBodyService.GetCurrentVersion(document.Id);
-                    if (currentVersion != null && currentVersion.IsReviewed)
-                    {
-                        var review = _reviewService.GetReviewByDocumentBodyId(currentVersion.Id);
-                        string statusText = "";
-                        if (review != null)
-                        {
-                            switch (review.Status)
-                            {
-                                case ReviewStatus.Approved:
-                                    statusText = "DISETUJUI";
-                                    break;
-                                case ReviewStatus.NeedsRevision:
-                                    statusText = "PERLU REVISI";
-                                    break;
-                                case ReviewStatus.Done:
-                                    statusText = "SELESAI";
-                                    break;
-                                default:
-                                    statusText = review.Status.ToString();
-                                    break;
-                            }
-                            reviewInfo = $"\nVersi saat ini: [{statusText}] (Klik menu 'Lihat Versi Dokumen' untuk detail)";
-                        }
-                    }
-                    else if (currentVersion != null)
-                    {
-                        reviewInfo = "\nVersi saat ini belum direview";
-                    }
+                    Console.WriteLine("Dokumen ini belum memiliki versi apapun.");
+                    Console.WriteLine("Mahasiswa belum mengirimkan versi dokumen untuk direview.");
+                    backToWorkspaceMenu = true;
                 }
+
+                var currentVersion = _documentBodyService.GetCurrentVersion(document.Id);
+                if (currentVersion == null || !currentVersion.IsReviewed)
+                {
+                    Console.WriteLine("Dokumen ini sudah direview atau tidak memiliki versi aktif.");
+                    Console.WriteLine("Silakan pilih versi dokumen yang ingin dilihat atau direview.");
+                    backToWorkspaceMenu = true;
+                    continue;
+                }
+
+                if (!currentVersion.IsReviewed) 
+                {
+                    Console.WriteLine("Versi saat ini belum direview. Silakan pilih versi lain untuk melihat detail atau mereview.");
+                    backToWorkspaceMenu = true;
+                }
+
+                var review = _reviewService.GetReviewByDocumentBodyId(currentVersion.Id);
+                string statusText;
+                if (review == null)
+                {
+                    Console.WriteLine("Versi saat ini sudah direview, tetapi tidak ada informasi review yang ditemukan.");
+                    return;
+                }
+
+                statusText = review.Status switch
+                {
+                    ReviewStatus.Approved => "DISETUJUI",
+                    ReviewStatus.NeedsRevision => "PERLU REVISI",
+                    ReviewStatus.Done => "SELESAI",
+                    _ => review.Status.ToString(),
+                };
+
+                /*
+                 * switch (review.Status)
+                 * {
+                 *   case ReviewStatus.Approved:
+                 *      statusText = "DISETUJUI";
+                 *      break;
+                 *   case ReviewStatus.NeedsRevision:
+                 *      statusText = "PERLU REVISI";
+                 *      break;
+                 *   case ReviewStatus.Done:
+                 *      statusText = "SELESAI";
+                 *      break;
+                 *   default:
+                 *      statusText = review.Status.ToString();
+                 *      break;
+                 * }
+                 */
+                reviewInfo = $"\nVersi saat ini: [{statusText}] (Klik menu 'Lihat Versi Dokumen' untuk detail)";
 
                 Console.WriteLine($"\n=== Dokumen: {document.Title} ===");
                 Console.WriteLine($"Konten: {document.SavedContent ?? "Tidak ada konten"}");
@@ -396,7 +424,7 @@ namespace View.Pages.Lecturer
                     Console.ReadKey();
                     Console.Clear();
                 }
-           }
+           } while (!backToWorkspaceMenu);
        }
 
        private void ViewDocumentVersions(Guid documentId)
@@ -418,41 +446,47 @@ namespace View.Pages.Lecturer
                string reviewStatus = "";
                // Cek apakah sudah di-review
                var review = _reviewService.GetReviewByDocumentBodyId(version.Id);
-               if (version.IsReviewed && review != null)
+               if (!version.IsReviewed || review == null)
                {
-                   switch (review.Status)
-                   {
-                       case ReviewStatus.Approved:
-                           reviewStatus = "[DISETUJUI]";
-                           break;
-                       case ReviewStatus.NeedsRevision:
-                           reviewStatus = "[PERLU REVISI]";
-                           break;
-                       case ReviewStatus.Done:
-                           reviewStatus = "[SELESAI]";
-                           break;
-                       default:
-                           reviewStatus = $"[{review.Status}]";
-                           break;
-                   }
-               }
-               else
-               {
-                   reviewStatus = "[BELUM DIREVIEW]";
+                    reviewStatus = "[BELUM DIREVIEW]";
                }
 
-               var creator = _userService.GetById(version.FK_UserCreaotorId);
+                reviewStatus = review?.Status switch
+                {
+                    ReviewStatus.Approved => "[DISETUJUI]",
+                    ReviewStatus.NeedsRevision => "[PERLU REVISI]",
+                    ReviewStatus.Done => "[SELESAI]",
+                    _ => $"[{review?.Status}]",
+                };
+
+                /*
+                 * switch (review.Status)
+                 * {
+                 *   case ReviewStatus.Approved:
+                 *      reviewStatus = "[DISETUJUI]";
+                 *      break;
+                 *   case ReviewStatus.NeedsRevision:
+                 *      reviewStatus = "[PERLU REVISI]";
+                 *      break;
+                 *   case ReviewStatus.Done:
+                 *      reviewStatus = "[SELESAI]";
+                 *      break;
+                 *   default:
+                 *      reviewStatus = $"[{review.Status}]";
+                 *      break;
+                 * }
+                 */
+
+                var creator = _userService.GetById(version.FK_UserCreaotorId);
 
                 Console.WriteLine($"{index}. Versi dari {version.CreatedAt.ToString("dd/MM/yyyy HH:mm:ss")} {reviewStatus}");
-               if(version.IsCurrentVersion){
-                   Console.WriteLine($"   {"[AKTIF]"}");
-               }
-               Console.WriteLine($"   Nama pengirim: {creator.Name}");
+               if(version.IsCurrentVersion){Console.WriteLine($"   {"[AKTIF]"}");}
+               Console.WriteLine($"   Nama pengirim: {creator?.Name}");
                Console.WriteLine($"   Deskripsi: {version.Comment}");
                
                 // Tampilkan preview konten (maksimal 50 karakter)
-               string contentPreview = version.Content.Length > 50 
-                   ? version.Content.Substring(0, 50) + "..." 
+               string? contentPreview = version.Content?.Length > 50 
+                   ? string.Concat(version.Content.AsSpan(0, 50), "...") // Setara dengan $"{version.Content.Substring(0, 50)}..."
                    : version.Content;
                Console.WriteLine($"   Preview: {contentPreview}");
                Console.WriteLine();
@@ -478,7 +512,7 @@ namespace View.Pages.Lecturer
             var creator = _userService.GetById(version.FK_UserCreaotorId);
     
            Console.WriteLine($"\n=== Detail Versi {version.Id} ===");
-            Console.WriteLine($"Nama pembuat: {creator.Name}");
+            Console.WriteLine($"Nama pembuat: {creator?.Name}");
            Console.WriteLine($"Dibuat pada: {version.CreatedAt.ToString("dd/MM/yyyy HH:mm:ss")}");
            Console.WriteLine($"Status: {(version.IsCurrentVersion ? "Aktif" : "Tidak Aktif")}");
            Console.WriteLine($"Deskripsi: {version.Comment}");
@@ -488,58 +522,65 @@ namespace View.Pages.Lecturer
            var review = _reviewService.GetReviewByDocumentBodyId(version.Id);
           
 
-           if (version.IsReviewed && review != null)
+           if (!version.IsReviewed || review == null)
            {
-               Console.WriteLine("\n=== Hasil Review ===");
-               
-               // Tampilkan status review dengan format yang mudah dibaca
-               string statusReview = "";
-               switch (review.Status)
-               {
-                   case ReviewStatus.Approved:
-                       statusReview = "DISETUJUI";
-                       break;
-                   case ReviewStatus.NeedsRevision:
-                       statusReview = "PERLU REVISI";
-                       break;
-                   case ReviewStatus.Done:
-                       statusReview = "SELESAI";
-                       break;
-                   default:
-                       statusReview = review.Status.ToString();
-                       break;
-               }
-               
-               Console.WriteLine($"Status: {statusReview}");
-               
-               var lecturer = _userService.GetById(review.FK_UserLecturerId);
-               if (lecturer != null)
-               {
-                   Console.WriteLine($"\nReviewer: {lecturer.Name}");
-               }
-               else
-               {
-                   Console.WriteLine("Reviewer: Tidak Diketahui");
-               }
-               Console.WriteLine($"Tanggal: {review.CreatedAt.ToString("dd/MM/yyyy HH:mm:ss")}");
-               Console.WriteLine("Komentar:");
-               Console.WriteLine("------------");
-               Console.WriteLine(review.Comment);
-               Console.WriteLine("------------");
-           }
-           else
-           {
-               Console.WriteLine("\nVersi ini belum direview.");
-               
-               // Berikan opsi untuk mereview dokumen
-               Console.Write("\nApakah Anda ingin mereview versi ini? (y/n): ");
-               string? choice = Console.ReadLine()?.ToLower();
-               if (choice == "y")
-               {
-                   ReviewVersion(version);
-               }
-           }
-       }
+                Console.WriteLine("\nVersi ini belum direview.");
+
+                // Berikan opsi untuk mereview dokumen
+                Console.Write("\nApakah Anda ingin mereview versi ini? (y/n): ");
+                string? choice = Console.ReadLine()?.ToLower();
+                if (choice == "y")
+                {
+                    ReviewVersion(version);
+                }
+            }
+
+            Console.WriteLine("\n=== Hasil Review ===");
+
+            // Tampilkan status review dengan format yang mudah dibaca
+            string? statusReview = review?.Status switch
+            {
+                ReviewStatus.Approved => "DISETUJUI",
+                ReviewStatus.NeedsRevision => "PERLU REVISI",
+                ReviewStatus.Done => "SELESAI",
+                _ => review?.Status.ToString(),
+            };
+
+            /*
+             * Setara dengan:
+             * switch (review.Status)
+             * {
+             *    case ReviewStatus.Approved:
+             *       statusReview = "DISETUJUI";
+             *       break;
+             *    case ReviewStatus.NeedsRevision:
+             *       statusReview = "PERLU REVISI";
+             *       break;
+             *    case ReviewStatus.Done:
+             *       statusReview = "SELESAI";
+             *       break;
+             *    default:
+             *       statusReview = review.Status.ToString();
+             *       break;
+             * }
+             */
+            Console.WriteLine($"Status: {statusReview}");
+
+            var lecturer = _userService.GetById(review.FK_UserLecturerId);
+            if (lecturer != null)
+            {
+                Console.WriteLine($"\nReviewer: {lecturer.Name}");
+            }
+            else
+            {
+                Console.WriteLine("Reviewer: Tidak Diketahui");
+            }
+            Console.WriteLine($"Tanggal: {review.CreatedAt.ToString("dd/MM/yyyy HH:mm:ss")}");
+            Console.WriteLine("Komentar:");
+            Console.WriteLine("------------");
+            Console.WriteLine(review.Comment);
+            Console.WriteLine("------------");
+        }
 
        // Method untuk mereview versi dokumen
        private void ReviewDocumentVersions(Guid documentId)
@@ -568,35 +609,43 @@ namespace View.Pages.Lecturer
                    reviewStatus = "[PERLU REVIEW]";
                }
                
-               if (version.IsReviewed && review != null)
+               if (!version.IsReviewed || review == null)
                {
-                   switch (review.Status)
-                   {
-                       case ReviewStatus.Approved:
-                           reviewStatus = "[DISETUJUI]";
-                           break;
-                       case ReviewStatus.NeedsRevision:
-                           reviewStatus = "[PERLU REVISI]";
-                           break;
-                       case ReviewStatus.Done:
-                           reviewStatus = "[SELESAI]";
-                           break;
-                       default:
-                           reviewStatus = $"[{review.Status}]";
-                           break;
-                   }
+                    reviewStatus = "[PERLU REVIEW]";
                }
-               else
-               {
-                   reviewStatus = "[PERLU REVIEW]";
-               }
-               
+
+                reviewStatus = review?.Status switch
+                {
+                    ReviewStatus.Approved => "[DISETUJUI]",
+                    ReviewStatus.NeedsRevision => "[PERLU REVISI]",
+                    ReviewStatus.Done => "[SELESAI]",
+                    _ => $"[{review?.Status}]",
+                };
+
+                /*
+                 * switch (review.Status)
+                 * {
+                 *     case ReviewStatus.Approved:
+                 *          reviewStatus = "[DISETUJUI]";
+                 *          break;
+                 *     case ReviewStatus.NeedsRevision:
+                 *          reviewStatus = "[PERLU REVISI]";
+                 *          break;
+                 *     case ReviewStatus.Done:
+                 *          reviewStatus = "[SELESAI]";
+                 *          break;
+                 *     default:
+                 *          reviewStatus = $"[{review.Status}]";
+                 *          break;
+                 * }
+                 */
+
                Console.WriteLine($"{index}. Versi dari {version.CreatedAt.ToString("dd/MM/yyyy HH:mm:ss")} {reviewStatus}");
                Console.WriteLine($"   {(version.IsCurrentVersion ? "[AKTIF]" : "")}");
                Console.WriteLine($"   Deskripsi: {version.Comment}");
                // Tampilkan preview konten (maksimal 50 karakter)
-               string contentPreview = version.Content.Length > 50 
-                   ? version.Content.Substring(0, 50) + "..." 
+               string? contentPreview = version.Content?.Length > 50 
+                   ? string.Concat(version.Content.AsSpan(0, 50), "...") // Setara dengan $"{version.Content.Substring(0, 50)}..."
                    : version.Content;
                Console.WriteLine($"   Preview: {contentPreview}");
                Console.WriteLine();
@@ -627,12 +676,15 @@ namespace View.Pages.Lecturer
            Console.WriteLine(version.Content);
 
            Review? review = null;
-           bool hasReview = false;
+           bool hasReview;
     
-           try {
+           try 
+           {
                review = _reviewService.GetReviewByDocumentBodyId(version.Id);
-               hasReview = review != null;
-           } catch (InvalidOperationException) {
+               hasReview = (review != null) ? true : throw new InvalidOperationException();
+           } 
+           catch (InvalidOperationException) 
+           {
                // Review tidak ditemukan
                hasReview = false;
            }
@@ -640,45 +692,60 @@ namespace View.Pages.Lecturer
            if (version.IsReviewed && hasReview)
            {
                Console.WriteLine("\n=== Review Sudah Diberikan ===");
-               
-               // Tampilkan status review dengan format yang mudah dibaca
-               string statusReview = "";
-               switch (review.Status)
-               {
-                   case ReviewStatus.Approved:
-                       statusReview = "DISETUJUI";
-                       break;
-                   case ReviewStatus.NeedsRevision:
-                       statusReview = "PERLU REVISI";
-                       break;
-                   case ReviewStatus.Done:
-                       statusReview = "SELESAI";
-                       break;
-                   default:
-                       statusReview = review.Status.ToString();
-                       break;
-               }
-               
-               Console.WriteLine($"Status: {statusReview}");
-               
-               var lecturer = _userService.GetById(review.FK_UserLecturerId);
-               if (lecturer != null)
-               {
+
+                // Tampilkan status review dengan format yang mudah dibaca
+                string? statusReview = (review?.Status) switch
+                {
+                    ReviewStatus.Approved => "DISETUJUI",
+                    ReviewStatus.NeedsRevision => "PERLU REVISI",
+                    ReviewStatus.Done => "SELESAI",
+                    _ => review?.Status.ToString(),
+                };
+
+                /*
+                 * switch (review?.Status)
+                 * {
+                 *   case ReviewStatus.Approved:
+                 *       statusReview = "DISETUJUI";
+                 *       break;
+                 *   case ReviewStatus.NeedsRevision:
+                 *       statusReview = "PERLU REVISI";
+                 *       break;
+                 *   case ReviewStatus.Done:
+                 *       statusReview = "SELESAI";
+                 *       break;
+                 *   default:
+                 *       statusReview = review?.Status.ToString();
+                 *       break;
+                 * }
+                */
+
+                Console.WriteLine($"Status: {statusReview}");
+
+                if(review == null)
+                {
+                    Console.WriteLine("Tidak ada informasi review yang ditemukan.");
+                    return;
+                }
+
+                var lecturer = _userService.GetById(review.FK_UserLecturerId);
+                if (lecturer != null)
+                {
                    Console.WriteLine($"Reviewer: {lecturer.Name}");
-               }
-               else
-               {
+                }
+                else
+                {
                    Console.WriteLine("Reviewer: Tidak Diketahui");
-               }
-               Console.WriteLine($"Tanggal: {review.CreatedAt.ToString("dd/MM/yyyy HH:mm:ss")}");
-               Console.WriteLine("Komentar:");
-               Console.WriteLine("------------");
-               Console.WriteLine(review.Comment);
-               Console.WriteLine("------------");
+                }
+                Console.WriteLine($"Tanggal: {review.CreatedAt:dd/MM/yyyy HH:mm:ss}"); // Setara with $"{review.CreatedAt.ToString("dd/MM/yyyy HH:mm:ss")}"
+                Console.WriteLine("Komentar:");
+                Console.WriteLine("------------");
+                Console.WriteLine(review.Comment);
+                Console.WriteLine("------------");
                
-               Console.WriteLine("\nDokumen ini sudah direview dan tidak dapat diubah lagi.");
-               Console.WriteLine("Review yang sudah diberikan bersifat final.");
-               return;
+                Console.WriteLine("\nDokumen ini sudah direview dan tidak dapat diubah lagi.");
+                Console.WriteLine("Review yang sudah diberikan bersifat final.");
+                return;
            }
 
            Console.WriteLine("\n=== Buat Review ===");
@@ -716,8 +783,15 @@ namespace View.Pages.Lecturer
            Console.Write("Masukkan komentar untuk review: ");
            string comment = Console.ReadLine() ?? "";
 
-           // Simpan review
-           try {
+            if(_currentUser == null)
+            {
+                Console.WriteLine("Anda harus login terlebih dahulu untuk memberikan review.");
+                return;
+            }
+
+            // Simpan review
+            try 
+            {
                _reviewService.AddReview(version.Id, _currentUser.Id, comment, status);
                
                // Update IsReviewed di DocumentBody
@@ -739,7 +813,8 @@ namespace View.Pages.Lecturer
                        break;
                }
            }
-           catch (Exception ex) {
+           catch (Exception ex) 
+           {
                Console.WriteLine($"\nGagal menyimpan review: {ex.Message}");
            }
        }
@@ -755,7 +830,7 @@ namespace View.Pages.Lecturer
 
            bool backToDocumentMenu = false;
 
-           while (!backToDocumentMenu)
+           do
            {
                Console.WriteLine($"\n=== Sitasi dalam Dokumen: {document.Title} ===");
                Console.WriteLine("1. Lihat Semua Sitasi");
@@ -791,8 +866,8 @@ namespace View.Pages.Lecturer
                    Console.ReadKey();
                    Console.Clear();
                }
-           }
-       }
+           } while (!backToDocumentMenu);
+        }
 
        // Method untuk melihat semua sitasi dalam dokumen
        private void ViewAllCitations(Guid documentId)
@@ -847,7 +922,7 @@ namespace View.Pages.Lecturer
 
            var citations = _citationService.GetCitationsByDocumentId(documentId).ToList();
 
-           if (citations == null || !citations.Any())
+           if (citations == null || citations.Count == 0)
            {
                Console.WriteLine("Belum ada sitasi untuk dokumen ini.");
                return;
@@ -915,7 +990,7 @@ namespace View.Pages.Lecturer
 
            var citations = _citationService.GetCitationsByDocumentId(documentId).ToList();
 
-           if (citations == null || !citations.Any())
+           if (citations == null || citations.Count == 0)
            {
                Console.WriteLine("Belum ada sitasi untuk dokumen ini.");
                return;
@@ -955,13 +1030,14 @@ namespace View.Pages.Lecturer
            foreach (var citation in citations.OrderBy(c => c.Author))
            {
                string? apaFormat = _citationService.GetFormattedCitationAPA(citation.Id);
-               if (!string.IsNullOrEmpty(apaFormat))
+               if (string.IsNullOrEmpty(apaFormat))
                {
-                   Console.WriteLine($"{index}. {apaFormat}");
-                   Console.WriteLine();
-                   index++;
+                    continue; // Skip if APA format is empty or null
                }
-           }
+                Console.WriteLine($"{index}. {apaFormat}");
+                Console.WriteLine();
+                index++;
+            }
 
            Console.WriteLine("---");
            Console.WriteLine("Catatan: Daftar di atas sudah diurutkan berdasarkan nama penulis sesuai standar APA.");
