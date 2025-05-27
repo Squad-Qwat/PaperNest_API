@@ -12,14 +12,12 @@ namespace API.Models
 
         public string? Description { get; set; }
 
-        public ICollection<Document> Documents { get; set; } = new List<Document>();
+        public ICollection<Document> Documents { get; set; } = []; // Equivalent to 'new List<Document>();'
 
-        public ICollection<UserWorkspace> UserWorkspaces { get; set; } = new List<UserWorkspace>();
+        public ICollection<UserWorkspace> UserWorkspaces { get; set; } = []; // Equivalent to 'new List<UserWorkspace>();'
 
         public DateTime CreatedAt { get; protected set; } = DateTime.Now;
 
         public DateTime UpdateAt { get; set; }
-
-
     }
 }

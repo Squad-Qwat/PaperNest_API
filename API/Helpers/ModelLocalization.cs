@@ -5,9 +5,9 @@ namespace API.Helpers
     public class ModelLocalizaton
     {
         [JsonPropertyName("id")]
-        public string Id { get; set; }
+        public string? Id { get; set; }
 
         [JsonPropertyName("en")]
-        public string En { get; set; }
+        public string? En { get; set; }
     }
 }

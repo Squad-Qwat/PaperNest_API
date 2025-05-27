@@ -24,8 +24,8 @@ namespace API.Models
         [Required, EnumDataType(typeof(UserRole))]
         public string Role { get; set; } = UserRole.Student.ToString();
 
-        // one to many
-        public ICollection<UserWorkspace> UserWorkspace = new List<UserWorkspace>();
+        // one to many, equivalent to a foreign key in SQL (new List<UserWorkspace>())
+        public ICollection<UserWorkspace> UserWorkspace = [];
 
         [Required]
         public DateTime CreatedAt { get; protected set; } = DateTime.Now;

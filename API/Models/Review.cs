@@ -12,11 +12,11 @@ namespace API.Models
 
         [Required]
         public Guid FK_DocumentBodyId { get; set; }
-        public DocumentBody DocumentBody { get; set; }
+        public DocumentBody? DocumentBody { get; set; }
 
         [Required]
         public Guid FK_UserLecturerId { get; set; }
-        public User UserLecturer { get; set; }
+        public User? UserLecturer { get; set; }
 
         [Required]
         public ReviewStatus Status { get; set; } = ReviewStatus.NeedsRevision;

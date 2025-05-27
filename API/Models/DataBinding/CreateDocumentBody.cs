@@ -5,10 +5,10 @@ namespace API.Models.DataBinding
     public class CreateDocumentBody
     {
         [Required, StringLength(255, ErrorMessage = "Comment max 255 characters")]
-        public string Comment { get; set; }
+        public string? Comment { get; set; }
 
         [Required]
-        public string Content { get; set; }
+        public string? Content { get; set; }
 
     }
 }
