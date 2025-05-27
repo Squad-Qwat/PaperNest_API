@@ -174,7 +174,7 @@ namespace View.Pages.Global
 
             string role = roleChoice == "1" ? "Mahasiswa" : "Dosen";
 
-            // For some reason, RegisterRequest doesn't recognized some of these properties
+            // Update, it is now, but i didn't add the local sql-like C# table class to bind those data
             var user = new RegisterRequest
             {
                 Name = name!,

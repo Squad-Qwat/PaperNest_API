@@ -24,7 +24,7 @@ namespace View.Utils
             lang = language;
         }
 
-        public static string GetLangKey(string key)
+        public static string? GetLangKey(string key)
         {
             if (localization == null)
             {
