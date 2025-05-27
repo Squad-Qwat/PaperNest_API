@@ -1,6 +1,7 @@
-﻿using API.Models;
+﻿using API.Helpers.Enums;
+using API.Models;
 
-namespace API.Helpers.Enums
+namespace API.Helpers
 {
     public class CitationFormatRule
     {

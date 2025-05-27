@@ -2,9 +2,9 @@
 using API.Models;
 using API.StateMachines;
 using API.Helpers.Enums;
-using View.Global;
+using View.Pages.Global;
 
-namespace View.Lecturer
+namespace View.Pages.Lecturer
 {
    public class LecturerView
    {
@@ -445,7 +445,7 @@ namespace View.Lecturer
 
                 Console.WriteLine($"{index}. Versi dari {version.CreatedAt.ToString("dd/MM/yyyy HH:mm:ss")} {reviewStatus}");
                if(version.IsCurrentVersion){
-                   Console.WriteLine($"   {("[AKTIF]")}");
+                   Console.WriteLine($"   {"[AKTIF]"}");
                }
                Console.WriteLine($"   Nama pengirim: {creator.Name}");
                Console.WriteLine($"   Deskripsi: {version.Comment}");
@@ -631,7 +631,7 @@ namespace View.Lecturer
     
            try {
                review = _reviewService.GetReviewByDocumentBodyId(version.Id);
-               hasReview = (review != null);
+               hasReview = review != null;
            } catch (InvalidOperationException) {
                // Review tidak ditemukan
                hasReview = false;

@@ -2,13 +2,13 @@ using API.Controllers;
 using API.Models;
 using API.StateMachines;
 using API.Services;
-using View.Global;
 using Microsoft.AspNetCore.Mvc;
 using PaperNest_API.Controllers;
 using Microsoft.AspNetCore.Http;
 using API.Helpers.Enums;
+using View.Pages.Global;
 
-namespace View.Student
+namespace View.Pages.Student
 {
    public class StudentView
    {
@@ -754,7 +754,7 @@ namespace View.Student
         Console.WriteLine($"{index}. Versi dari {version.CreatedAt.ToString("dd/MM/yyyy HH:mm:ss")} {reviewStatus}");
         if (version.IsCurrentVersion)
         {
-            Console.WriteLine($"   {("[AKTIF]")}");
+            Console.WriteLine($"   {"[AKTIF]"}");
         }
         Console.WriteLine($"   Nama pengirim: {creator.Name}");
         Console.WriteLine($"   Deskripsi: {version.Comment}");

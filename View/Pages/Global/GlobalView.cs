@@ -9,7 +9,7 @@ using API.Models.DataBinding;
 using Microsoft.AspNetCore.Authentication;
 using View.Lecturer;
 
-namespace View.Global
+namespace View.Pages.Global
 {
     public class GlobalView
     {
@@ -108,7 +108,7 @@ namespace View.Global
                     _currentUser = user;
                     Console.WriteLine($"Selamat datang, {user.Name}!");
                     Console.WriteLine("Memasuki sistem...");
-                    System.Threading.Thread.Sleep(1000);
+                    Thread.Sleep(1000);
 
                     if (user.Role == "Mahasiswa")
                     {

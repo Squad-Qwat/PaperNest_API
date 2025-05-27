@@ -8,27 +8,28 @@ namespace API.Helpers
         // Menggunakan aturan format sitasi dengan teknik stair-step table-driven
         private static readonly CitationFormatRule[] _formattingRules =
         {
-            new CitationFormatRule
+            // Setara dengan new CitationFormatRule { Type = CitationType.Book, Formatter = ... }
+            new() 
             {
                 Type = CitationType.Book,
                 Formatter = citation => $"{citation.Author}. ({citation.PublicationDate?.Year}). {citation.Title}. {citation.PublicationInfo}."
             },
-            new CitationFormatRule
+            new() 
             {
                 Type = CitationType.JournalArticle,
                 Formatter = citation => $"{citation.Author}. ({citation.PublicationDate?.Year}). {citation.Title}. {citation.PublicationInfo}."
             },
-            new CitationFormatRule
+            new() 
             {
                 Type = CitationType.Website,
                 Formatter = citation => $"{citation.Author}. ({citation.PublicationDate?.Year}). {citation.Title}. {citation.PublicationInfo}. Diakses dari {citation.AccessDate}"
             },
-            new CitationFormatRule
+            new() 
             {
                 Type = CitationType.ConferencePaper,
                 Formatter = citation => $"{citation.Author}. ({citation.PublicationDate?.Year}). {citation.Title}. In {citation.PublicationInfo}."
             },
-            new CitationFormatRule
+            new() 
             {
                 Type = CitationType.Thesis,
                 Formatter = citation => $"{citation.Author}. ({citation.PublicationDate?.Year}). {citation.Title}. {citation.PublicationInfo}."
