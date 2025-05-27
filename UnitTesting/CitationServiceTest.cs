@@ -193,11 +193,23 @@ namespace UnitTesting
             var publicationInfo = "Test Publisher";
 
             // Act
+            // must do this because the C# function call here doesn't recognize the optional null in the actual function parameters
             var citation = _citationService.CreateCitation(
                 type, 
                 title, 
-                author, 
-                publicationInfo, 
+                author,
+                null,
+                null,
+                null,
+                null,
+                null,
+                publicationInfo,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
                 documentId);
 
             // Assert
@@ -218,11 +230,23 @@ namespace UnitTesting
         public void CreateCitation_WithEmptyTitle_ThrowsException()
         {
             // Act
+            // must do this because the C# function call here doesn't recognize the optional null in the actual function parameters
             _citationService.CreateCitation(
                 CitationType.Book,
                 "",
                 "Author",
+                null,
+                null,
+                null,
+                null,
+                null,
                 "Publication Info",
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
                 Guid.NewGuid());
         }
 
@@ -231,11 +255,23 @@ namespace UnitTesting
         public void CreateCitation_WithEmptyAuthor_ThrowsException()
         {
             // Act
+            // must do this because the C# function call here doesn't recognize the optional null in the actual function parameters
             _citationService.CreateCitation(
                 CitationType.Book,
                 "Title",
                 "",
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
                 "Publication Info",
+                null,
+                null,
+                null,
+                null,
+                null,
                 Guid.NewGuid());
         }
 
@@ -244,11 +280,23 @@ namespace UnitTesting
         public void CreateCitation_WithEmptyPublicationInfo_ThrowsException()
         {
             // Act
+            // must do this because the C# function call here doesn't recognize the optional null in the actual function parameters
             _citationService.CreateCitation(
                 CitationType.Book,
                 "Title",
                 "Author",
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
                 "",
+                null,
+                null,
+                null,
+                null,
+                null,
                 Guid.NewGuid());
         }
 
@@ -257,11 +305,23 @@ namespace UnitTesting
         public void CreateCitation_WithEmptyDocumentId_ThrowsException()
         {
             // Act
+            // must do this because the C# function call here doesn't recognize the optional null in the actual function parameters
             _citationService.CreateCitation(
                 CitationType.Book,
                 "Title",
                 "Author",
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
                 "Publication Info",
+                null,
+                null,
+                null,
+                null,
+                null,
                 Guid.Empty);
         }
         #endregion
@@ -291,14 +351,23 @@ namespace UnitTesting
             var newDoi = "10.1234/abcd";
 
             // Act
+            // must do this because the C# function call here doesn't recognize the optional null in the actual function parameters
             var updatedCitation = _citationService.UpdateCitation(
                 citation.Id,
                 newType,
                 newTitle,
                 newAuthor,
+                null,
+                null,
+                null, 
+                null,
+                null,
+                null,
                 newPublicationInfo,
+                null,
                 newPublicationDate,
                 newAccessDate,
+                null,
                 newDoi);
 
             // Assert
