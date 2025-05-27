@@ -12,8 +12,8 @@ namespace UnitTesting
     [DoNotParallelize]
     public class CitationServiceTests
     {
-        private CitationService _citationService;
-        private DocumentService _documentService;
+        private CitationService? _citationService;
+        private DocumentService? _documentService;
 
         [TestInitialize]
         public void Setup()
@@ -50,10 +50,10 @@ namespace UnitTesting
             CitationRepository.AddCitation(citation2);
 
             // Act
-            var result = _citationService.GetAllCitations();
+            var result = _citationService?.GetAllCitations();
 
             // Assert
-            Assert.AreEqual(2, result.Count);
+            Assert.AreEqual(2, result?.Count);
             CollectionAssert.Contains(result, citation1);
             CollectionAssert.Contains(result, citation2);
         }
@@ -62,10 +62,10 @@ namespace UnitTesting
         public void GetAllCitations_WhenEmpty_ReturnsEmptyList()
         {
             // Act
-            var result = _citationService.GetAllCitations();
+            var result = _citationService?.GetAllCitations();
 
             // Assert
-            Assert.AreEqual(0, result.Count);
+            Assert.AreEqual(0, result?.Count);
         }
         #endregion
 
@@ -86,7 +86,7 @@ namespace UnitTesting
             CitationRepository.AddCitation(citation);
 
             // Act
-            var result = _citationService.GetCitationById(citation.Id);
+            var result = _citationService?.GetCitationById(citation.Id);
 
             // Assert
             Assert.IsNotNull(result);
@@ -100,7 +100,7 @@ namespace UnitTesting
         public void GetCitationById_WhenNotExists_ReturnsNull()
         {
             // Act
-            var result = _citationService.GetCitationById(Guid.NewGuid());
+            var result = _citationService?.GetCitationById(Guid.NewGuid());
 
             // Assert
             Assert.IsNull(result);
@@ -111,7 +111,7 @@ namespace UnitTesting
         public void GetCitationById_WithEmptyGuid_ThrowsException()
         {
             // Act
-            _citationService.GetCitationById(Guid.Empty);
+            _citationService?.GetCitationById(Guid.Empty);
         }
         #endregion
 
@@ -153,10 +153,10 @@ namespace UnitTesting
             CitationRepository.AddCitation(otherCitation);
 
             // Act
-            var result = _citationService.GetCitationsByDocumentId(documentId).ToList();
+            var result = _citationService?.GetCitationsByDocumentId(documentId).ToList();
 
             // Assert
-            Assert.AreEqual(2, result.Count);
+            Assert.AreEqual(2, result?.Count);
             CollectionAssert.Contains(result, citation1);
             CollectionAssert.Contains(result, citation2);
             CollectionAssert.DoesNotContain(result, otherCitation);
@@ -166,10 +166,10 @@ namespace UnitTesting
         public void GetCitationsByDocumentId_WhenNoneExist_ReturnsEmptyList()
         {
             // Act
-            var result = _citationService.GetCitationsByDocumentId(Guid.NewGuid());
+            var result = _citationService?.GetCitationsByDocumentId(Guid.NewGuid());
 
             // Assert
-            Assert.AreEqual(0, result.Count());
+            Assert.AreEqual(0, result?.Count());
         }
 
         [TestMethod]
@@ -177,7 +177,7 @@ namespace UnitTesting
         public void GetCitationsByDocumentId_WithEmptyGuid_ThrowsException()
         {
             // Act
-            _citationService.GetCitationsByDocumentId(Guid.Empty);
+            _citationService?.GetCitationsByDocumentId(Guid.Empty);
         }
         #endregion
 
@@ -193,23 +193,11 @@ namespace UnitTesting
             var publicationInfo = "Test Publisher";
 
             // Act
-            // must do this because the C# function call here doesn't recognize the optional null in the actual function parameters
-            var citation = _citationService.CreateCitation(
+            var citation = _citationService?.CreateCitation(
                 type, 
                 title, 
                 author,
-                null,
-                null,
-                null,
-                null,
-                null,
                 publicationInfo,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
                 documentId);
 
             // Assert
@@ -220,7 +208,7 @@ namespace UnitTesting
             Assert.AreEqual(publicationInfo, citation.PublicationInfo);
             Assert.AreEqual(documentId, citation.FK_DocumentId);
             
-            var storedCitation = _citationService.GetCitationById(citation.Id);
+            var storedCitation = _citationService?.GetCitationById(citation.Id);
             Assert.IsNotNull(storedCitation);
             Assert.AreEqual(citation.Id, storedCitation.Id);
         }
@@ -230,23 +218,11 @@ namespace UnitTesting
         public void CreateCitation_WithEmptyTitle_ThrowsException()
         {
             // Act
-            // must do this because the C# function call here doesn't recognize the optional null in the actual function parameters
-            _citationService.CreateCitation(
+            _citationService?.CreateCitation(
                 CitationType.Book,
                 "",
                 "Author",
-                null,
-                null,
-                null,
-                null,
-                null,
                 "Publication Info",
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
                 Guid.NewGuid());
         }
 
@@ -255,23 +231,11 @@ namespace UnitTesting
         public void CreateCitation_WithEmptyAuthor_ThrowsException()
         {
             // Act
-            // must do this because the C# function call here doesn't recognize the optional null in the actual function parameters
-            _citationService.CreateCitation(
+            _citationService?.CreateCitation(
                 CitationType.Book,
                 "Title",
                 "",
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
                 "Publication Info",
-                null,
-                null,
-                null,
-                null,
-                null,
                 Guid.NewGuid());
         }
 
@@ -280,23 +244,11 @@ namespace UnitTesting
         public void CreateCitation_WithEmptyPublicationInfo_ThrowsException()
         {
             // Act
-            // must do this because the C# function call here doesn't recognize the optional null in the actual function parameters
-            _citationService.CreateCitation(
+            _citationService?.CreateCitation(
                 CitationType.Book,
                 "Title",
                 "Author",
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
                 "",
-                null,
-                null,
-                null,
-                null,
-                null,
                 Guid.NewGuid());
         }
 
@@ -305,23 +257,11 @@ namespace UnitTesting
         public void CreateCitation_WithEmptyDocumentId_ThrowsException()
         {
             // Act
-            // must do this because the C# function call here doesn't recognize the optional null in the actual function parameters
-            _citationService.CreateCitation(
+            _citationService?.CreateCitation(
                 CitationType.Book,
                 "Title",
                 "Author",
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
                 "Publication Info",
-                null,
-                null,
-                null,
-                null,
-                null,
                 Guid.Empty);
         }
         #endregion
@@ -351,23 +291,14 @@ namespace UnitTesting
             var newDoi = "10.1234/abcd";
 
             // Act
-            // must do this because the C# function call here doesn't recognize the optional null in the actual function parameters
-            var updatedCitation = _citationService.UpdateCitation(
+            var updatedCitation = _citationService?.UpdateCitation(
                 citation.Id,
                 newType,
                 newTitle,
                 newAuthor,
-                null,
-                null,
-                null, 
-                null,
-                null,
-                null,
                 newPublicationInfo,
-                null,
                 newPublicationDate,
                 newAccessDate,
-                null,
                 newDoi);
 
             // Assert
@@ -392,7 +323,7 @@ namespace UnitTesting
         public void UpdateCitation_WhenCitationNotExists_ReturnsNull()
         {
             // Act
-            var result = _citationService.UpdateCitation(
+            var result = _citationService?.UpdateCitation(
                 Guid.NewGuid(),
                 CitationType.Book,
                 "Title",
@@ -408,7 +339,7 @@ namespace UnitTesting
         public void UpdateCitation_WithEmptyId_ThrowsException()
         {
             // Act
-            _citationService.UpdateCitation(
+            _citationService?.UpdateCitation(
                 Guid.Empty,
                 CitationType.Book,
                 "Title",
@@ -434,19 +365,19 @@ namespace UnitTesting
             CitationRepository.AddCitation(citation);
 
             // Act
-            var result = _citationService.DeleteCitation(citation.Id);
+            var result = _citationService?.DeleteCitation(citation.Id);
 
             // Assert
             Assert.IsTrue(result);
-            Assert.IsNull(_citationService.GetCitationById(citation.Id));
-            Assert.AreEqual(0, _citationService.GetAllCitations().Count);
+            Assert.IsNull(_citationService?.GetCitationById(citation.Id));
+            Assert.AreEqual(0, _citationService?.GetAllCitations().Count);
         }
 
         [TestMethod]
         public void DeleteCitation_WhenCitationNotExists_ReturnsFalse()
         {
             // Act
-            var result = _citationService.DeleteCitation(Guid.NewGuid());
+            var result = _citationService?.DeleteCitation(Guid.NewGuid());
 
             // Assert
             Assert.IsFalse(result);
@@ -457,7 +388,7 @@ namespace UnitTesting
         public void DeleteCitation_WithEmptyId_ThrowsException()
         {
             // Act
-            _citationService.DeleteCitation(Guid.Empty);
+            _citationService?.DeleteCitation(Guid.Empty);
         }
         #endregion
 
@@ -484,7 +415,7 @@ namespace UnitTesting
             CitationRepository.AddCitation(citation);
 
             // Act
-            var result = _citationService.GetFormattedCitationAPA(citation.Id);
+            var result = _citationService?.GetFormattedCitationAPA(citation.Id);
 
             // Assert
             Assert.IsNotNull(result);
@@ -516,7 +447,7 @@ namespace UnitTesting
             CitationRepository.AddCitation(citation);
 
             // Act
-            var result = _citationService.GetFormattedCitationAPA(citation.Id);
+            var result = _citationService?.GetFormattedCitationAPA(citation.Id);
 
             // Assert
             Assert.IsNotNull(result);
@@ -528,7 +459,7 @@ namespace UnitTesting
         public void GetFormattedCitationAPA_WhenCitationNotExists_ReturnsNull()
         {
             // Act
-            var result = _citationService.GetFormattedCitationAPA(Guid.NewGuid());
+            var result = _citationService?.GetFormattedCitationAPA(Guid.NewGuid());
 
             // Assert
             Assert.IsNull(result);
@@ -539,7 +470,7 @@ namespace UnitTesting
         public void GetFormattedCitationAPA_WithEmptyId_ThrowsException()
         {
             // Act
-            _citationService.GetFormattedCitationAPA(Guid.Empty);
+            _citationService?.GetFormattedCitationAPA(Guid.Empty);
         }
         #endregion
     }
