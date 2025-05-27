@@ -356,7 +356,7 @@ namespace View.Pages.Student
 
             var result = _documentService.GetByWorkspaceId(_currentWorkspace.Id);
 
-            if (result != null)
+            if (result == null)
             {
                 Console.WriteLine("Gagal mendapatkan daftar dokumen.");
                 return;
