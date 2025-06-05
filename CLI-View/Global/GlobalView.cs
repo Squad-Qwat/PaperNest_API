@@ -274,12 +274,18 @@ namespace View.Global
                     throw new ArgumentException($"{fieldName} tidak boleh kosong!");
                 }
 
-                /* note: Regex for email validation is commented out to avoid dependency issues
+                /* 
+                 * note: Regex for email validation was commented out due to it was being called in Login() method, 
+                 * which can cause login problems due to it's strict format checking.
+                 * Now it is only called in Register() method, 
+                 * as the Login() method now use "Username" fieldname for validation checking instead, 
+                 * so i'm not sure it's safe to use here, 
+                 * i just leave it here for now for testing with Register() method later.
+                 */
                 if (fieldName == "Email" && !Regex.IsMatch(input, @"^[^@\s]+@[^@\s]+\.[^@\s]+$"))
                 {
                     throw new ArgumentException("Format email tidak valid!");
                 }
-                */
 
                 if (fieldName == "Password" && input.Length < 8)
                 {
