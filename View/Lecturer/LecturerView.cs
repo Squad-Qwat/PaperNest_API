@@ -152,12 +152,12 @@ namespace View.Lecturer
             int index = 1;
             foreach (var workspace in workspaces)
             {
-                string description = workspace.Description ?? "Tidak ada deskripsi";
-                string createdAt = workspace.CreatedAt.ToString("dd/MM/yyyy HH:mm:ss");
+                // string description = workspace.Description ?? "Tidak ada deskripsi";
+                // string createdAt = workspace.CreatedAt.ToString("dd/MM/yyyy HH:mm:ss");
 
                 Console.WriteLine($"{index}. {workspace.Title} [ID: {workspace.Id}]");
-                Console.WriteLine($"   Deskripsi: {description}");
-                Console.WriteLine($"   Dibuat pada: {createdAt}");
+                Console.WriteLine($"   Deskripsi: {workspace.Description ?? "Tidak ada deskripsi"}");
+                Console.WriteLine($"   Dibuat pada: {workspace.CreatedAt:dd/MM/yyyy HH:mm:ss}"); // Setara dengan $"{workspace.CreatedAt.ToString("dd/MM/yyyy HH:mm:ss")}"
                 Console.WriteLine();
                 index++;
             }
@@ -521,7 +521,7 @@ namespace View.Lecturer
 
             Console.WriteLine($"\n=== Detail Versi {version.Id} ===");
             Console.WriteLine($"Nama pembuat: {creator?.Name}");
-            Console.WriteLine($"Dibuat pada: {version.CreatedAt.ToString("dd/MM/yyyy HH:mm:ss")}");
+            Console.WriteLine($"Dibuat pada: {version.CreatedAt:dd/MM/yyyy HH:mm:ss}"); // Setara dengan $"{version.CreatedAt.ToString("dd/MM/yyyy HH:mm:ss")}"
             Console.WriteLine($"Status: {(version.IsCurrentVersion ? "Aktif" : "Tidak Aktif")}");
             Console.WriteLine($"Deskripsi: {version.Comment}");
             Console.WriteLine("\nKonten:");
@@ -637,12 +637,12 @@ namespace View.Lecturer
                     reviewStatus = $"[{review?.State?.GetType().Name.Replace("State", "").ToUpper() ?? "TIDAK DIKETAHUI"}]";
                 }
 
-                Console.WriteLine($"{index}. Versi dari {version.CreatedAt.ToString("dd/MM/yyyy HH:mm:ss")} {reviewStatus}");
+                Console.WriteLine($"{index}. Versi dari {version.CreatedAt:dd/MM/yyyy HH:mm:ss} {reviewStatus}"); // Setara dengan $"{index}. Versi dari {version.CreatedAt.ToString("dd/MM/yyyy HH:mm:ss")} [{reviewStatus}]"
                 Console.WriteLine($"   {(version.IsCurrentVersion ? "[AKTIF]" : "")}");
                 Console.WriteLine($"   Deskripsi: {version.Comment}");
                 string? contentPreview = version.Content?.Length > 50
-                    ? version.Content.Substring(0, 50) + "..."
-                    : version.Content;
+                    ? string.Concat(version.Content.AsSpan(0, 50), "...") // Setara dengan version.Content[..50] + "..." dan version.Content.Substring(0, 50) + "..."
+                    : version.Content; 
                 Console.WriteLine($"   Preview: {contentPreview}");
                 Console.WriteLine();
                 index++;
@@ -892,7 +892,7 @@ namespace View.Lecturer
 
                 if (citation.PublicationDate.HasValue)
                 {
-                    Console.WriteLine($"   Tanggal Publikasi: {citation.PublicationDate.Value.ToString("dd/MM/yyyy")}");
+                    Console.WriteLine($"   Tanggal Publikasi: {citation.PublicationDate.Value:dd/MM/yyyy}"); // Setara dengan $"{citation.PublicationDate.Value.ToString("dd/MM/yyyy")}"
                 }
 
                 if (!string.IsNullOrEmpty(citation.AccessDate))
@@ -905,7 +905,7 @@ namespace View.Lecturer
                     Console.WriteLine($"   DOI: {citation.DOI}");
                 }
 
-                Console.WriteLine($"   Ditambahkan pada: {citation.CreatedAt.ToString("dd/MM/yyyy HH:mm:ss")}");
+                Console.WriteLine($"   Ditambahkan pada: {citation.CreatedAt:dd/MM/yyyy HH:mm:ss}"); // Setara dengan $"{citation.CreatedAt.ToString("dd/MM/yyyy HH:mm:ss")}"
                 Console.WriteLine();
                 index++;
             }
@@ -954,7 +954,7 @@ namespace View.Lecturer
 
             if (selectedCitation.PublicationDate.HasValue)
             {
-                Console.WriteLine($"Tanggal Publikasi: {selectedCitation.PublicationDate.Value.ToString("dd/MM/yyyy")}");
+                Console.WriteLine($"Tanggal Publikasi: {selectedCitation.PublicationDate.Value:dd/MM/yyyy}"); // Setara dengan $"{selectedCitation.PublicationDate.Value.ToString("dd/MM/yyyy")}"
             }
             else
             {
@@ -971,8 +971,8 @@ namespace View.Lecturer
                 Console.WriteLine($"DOI: {selectedCitation.DOI}");
             }
 
-            Console.WriteLine($"Ditambahkan pada: {selectedCitation.CreatedAt.ToString("dd/MM/yyyy HH:mm:ss")}");
-            Console.WriteLine($"Terakhir diperbarui: {selectedCitation.UpdatedAt.ToString("dd/MM/yyyy HH:mm:ss")}");
+            Console.WriteLine($"Ditambahkan pada: {selectedCitation.CreatedAt:dd/MM/yyyy HH:mm:ss}"); // Setara dengan $"{selectedCitation.CreatedAt.ToString("dd/MM/yyyy HH:mm:ss")}"
+            Console.WriteLine($"Terakhir diperbarui: {selectedCitation.UpdatedAt:dd/MM/yyyy HH:mm:ss}"); // Setara dengan $"{selectedCitation.UpdatedAt.ToString("dd/MM/yyyy HH:mm:ss")}"
 
             // Tampilkan format APA untuk sitasi ini
             string? apaFormat = _citationService.GetFormattedCitationAPA(selectedCitation.Id);
@@ -1081,7 +1081,7 @@ namespace View.Lecturer
         }
 
         // Helper method untuk mendapatkan nama tipe sitasi dalam bahasa Indonesia
-        private string GetCitationTypeDisplay(CitationType type)
+        private static string GetCitationTypeDisplay(CitationType type)
         {
             return type switch
             {

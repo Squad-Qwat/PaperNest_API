@@ -248,7 +248,7 @@ namespace View.Global
             }
         }
 
-        private bool ValidateInput(string? input, string fieldName)
+        private static bool ValidateInput(string? input, string fieldName)
         {
             try
             {

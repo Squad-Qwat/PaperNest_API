@@ -230,12 +230,12 @@ namespace View.Student
             int index = 1;
             foreach (var workspace in workspaces)
             {
-                string description = workspace.Description ?? "Tidak ada deskripsi";
-                string createdAt = workspace.CreatedAt.ToString("dd/MM/yyyy HH:mm:ss");
+                // string description = workspace.Description ?? "Tidak ada deskripsi";
+                // string createdAt = workspace.CreatedAt.ToString("dd/MM/yyyy HH:mm:ss");
 
                 Console.WriteLine($"{index}. {workspace.Title} [ID: {workspace.Id}]");
-                Console.WriteLine($"   Deskripsi: {description}");
-                Console.WriteLine($"   Dibuat pada: {createdAt}");
+                Console.WriteLine($"   Deskripsi: {workspace.Description ?? "Tidak ada deskripsi"}");
+                Console.WriteLine($"   Dibuat pada: {workspace.CreatedAt:dd/MM/yyyy HH:mm:ss}"); // Setara dengan 'workspace.CreatedAt.ToString("dd/MM/yyyy HH:mm:ss")'
                 Console.WriteLine();
                 index++;
             }
@@ -363,7 +363,7 @@ namespace View.Student
 
             var result = _documentService.GetByWorkspaceId(_currentWorkspace.Id);
 
-            if (result != null)
+            if (result == null)
             {
                 Console.WriteLine("Gagal mendapatkan daftar dokumen.");
                 return;
@@ -381,7 +381,7 @@ namespace View.Student
             foreach (var document in documents)
             {
                 Console.WriteLine($"{index}. {document.Title}");
-                Console.WriteLine($"   Dibuat pada: {document.CreatedAt.ToString("dd/MM/yyyy HH:mm:ss")}");
+                Console.WriteLine($"   Dibuat pada: {document.CreatedAt:dd/MM/yyyy HH:mm:ss}"); // Setara dengan 'document.CreatedAt.ToString("dd/MM/yyyy HH:mm:ss")'
                 Console.WriteLine();
                 index++;
             }
@@ -444,7 +444,7 @@ namespace View.Student
             do
             {
 
-                // Tambahkan informasi tentang status review terbaru
+                // Tambahkan informasi tentang status review terbaru, sebaiknya diberi komentar apabila akan melakukan uji coba
                 string reviewInfo;
                 var versions = _documentBodyService.GetDocumentBodiesByDocumentId(document.Id);
                 if (versions == null)
@@ -509,9 +509,9 @@ namespace View.Student
 
                 Console.WriteLine($"\n=== Dokumen: {document.Title} ===");
                 Console.WriteLine($"Konten: {document.SavedContent ?? "Tidak ada konten"}");
-                Console.WriteLine($"Dibuat pada: {document.CreatedAt.ToString("dd/MM/yyyy HH:mm:ss")}");
+                Console.WriteLine($"Dibuat pada: {document.CreatedAt:dd/MM/yyyy HH:mm:ss}"); // Setara dengan 'document.CreatedAt.ToString("dd/MM/yyyy HH:mm:ss")'
 
-                // Tampilkan info review untuk semua pengguna
+                // Tampilkan info review untuk semua pengguna, sebaiknya diberi komentar apabila akan melakukan uji coba
                 Console.WriteLine(reviewInfo);
 
                 // Menu lengkap untuk mahasiswa
@@ -909,7 +909,7 @@ namespace View.Student
 
                 var creator = _userService.GetById(version.FK_UserCreatorId);
 
-                Console.WriteLine($"{index}. Versi dari {version.CreatedAt.ToString("dd/MM/yyyy HH:mm:ss")} {reviewStatus}");
+                Console.WriteLine($"{index}. Versi dari {version.CreatedAt:dd/MM/yyyy HH:mm:ss} {reviewStatus}"); // Setara dengan version.CreatedAt.ToString("dd/MM/yyyy HH:mm:ss")
                 if (version.IsCurrentVersion)
                 {
                     Console.WriteLine($"   {("[AKTIF]")}");
@@ -919,8 +919,8 @@ namespace View.Student
 
                 // Tampilkan preview konten (maksimal 50 karakter)
                 string? contentPreview = version.Content?.Length > 50
-                    ? version.Content.Substring(0, 50) + "..."
-                    : version.Content;
+                    ? string.Concat(version.Content.AsSpan(0, 50), "...")
+                    : version.Content; // Setara dengan version.Content.Substring(0, 50) + "..." jika panjangnya lebih dari 50 karakter
                 Console.WriteLine($"   Preview: {contentPreview}");
                 Console.WriteLine();
                 index++;
@@ -946,8 +946,8 @@ namespace View.Student
             var creator = _userService.GetById(version.FK_UserCreatorId);
 
             Console.WriteLine($"\n=== Detail Versi {version.Id} ===");
-            Console.WriteLine($"Nama pembuat: {creator.Name}");
-            Console.WriteLine($"Dibuat pada: {version.CreatedAt.ToString("dd/MM/yyyy HH:mm:ss")}");
+            Console.WriteLine($"Nama pembuat: {creator?.Name}");
+            Console.WriteLine($"Dibuat pada: {version.CreatedAt:dd/MM/yyyy HH:mm:ss}"); // Setara dengan version.CreatedAt.ToString("dd/MM/yyyy HH:mm:ss")
             Console.WriteLine($"Status: {(version.IsCurrentVersion ? "Aktif" : "Tidak Aktif")}");
             Console.WriteLine($"Deskripsi: {version.Comment}");
             Console.WriteLine("\nKonten:");
@@ -1058,12 +1058,12 @@ namespace View.Student
                 document.UpdateAt = DateTime.Now;
                 _documentService.Update(document.Id, document);
 
-                Console.WriteLine($"Dokumen berhasil di-rollback ke versi dari {selectedVersion.CreatedAt.ToString("dd/MM/yyyy HH:mm:ss")}.");
+                Console.WriteLine($"Dokumen berhasil di-rollback ke versi dari {selectedVersion.CreatedAt:dd/MM/yyyy HH:mm:ss}."); // Setara dengan selectedVersion.CreatedAt.ToString("dd/MM/yyyy HH:mm:ss")
             }
         }
 
         // Helper untuk input multi-line
-        private string ReadAndEditMultilineText(string initialText)
+        private static string ReadAndEditMultilineText(string initialText)
         {
             List<string> lines = [.. initialText.Split(["\r\n", "\r", "\n"], StringSplitOptions.None)]; // Setara dengan 'new List<string>(initialText.Split(new[] { "\r\n", "\r", "\n" }, StringSplitOptions.None))'
             if (lines.Count == 0)
@@ -1688,7 +1688,7 @@ namespace View.Student
         }
 
         // Helper untuk mendapatkan nama tipe sitasi dalam bahasa Indonesia
-        private string GetCitationTypeDisplay(CitationType type)
+        private static string GetCitationTypeDisplay(CitationType type)
         {
             return type switch
             {
