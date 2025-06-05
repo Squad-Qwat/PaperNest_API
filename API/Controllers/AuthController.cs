@@ -79,7 +79,7 @@ namespace PaperNest_API.Controllers
                 });
             }
 
-            var authorizedUser = _userService.Login(existingUser.Email, existingUser.Password);
+            var authorizedUser = _userService.LoginAuth(existingUser.Email, existingUser.Password);
 
             if (authorizedUser == null)
             {

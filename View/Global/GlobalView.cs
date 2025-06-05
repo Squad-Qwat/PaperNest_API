@@ -1,10 +1,11 @@
 ﻿using PaperNest_API.Controllers;
-using Microsoft.AspNetCore.Mvc;
+// using Microsoft.AspNetCore.Mvc;
 using View.Student;
 //using View.Lecturer;
 using API.Services;
 using API.Models;
 using API.Models.DataBinding;
+using API.Repositories.DataBindingRepository;
 using Microsoft.AspNetCore.Authentication;
 using System.Threading;
 using System.Text.RegularExpressions;
@@ -25,7 +26,7 @@ namespace View.Global
         {
             _authState = new AuthStateMachine();
             _userService = new UserService();
-            _currentUser = null;
+            _currentUser = new User();
             _isRunning = true;
         }
 
@@ -79,26 +80,35 @@ namespace View.Global
         private void Login()
         {
             Console.WriteLine("\n=== Login ===");
-            Console.Write("Email/Username: ");
-            string? email = Console.ReadLine();
+            Console.Write("Username: ");
+            string? username = Console.ReadLine();
 
             Console.Write("Password: ");
             string? password = Console.ReadLine();
 
-            if (!ValidateInput(email, "Email") || !ValidateInput(password, "Password"))
+            if(LoginRequestRepository.GetUsernameLoginRequest(username) == null || LoginRequestRepository.GetPasswordLoginRequest(password) == null)
+            {
+                Console.WriteLine("Username atau password tidak ditemukan. Silakan coba lagi.");
+                _authState.ActivateTrigger(AuthStateMachine.Trigger.LOGOUT);
+                return;
+            }
+
+            if (!ValidateInput(username, "Username") || !ValidateInput(password, "Password"))
             {
                 return;
             }
 
             var loginRequest = new LoginRequest
             {
-                Email = email!,
+                Username = username!,
                 Password = password!
             };
 
-            var result = _userService.Login(loginRequest.Email, loginRequest.Password);
+            var result = _userService.Login(loginRequest.Username, loginRequest.Password);
 
-            if (result == null || result is UnauthorizedObjectResult)
+            if (result == null 
+                || LoginRequestRepository.GetUsernameLoginRequest(username) != RegisterRequestRepository.GetUsernameRegisterRequest(username) 
+                || LoginRequestRepository.GetPasswordLoginRequest(password) != RegisterRequestRepository.GetPasswordRegisterRequest(password))
             {
                 Console.WriteLine("Username atau password salah. Silakan coba lagi.");
                 _authState.ActivateTrigger(AuthStateMachine.Trigger.LOGOUT);
@@ -189,6 +199,7 @@ namespace View.Global
 
             var checkEmail = _userService.GetByEmail(user.Email);
             var checkUsername = _userService.GetByUsername(user.Username);
+            var checkPassword = _userService.GetByPassword(user.Password);
 
             if (checkEmail != null)
             {
@@ -199,6 +210,12 @@ namespace View.Global
             if (checkUsername != null)
             {
                 Console.WriteLine("Username sudah terdaftar. Silakan gunakan username lain.");
+                return;
+            }
+
+            if (checkPassword != null)
+            {
+                Console.WriteLine("Password sudah terdaftar. Silakan gunakan password lain.");
                 return;
             }
 

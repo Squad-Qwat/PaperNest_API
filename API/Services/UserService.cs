@@ -1,6 +1,7 @@
 ﻿using API.Models;
 using API.Repositories;
 using System.Diagnostics;
+using System.Reflection.Metadata;
 
 namespace API.Services
 {
@@ -104,22 +105,61 @@ namespace API.Services
             return UserRepository.userRepository.FirstOrDefault(u => u.Username == userUsername);
         }
 
-        public User? GetByEmailOrUsernameAndPassword(string userEmailOrUsername, string userPassword)
+        public User? GetByPassword(string userPassword)
         {
-            Debug.Assert(userEmailOrUsername != string.Empty, "User email or username can not be empty");
             Debug.Assert(userPassword != string.Empty, "User password can not be empty");
-            return UserRepository.userRepository.FirstOrDefault(u => (u.Email == userEmailOrUsername || u.Username == userEmailOrUsername) && u.Password == userPassword);
+            return UserRepository.userRepository.FirstOrDefault(u => u.Password == userPassword);
         }
 
-        public User? Login(string? userEmailOrUsername, string? userPassword)
+        /*
+         * Unused, due to the fact that we are just using Username instead of Email
+         * public User? GetByIdOrEmailOrUsername(Guid userId, string userEmailOrUsername)
+         * {
+         *      Debug.Assert(userId != Guid.Empty, "User Id can not be empty");
+         *      Debug.Assert(userEmailOrUsername != string.Empty, "User email or username can not be empty");
+         *      return UserRepository.userRepository.FirstOrDefault(u => u.Id == userId || u.Email == userEmailOrUsername || u.Username == userEmailOrUsername);
+         * }
+         * 
+         * public User? GetByEmailOrUsername(string userEmailOrUsername)
+         * {
+         *      Debug.Assert(userEmailOrUsername != string.Empty, "User email or username can not be empty");
+         *      return UserRepository.userRepository.FirstOrDefault(u => u.Email == userEmailOrUsername || u.Username == userEmailOrUsername);
+         * }
+        */
+
+        public User? GetByUsernameAndPassword(string userUsername, string userPassword)
         {
-            Debug.Assert(userEmailOrUsername != string.Empty, "User email or username can not be empty");
+            Debug.Assert(userUsername != string.Empty, "User username can not be empty");
+            Debug.Assert(userPassword != string.Empty, "User password can not be empty");
+            return UserRepository.userRepository.FirstOrDefault(u => u.Username == userUsername && u.Password == userPassword);
+        }
+
+        public User? GetByEmailAndPassword(string userEmail, string userPassword)
+        {
+            Debug.Assert(userEmail != string.Empty, "User username can not be empty");
+            Debug.Assert(userPassword != string.Empty, "User password can not be empty");
+            return UserRepository.userRepository.FirstOrDefault(u => u.Username == userEmail && u.Password == userPassword);
+        }
+
+        /* 
+         * Unused, due to the fact that we are just using Username instead of Email
+         * public User? GetByEmailOrUsernameAndPassword(string userEmailOrUsername, string userPassword)
+         * {
+         *      Debug.Assert(userEmailOrUsername != string.Empty, "User email or username can not be empty");
+         *      Debug.Assert(userPassword != string.Empty, "User password can not be empty");
+         *      return UserRepository.userRepository.FirstOrDefault(u => (u.Email == userEmailOrUsername || u.Username == userEmailOrUsername) && u.Password == userPassword);
+         * }
+        */
+
+        public User? Login(string? userUsername, string? userPassword)
+        {
+            Debug.Assert(userUsername != string.Empty, "Username can not be empty");
             Debug.Assert(userPassword != string.Empty, "User password can not be empty");
 
             // Separate null checks for each field to provide specific error messages
-            if (userEmailOrUsername == null)
+            if (userUsername == null)
             {
-                Debug.WriteLine("Login failed: user email or username field is null.");
+                Debug.WriteLine("Login failed: Username field is null.");
                 return null;
             }
             if (userPassword == null)
@@ -128,7 +168,28 @@ namespace API.Services
                 return null;
             }
 
-            return GetByEmailOrUsernameAndPassword(userEmailOrUsername, userPassword);
+            return GetByUsernameAndPassword(userUsername, userPassword);
+        }
+
+        // Only for AuthController.cs
+        public User? LoginAuth(string? userEmail, string? userPassword)
+        {
+            Debug.Assert(userEmail != string.Empty, "Username can not be empty");
+            Debug.Assert(userPassword != string.Empty, "User password can not be empty");
+
+            // Separate null checks for each field to provide specific error messages
+            if (userEmail == null)
+            {
+                Debug.WriteLine("Login failed: Username field is null.");
+                return null;
+            }
+            if (userPassword == null)
+            {
+                Debug.WriteLine("Login failed: user password field is null.");
+                return null;
+            }
+
+            return GetByEmailAndPassword(userEmail, userPassword);
         }
 
         public void Update(Guid userId, User newUser)
