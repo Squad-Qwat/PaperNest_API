@@ -65,19 +65,19 @@ namespace API.Services
             CitationType type,
             string title,
             string author,
-            string? pages = null,
-            string? volume = null,
-            string? issue = null,
-            string? url = null,
-            string? accessURL = null,
-            string? accessLocation = null,
-            string? publicationInfo = null,
-            string? publisher = null,
-            DateTime? publicationDate = null,
-            string? publisherLocation = null,
-            string? accessDate = null,
-            string? doi = null,
-            Guid? documentId = null)
+            string? pages,
+            string? volume,
+            string? issue,
+            string? url,
+            string? accessURL,
+            string? accessLocation,
+            string? publicationInfo,
+            string? publisher,
+            DateTime? publicationDate,
+            string? publisherLocation,
+            string? accessDate,
+            string? doi,
+            Guid? documentId)
         {
             try
             {
@@ -146,18 +146,18 @@ namespace API.Services
             CitationType type,
             string title,
             string author,
-            string? pages = null,
-            string? volume = null,
-            string? issue = null,
-            string? url = null,
-            string? accessURL = null,
-            string? accessLocation = null,
-            string? publicationInfo = null,
-            string? publisher = null,
-            DateTime? publicationDate = null,
-            string? publisherLocation = null,
-            string? accessDate = null,
-            string? doi = null)
+            string? pages,
+            string? volume,
+            string? issue,
+            string? url,
+            string? accessURL,
+            string? accessLocation,
+            string? publicationInfo,
+            string? publisher,
+            DateTime? publicationDate,
+            string? publisherLocation,
+            string? accessDate,
+            string? doi)
         {
             try
             {

@@ -15,7 +15,7 @@ namespace UnitTesting
     [DoNotParallelize] // Ensures tests run sequentially, important for static repositories
     public class CitationServiceTests
     {
-        private CitationService _citationService;
+        private CitationService? _citationService;
 
         [TestInitialize]
         public void Setup()
@@ -36,7 +36,7 @@ namespace UnitTesting
             CitationRepository.AddCitation(citation2);
 
             // Act
-            var result = _citationService.GetAllCitations();
+            var result = _citationService?.GetAllCitations();
 
             // Assert
             Assert.AreEqual(2, result.Count);
@@ -50,7 +50,7 @@ namespace UnitTesting
             // Arrange (repository is already cleared in Setup)
 
             // Act
-            var result = _citationService.GetAllCitations();
+            var result = _citationService?.GetAllCitations();
 
             // Assert
             Assert.AreEqual(0, result.Count);
@@ -66,7 +66,7 @@ namespace UnitTesting
             CitationRepository.AddCitation(citation);
 
             // Act
-            var result = _citationService.GetCitationById(citation.Id);
+            var result = _citationService?.GetCitationById(citation.Id);
 
             // Assert
             Assert.IsNotNull(result);
@@ -81,7 +81,7 @@ namespace UnitTesting
             var nonExistentId = Guid.NewGuid();
 
             // Act
-            var result = _citationService.GetCitationById(nonExistentId);
+            var result = _citationService?.GetCitationById(nonExistentId);
 
             // Assert
             Assert.IsNull(result);
@@ -92,7 +92,7 @@ namespace UnitTesting
         public void GetCitationById_WithEmptyGuid_ThrowsArgumentException()
         {
             // Act
-            _citationService.GetCitationById(Guid.Empty);
+            _citationService?.GetCitationById(Guid.Empty);
         }
         #endregion
 
@@ -155,7 +155,7 @@ namespace UnitTesting
             var initialCount = CitationRepository.Citations.Count;
 
             // Act
-            var newCitation = _citationService.CreateCitation(
+            var newCitation = _citationService?.CreateCitation(
                 CitationType.Book,
                 "New Book Title",
                 "New Book Author",
@@ -201,14 +201,48 @@ namespace UnitTesting
         [ExpectedException(typeof(ArgumentException))]
         public void CreateCitation_WithEmptyTitle_ThrowsArgumentException()
         {
-            _citationService.CreateCitation(CitationType.Book, "", "Author", publicationInfo: "Pub Info", documentId: Guid.NewGuid());
+            _citationService?.CreateCitation(
+                CitationType.Book,
+                "",
+                "New Book Author",
+                pages: null,
+                volume: null,
+                issue: null,
+                url: null,
+                accessURL: null,
+                accessLocation: null,
+                publicationInfo: "Pub Info",
+                publisher: null,
+                publicationDate: null,
+                publisherLocation: null,
+                accessDate: null,
+                doi: null,
+                documentId: Guid.NewGuid()
+            );
         }
 
         [TestMethod]
         [ExpectedException(typeof(ArgumentException))]
         public void CreateCitation_WithNullAuthor_ThrowsArgumentException()
         {
-            _citationService.CreateCitation(CitationType.Book, "Title", null, publicationInfo: "Pub Info", documentId: Guid.NewGuid());
+            _citationService?.CreateCitation(
+                CitationType.Book,
+                "Title",
+                author: null,
+                pages: null,
+                volume: null,
+                issue: null,
+                url: null,
+                accessURL: null,
+                accessLocation: null,
+                publicationInfo: "Pub Info",
+                publisher: null,
+                publicationDate: null,
+                publisherLocation: null,
+                accessDate: null,
+                doi: null,
+                documentId: Guid.NewGuid()
+            );
         }
 
         // Removed CreateCitation_WithWhitespacePublicationInfo_ThrowsArgumentException
@@ -219,14 +253,48 @@ namespace UnitTesting
         public void CreateCitation_WithEmptyDocumentId_ThrowsArgumentException()
         {
             // Now documentId is nullable, so we test with both null and Guid.Empty
-            _citationService.CreateCitation(CitationType.Book, "Title", "Author", documentId: Guid.Empty);
+            _citationService?.CreateCitation(
+                CitationType.Book,
+                "Title",
+                "Author",
+                pages: null,
+                volume: null,
+                issue: null,
+                url: null,
+                accessURL: null,
+                accessLocation: null,
+                publicationInfo: "Pub Info",
+                publisher: null,
+                publicationDate: null,
+                publisherLocation: null,
+                accessDate: null,
+                doi: null,
+                documentId: Guid.Empty
+            );
         }
 
         [TestMethod]
         [ExpectedException(typeof(ArgumentException))]
         public void CreateCitation_WithNullDocumentId_ThrowsArgumentException()
         {
-            _citationService.CreateCitation(CitationType.Book, "Title", "Author", documentId: null);
+            _citationService?.CreateCitation(
+                CitationType.Book,
+                "Title",
+                "Author",
+                pages: null,
+                volume: null,
+                issue: null,
+                url: null,
+                accessURL: null,
+                accessLocation: null,
+                publicationInfo: "Pub Info",
+                publisher: null,
+                publicationDate: null,
+                publisherLocation: null,
+                accessDate: null,
+                doi: null,
+                documentId: null
+            );
         }
         #endregion
 
@@ -259,7 +327,7 @@ namespace UnitTesting
             CitationRepository.AddCitation(existingCitation);
 
             // Act
-            var updatedCitation = _citationService.UpdateCitation(
+            var updatedCitation = _citationService?.UpdateCitation(
                 existingCitation.Id,
                 CitationType.JournalArticle,
                 "Updated Title",
@@ -306,12 +374,23 @@ namespace UnitTesting
             var nonExistentId = Guid.NewGuid();
 
             // Act
-            var result = _citationService.UpdateCitation(
-                nonExistentId,
-                CitationType.Book,
-                "Title",
-                "Author",
-                publicationInfo: "Pub Info"
+            var result = _citationService?.UpdateCitation(
+                nonExistentId, 
+                CitationType.Book, 
+                "Title", 
+                "Author", 
+                pages: null,
+                volume: null,
+                issue: null,
+                url: null,
+                accessURL: null,
+                accessLocation: null,
+                publicationInfo: "Pub Info",
+                publisher: null,
+                publicationDate: null,
+                publisherLocation: null,
+                accessDate: null,
+                doi: null
             );
 
             // Assert
@@ -322,7 +401,24 @@ namespace UnitTesting
         [ExpectedException(typeof(ArgumentException))]
         public void UpdateCitation_WithEmptyGuid_ThrowsArgumentException()
         {
-            _citationService.UpdateCitation(Guid.Empty, CitationType.Book, "Title", "Author", publicationInfo: "Pub Info");
+            _citationService?.UpdateCitation(
+                Guid.Empty,
+                CitationType.Book,
+                "Title",
+                "Author",
+                pages: null,
+                volume: null,
+                issue: null,
+                url: null,
+                accessURL: null,
+                accessLocation: null,
+                publicationInfo: "Pub Info",
+                publisher: null,
+                publicationDate: null,
+                publisherLocation: null,
+                accessDate: null,
+                doi: null
+            );
         }
 
         [TestMethod]
@@ -331,7 +427,24 @@ namespace UnitTesting
         {
             var existingCitation = new Citation { Type = CitationType.Book, Title = "Original", Author = "A", PublicationInfo = "P", FK_DocumentId = Guid.NewGuid() };
             CitationRepository.AddCitation(existingCitation);
-            _citationService.UpdateCitation(existingCitation.Id, CitationType.Book, "", "Author", publicationInfo: "Pub Info");
+            _citationService?.UpdateCitation(
+                existingCitation.Id,
+                CitationType.Book,
+                "Title",
+                "Author",
+                pages: null,
+                volume: null,
+                issue: null,
+                url: null,
+                accessURL: null,
+                accessLocation: null,
+                publicationInfo: "Pub Info",
+                publisher: null,
+                publicationDate: null,
+                publisherLocation: null,
+                accessDate: null,
+                doi: null
+            );
         }
         #endregion
 
@@ -345,7 +458,7 @@ namespace UnitTesting
             var initialCount = CitationRepository.Citations.Count;
 
             // Act
-            var result = _citationService.DeleteCitation(citation.Id);
+            var result = _citationService?.DeleteCitation(citation.Id);
 
             // Assert
             Assert.IsTrue(result);
@@ -361,7 +474,7 @@ namespace UnitTesting
             var initialCount = CitationRepository.Citations.Count;
 
             // Act
-            var result = _citationService.DeleteCitation(nonExistentId);
+            var result = _citationService?.DeleteCitation(nonExistentId);
 
             // Assert
             Assert.IsFalse(result);
@@ -373,7 +486,7 @@ namespace UnitTesting
         public void DeleteCitation_WithEmptyGuid_ThrowsArgumentException()
         {
             // Act
-            _citationService.DeleteCitation(Guid.Empty);
+            _citationService?.DeleteCitation(Guid.Empty);
         }
         #endregion
 
@@ -402,7 +515,7 @@ namespace UnitTesting
 
 
             // Act
-            var result = _citationService.GetFormattedCitationAPA(citation.Id);
+            var result = _citationService?.GetFormattedCitationAPA(citation.Id);
 
             // Assert
             Assert.IsNotNull(result);
@@ -431,7 +544,7 @@ namespace UnitTesting
             var expectedFormat = $"{citation.Author}. ({citation.PublicationDate?.Year}). *{citation.Title}*. {citation.PublicationInfo}. Diakses dari {citation.URL}. Diakses dari {citation.AccessDate}.";
 
             // Act
-            var result = _citationService.GetFormattedCitationAPA(citation.Id);
+            var result = _citationService?.GetFormattedCitationAPA(citation.Id);
 
             // Assert
             Assert.IsNotNull(result);
@@ -462,7 +575,7 @@ namespace UnitTesting
             var expectedFormat = $"{citation.Author}. ({citation.PublicationDate?.Year}). *{citation.Title}*. *{citation.PublicationInfo}*{citation.Volume}({citation.Issue}), {citation.Pages}. {citation.DOI}";
 
             // Act
-            var result = _citationService.GetFormattedCitationAPA(citation.Id);
+            var result = _citationService?.GetFormattedCitationAPA(citation.Id);
 
             // Assert
             Assert.IsNotNull(result);
@@ -477,7 +590,7 @@ namespace UnitTesting
             var nonExistentId = Guid.NewGuid();
 
             // Act
-            var result = _citationService.GetFormattedCitationAPA(nonExistentId);
+            var result = _citationService?.GetFormattedCitationAPA(nonExistentId);
 
             // Assert
             Assert.IsNull(result);
@@ -488,7 +601,7 @@ namespace UnitTesting
         public void GetFormattedCitationAPA_WithEmptyGuid_ThrowsArgumentException()
         {
             // Act
-            _citationService.GetFormattedCitationAPA(Guid.Empty);
+            _citationService?.GetFormattedCitationAPA(Guid.Empty);
         }
         #endregion
     }

@@ -20,6 +20,7 @@ namespace View.Student
         private readonly DocumentBodyService _documentBodyService = new(); // Setara dengan 'new DocumentBodyService()'
         private readonly ReviewService _reviewService = new(); // Setara dengan 'new ReviewService()'
         private readonly UserWorkspaceService _userWorkspaceService = new(); // Setara dengan 'new UserWorkspaceService()'
+        private readonly CitationService _citationService = new(); // Setara dengan 'new CitationService()'
         private User? _currentUser = currentUser;
         private Workspace? _currentWorkspace = null;
         private readonly GlobalView _globalView = new(); // Setara dengan 'new GlobalView()'
@@ -40,6 +41,7 @@ namespace View.Student
          *      _documentBodyService = new DocumentBodyService();
          *      _reviewService = new ReviewService();
          *      _userWorkspaceService = new UserWorkspaceService();
+         *      _citationService = new CitationService();
          *      _reviewUtil = new ReviewUtil(); <- Initialize ReviewUtil
          *  }
          */
@@ -517,6 +519,7 @@ namespace View.Student
                 Console.WriteLine("2. Edit Konten Dokumen");
                 Console.WriteLine("3. Hapus Dokumen");
                 Console.WriteLine("4. Manajemen Versi Dokumen");
+                Console.WriteLine("5. Manajemen Sitasi");
                 Console.WriteLine("0. Kembali ke Menu Workspace");
 
                 Console.Write("Pilih menu: ");
@@ -552,6 +555,9 @@ namespace View.Student
                         break;
                     case "4":
                         ManageDocumentVersions(document);
+                        break;
+                    case "5":
+                        ManageCitations(document);
                         break;
                     case "0":
                         backToWorkspaceMenu = true;
@@ -1254,6 +1260,445 @@ namespace View.Student
             } while (editing);
             Console.Clear();  // Clear the screen after editing is done
             return string.Join(Environment.NewLine, lines);
+        }
+
+        // Method for managing citations
+        private void ManageCitations(Document document)
+        {
+            if (document == null)
+            {
+                Console.WriteLine("Tidak ada dokumen yang dipilih.");
+                return;
+            }
+
+            bool backToDocumentMenu = false;
+
+            do
+            {
+                Console.WriteLine($"\n=== Manajemen Sitasi untuk Dokumen: {document.Title} ===");
+                Console.WriteLine("1. Lihat Semua Sitasi");
+                Console.WriteLine("2. Tambah Sitasi Baru");
+                Console.WriteLine("3. Edit Sitasi");
+                Console.WriteLine("4. Hapus Sitasi");
+                Console.WriteLine("5. Lihat Format APA Sitasi");
+                Console.WriteLine("0. Kembali ke Menu Dokumen");
+                Console.Write("Pilih menu: ");
+
+                string? choice = Console.ReadLine();
+
+                switch (choice)
+                {
+                    case "1":
+                        ViewCitations(document.Id);
+                        break;
+                    case "2":
+                        CreateCitation(document.Id);
+                        break;
+                    case "3":
+                        EditCitation(document.Id);
+                        break;
+                    case "4":
+                        DeleteCitation(document.Id);
+                        break;
+                    case "5":
+                        ViewAPAFormat(document.Id);
+                        break;
+                    case "0":
+                        backToDocumentMenu = true;
+                        break;
+                    default:
+                        Console.WriteLine("Menu tidak valid. Silakan coba lagi.");
+                        break;
+                }
+
+                if (!backToDocumentMenu)
+                {
+                    Console.WriteLine("\nTekan tombol apa saja untuk melanjutkan...");
+                    Console.ReadKey();
+                    Console.Clear();
+                }
+            } while (!backToDocumentMenu);
+        }
+
+        // Method untuk melihat semua sitasi dalam dokumen
+        private void ViewCitations(Guid documentId)
+        {
+            Console.WriteLine("\n=== Daftar Sitasi dalam Dokumen ===");
+
+            var citations = _citationService.GetCitationsByDocumentId(documentId);
+
+            if (citations == null || !citations.Any())
+            {
+                Console.WriteLine("Belum ada sitasi untuk dokumen ini.");
+                return;
+            }
+
+            int index = 1;
+            foreach (var citation in citations)
+            {
+                Console.WriteLine($"{index}. {citation.Title} ({GetCitationTypeDisplay(citation.Type)})");
+                Console.WriteLine($"   Penulis: {citation.Author}");
+                Console.WriteLine($"   Informasi Publikasi: {citation.PublicationInfo}");
+
+                if (citation.PublicationDate.HasValue)
+                {
+                    Console.WriteLine($"   Tanggal Publikasi: {citation.PublicationDate.Value:dd/MM/yyyy}"); // Setara dengan citation.PublicationDate.Value.ToString("dd/MM/yyyy")
+                }
+
+                Console.WriteLine();
+                index++;
+            }
+        }
+
+        // Method untuk membuat sitasi baru
+        private void CreateCitation(Guid documentId)
+        {
+            Console.WriteLine("\n=== Tambah Sitasi Baru ===");
+
+            Console.WriteLine("Pilih tipe sitasi:");
+            Console.WriteLine("1. Buku");
+            Console.WriteLine("2. Artikel Jurnal");
+            Console.WriteLine("3. Website");
+            Console.WriteLine("4. Makalah Konferensi");
+            Console.WriteLine("5. Tesis/Disertasi");
+            Console.Write("Pilih tipe: ");
+
+            if (!int.TryParse(Console.ReadLine(), out int typeChoice) || typeChoice < 1 || typeChoice > 5)
+            {
+                Console.WriteLine("Pilihan tipe tidak valid.");
+                return;
+            }
+
+            CitationType citationType = (CitationType)(typeChoice - 1);
+
+            Console.Write("Judul: ");
+            string? title = Console.ReadLine();
+
+            Console.Write("Penulis: ");
+            string? author = Console.ReadLine();
+
+            Console.Write("Informasi Publikasi (seperti penerbit, URL, nama jurnal): ");
+            string? publicationInfo = Console.ReadLine();
+
+            if (string.IsNullOrWhiteSpace(title) || string.IsNullOrWhiteSpace(author) || string.IsNullOrWhiteSpace(publicationInfo))
+            {
+                Console.WriteLine("Judul, penulis, dan informasi publikasi harus diisi.");
+                return;
+            }
+
+            DateTime? publicationDate = null;
+            Console.Write("Tanggal Publikasi (DD/MM/YYYY) [opsional, tekan Enter untuk lewati]: ");
+            string? dateInput = Console.ReadLine();
+            if (!string.IsNullOrWhiteSpace(dateInput) && DateTime.TryParse(dateInput, out DateTime parsedDate))
+            {
+                publicationDate = parsedDate;
+            }
+
+            string? accessDate = null;
+            if (citationType == CitationType.Website)
+            {
+                Console.Write("Tanggal Akses [opsional, tekan Enter untuk lewati]: ");
+                accessDate = Console.ReadLine();
+            }
+
+            string? doi = null;
+            if (citationType == CitationType.JournalArticle || citationType == CitationType.ConferencePaper)
+            {
+                Console.Write("DOI [opsional, tekan Enter untuk lewati]: ");
+                doi = Console.ReadLine();
+            }
+
+            try
+            {
+                var citation = _citationService.CreateCitation(
+                    citationType, 
+                    title, 
+                    author, 
+                    null, 
+                    null, 
+                    null, 
+                    null, 
+                    null, 
+                    null, 
+                    publicationInfo, 
+                    null, 
+                    publicationDate, 
+                    null, 
+                    accessDate, 
+                    doi, 
+                    documentId);
+                Console.WriteLine("Sitasi berhasil ditambahkan!");
+                Console.WriteLine($"ID Sitasi: {citation?.Id}");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Gagal menambahkan sitasi: {ex.Message}");
+            }
+        }
+
+        // Method untuk mengedit sitasi
+        private void EditCitation(Guid documentId)
+        {
+            Console.WriteLine("\n=== Edit Sitasi ===");
+
+            var citations = _citationService.GetCitationsByDocumentId(documentId).ToList();
+
+            if (citations == null || citations.Count == 0)
+            {
+                Console.WriteLine("Belum ada sitasi untuk dokumen ini.");
+                return;
+            }
+
+            int index = 1;
+            foreach (var citation in citations)
+            {
+                Console.WriteLine($"{index}. {citation.Title} ({GetCitationTypeDisplay(citation.Type)})");
+                Console.WriteLine($"   Penulis: {citation.Author}");
+                index++;
+            }
+
+            Console.Write("Pilih sitasi yang akan diedit (nomor) atau 0 untuk kembali: ");
+            if (!int.TryParse(Console.ReadLine(), out int choice) || choice < 1 || choice > citations.Count)
+            {
+                if (choice != 0) Console.WriteLine("Pilihan tidak valid.");
+                return;
+            }
+
+            var selectedCitation = citations[choice - 1];
+
+            Console.WriteLine("\nEdit informasi sitasi (kosongkan field untuk mempertahankan nilai saat ini):");
+
+            Console.WriteLine("Pilih tipe sitasi:");
+            Console.WriteLine("1. Buku");
+            Console.WriteLine("2. Artikel Jurnal");
+            Console.WriteLine("3. Website");
+            Console.WriteLine("4. Makalah Konferensi");
+            Console.WriteLine("5. Tesis/Disertasi");
+            Console.Write($"Pilih tipe [{GetCitationTypeDisplay(selectedCitation.Type)}]: ");
+
+            string? typeInput = Console.ReadLine();
+            CitationType citationType = selectedCitation.Type;
+            if (!string.IsNullOrWhiteSpace(typeInput) && int.TryParse(typeInput, out int typeChoice) && typeChoice >= 1 && typeChoice <= 5)
+            {
+                citationType = (CitationType)(typeChoice - 1);
+            }
+
+            Console.Write($"Judul [{selectedCitation.Title}]: ");
+            string? title = Console.ReadLine();
+            if (string.IsNullOrWhiteSpace(title))
+            {
+                title = selectedCitation.Title;
+            }
+
+            Console.Write($"Penulis [{selectedCitation.Author}]: ");
+            string? author = Console.ReadLine();
+            if (string.IsNullOrWhiteSpace(author))
+            {
+                author = selectedCitation.Author;
+            }
+
+            Console.Write($"Informasi Publikasi [{selectedCitation.PublicationInfo}]: ");
+            string? publicationInfo = Console.ReadLine();
+            if (string.IsNullOrWhiteSpace(publicationInfo))
+            {
+                publicationInfo = selectedCitation.PublicationInfo;
+            }
+
+            DateTime? publicationDate = selectedCitation.PublicationDate;
+            Console.Write($"Tanggal Publikasi [{(selectedCitation.PublicationDate.HasValue ? selectedCitation.PublicationDate.Value.ToString("dd/MM/yyyy") : "Tidak ada")}] (DD/MM/YYYY) [opsional, tekan Enter untuk pertahankan]: ");
+            string? dateInput = Console.ReadLine();
+            if (string.IsNullOrWhiteSpace(dateInput))
+            {
+                Console.WriteLine("Tanggal publikasi tidak diubah.");
+                return;
+            }
+
+            if (DateTime.TryParse(dateInput, out DateTime parsedDate))
+            {
+                publicationDate = parsedDate;
+            }
+            else if (dateInput.Equals("hapus", StringComparison.CurrentCultureIgnoreCase))
+            {
+                publicationDate = null;
+            }
+
+            string? accessDate = selectedCitation.AccessDate;
+            if (citationType == CitationType.Website)
+            {
+                Console.Write($"Tanggal Akses [{selectedCitation.AccessDate ?? "Tidak ada"}] [opsional, tekan Enter untuk pertahankan]: ");
+                string? accessDateInput = Console.ReadLine();
+                if (string.IsNullOrWhiteSpace(accessDateInput))
+                {
+                    Console.WriteLine("Tanggal akses tidak diubah.");
+                    return;
+                }
+
+                if (accessDateInput.Equals("hapus", StringComparison.CurrentCultureIgnoreCase))
+                {
+                    accessDate = null;
+                }
+                else
+                {
+                    accessDate = accessDateInput;
+                }
+            }
+
+            string? doi = selectedCitation.DOI;
+            if (citationType == CitationType.JournalArticle || citationType == CitationType.ConferencePaper)
+            {
+                Console.Write($"DOI [{selectedCitation.DOI ?? "Tidak ada"}] [opsional, tekan Enter untuk pertahankan]: ");
+                string? doiInput = Console.ReadLine();
+                if (string.IsNullOrWhiteSpace(doiInput))
+                {
+                    Console.WriteLine("DOI tidak diubah.");
+                    return;
+                }
+
+                if (doiInput.Equals("hapus", StringComparison.CurrentCultureIgnoreCase))
+                {
+                    doi = null;
+                }
+                else
+                {
+                    doi = doiInput;
+                }
+            }
+
+            if (string.IsNullOrWhiteSpace(title) || string.IsNullOrWhiteSpace(author) || string.IsNullOrWhiteSpace(publicationInfo))
+            {
+                Console.WriteLine("Judul, penulis, dan informasi publikasi harus diisi.");
+                return;
+            }
+
+            try
+            {
+                var updatedCitation = _citationService.UpdateCitation(
+                    selectedCitation.Id, 
+                    citationType, 
+                    title, 
+                    author, 
+                    null, 
+                    null, 
+                    null, 
+                    null, 
+                    null, 
+                    null, 
+                    publicationInfo, 
+                    null, 
+                    publicationDate, 
+                    null, 
+                    accessDate, 
+                    doi
+                );
+
+                if (updatedCitation != null)
+                {
+                    Console.WriteLine("Sitasi berhasil diperbarui!");
+                }
+                else
+                {
+                    Console.WriteLine("Gagal memperbarui sitasi.");
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error: {ex.Message}");
+            }
+        }
+
+        // Method untuk menghapus sitasi
+        private void DeleteCitation(Guid documentId)
+        {
+            Console.WriteLine("\n=== Hapus Sitasi ===");
+
+            var citations = _citationService.GetCitationsByDocumentId(documentId).ToList();
+
+            if (citations == null || citations.Count == 0)
+            {
+                Console.WriteLine("Belum ada sitasi untuk dokumen ini.");
+                return;
+            }
+
+            int index = 1;
+            foreach (var citation in citations)
+            {
+                Console.WriteLine($"{index}. {citation.Title} ({GetCitationTypeDisplay(citation.Type)})");
+                Console.WriteLine($"   Penulis: {citation.Author}");
+                index++;
+            }
+
+            Console.Write("Pilih sitasi yang akan dihapus (nomor) atau 0 untuk kembali: ");
+            if (!int.TryParse(Console.ReadLine(), out int choice) || choice < 1 || choice > citations.Count)
+            {
+                if (choice != 0) Console.WriteLine("Pilihan tidak valid.");
+                return;
+            }
+
+            var selectedCitation = citations[choice - 1];
+
+            Console.Write($"Anda yakin ingin menghapus sitasi '{selectedCitation.Title}'? (y/n): ");
+            string? confirmation = Console.ReadLine();
+
+            if (confirmation?.ToLower() != "y")
+            {
+                Console.WriteLine("Penghapusan sitasi dibatalkan.");
+            }
+
+            bool result = _citationService.DeleteCitation(selectedCitation.Id);
+            if (!result)
+            {
+                Console.WriteLine("Gagal menghapus sitasi.");
+            }
+            Console.WriteLine("Sitasi berhasil dihapus.");
+        }
+
+        // Method untuk melihat format APA sitasi
+        private void ViewAPAFormat(Guid documentId)
+        {
+            Console.WriteLine("\n=== Format APA Sitasi ===");
+
+            var citations = _citationService.GetCitationsByDocumentId(documentId).ToList();
+
+            if (citations == null || citations.Count == 0)
+            {
+                Console.WriteLine("Belum ada sitasi untuk dokumen ini.");
+                return;
+            }
+
+            int index = 1;
+            foreach (var citation in citations)
+            {
+                Console.WriteLine($"{index}. {citation.Title} ({GetCitationTypeDisplay(citation.Type)})");
+                Console.WriteLine($"   Penulis: {citation.Author}");
+                index++;
+            }
+
+            Console.Write("Pilih sitasi untuk melihat format APA (nomor) atau 0 untuk kembali: ");
+            if (!int.TryParse(Console.ReadLine(), out int choice) || choice < 1 || choice > citations.Count)
+            {
+                if (choice != 0) Console.WriteLine("Pilihan tidak valid.");
+                return;
+            }
+
+            var selectedCitation = citations[choice - 1];
+            string? apaFormat = _citationService.GetFormattedCitationAPA(selectedCitation.Id);
+
+            Console.WriteLine("\n=== Format APA ===");
+            Console.WriteLine(apaFormat ?? "Tidak dapat membuat format APA untuk sitasi ini.");
+        }
+
+        // Helper untuk mendapatkan nama tipe sitasi dalam bahasa Indonesia
+        private string GetCitationTypeDisplay(CitationType type)
+        {
+            return type switch
+            {
+                CitationType.Book => "Buku",
+                CitationType.JournalArticle => "Artikel Jurnal",
+                CitationType.Website => "Website",
+                CitationType.ConferencePaper => "Makalah Konferensi",
+                CitationType.Thesis => "Tesis/Disertasi",
+                _ => type.ToString()
+            };
         }
     }
 }
