@@ -5,19 +5,7 @@
         public enum AuthState { BELUM_LOGIN, SUDAH_LOGIN };
         public enum Trigger { LOGIN, LOGOUT };
 
-        public class Transition
-        {
-            public AuthState PrevState { get; }
-            public AuthState NextState { get; }
-            public Trigger Trigger { get; }
-
-            public Transition(AuthState prevState, AuthState nextState, Trigger trigger)
-            {
-                PrevState = prevState;
-                NextState = nextState;
-                Trigger = trigger;
-            }
-        }
+        // Setara dengan 'public class Transition' di C#, dipindah untuk menghindari circular dependency
 
         private AuthState currentState;
         private readonly List<Transition> transitions;
