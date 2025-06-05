@@ -9,7 +9,10 @@ namespace API.StateMachineAndUtils
         // Define a delegate for the formatting function (Basically C# method template)
         private delegate string FormatCitationDelegate(Citation citation, string finalUrl, string retrievedFromUrlPart);
 
-        // The "table" that maps CitationType to its formatting logic (in the constructor)
+        /* 
+         * The "table" that maps CitationType to its formatting logic in the constructor 
+         * (using dictionary instead of list and lambda expressions for better performance)
+         */
         private static readonly Dictionary<CitationType, FormatCitationDelegate> _formatters;
 
         static CitationFormatter()
@@ -80,19 +83,19 @@ namespace API.StateMachineAndUtils
         private static string FormatJournalArticleCitation(Citation citation, string finalUrl, string retrievedFromUrlPart)
         {
             /*
-            string volumeIssueString = "";
-            if (!string.IsNullOrWhiteSpace(citation.Volume))
-            {
-                volumeIssueString += citation.Volume;
-                if (!string.IsNullOrWhiteSpace(citation.Issue))
-                {
-                    volumeIssueString += $"({citation.Issue})"; <- Corrected issue format
-                }
-            }
-            else if (!string.IsNullOrWhiteSpace(citation.Issue))
-            {
-                volumeIssueString += $"({citation.Issue})";
-            }
+             * string volumeIssueString = "";
+             * if (!string.IsNullOrWhiteSpace(citation.Volume))
+             * {
+             *   volumeIssueString += citation.Volume;
+             *   if (!string.IsNullOrWhiteSpace(citation.Issue))
+             *   {
+             *       volumeIssueString += $"({citation.Issue})"; <- Corrected issue format
+             *   }
+             * }
+             * else if (!string.IsNullOrWhiteSpace(citation.Issue))
+             * {
+             *   volumeIssueString += $"({citation.Issue})";
+             * }
             */
 
             // If both volume and issue are empty, return an empty string immediately (guard clause)
@@ -113,8 +116,11 @@ namespace API.StateMachineAndUtils
                 return $"{citation.Volume}";
             }
 
-            // At this point, we know citation.Volume and citation.Issue is NOT null or whitespace.
-            // create the volumeIssueString to hold the formatted volume and issue information, using empty string as a base
+            /* 
+             * At this point, we know citation.Volume and citation.Issue is NOT null or whitespace.
+             * create the volumeIssueString to hold the formatted volume and issue information, 
+             * using empty string as a base
+             */
             string volumeIssueString = "";
 
             // If only volume is present, format it and proceed
