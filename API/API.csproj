@@ -7,11 +7,14 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Swashbuckle.AspNetCore" Version="6.6.2" />
+    <Compile Remove="Helpers\Globals\**" />
+    <Content Remove="Helpers\Globals\**" />
+    <EmbeddedResource Remove="Helpers\Globals\**" />
+    <None Remove="Helpers\Globals\**" />
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Helpers\Globals\" />
+    <PackageReference Include="Swashbuckle.AspNetCore" Version="6.6.2" />
   </ItemGroup>
 
 </Project>

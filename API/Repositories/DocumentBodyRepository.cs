@@ -21,10 +21,6 @@ namespace API.Repositories
 
         public static DocumentBody? GetDocumentBodyById(Guid documentId,Guid documentBodyId)
         {
-            if (documentBodyId == Guid.Empty)
-            {
-                throw new ArgumentException("DocumentBodyId tidak boleh kosong");
-            }
             return _documentBodies.FirstOrDefault(db => db.Id == documentBodyId && db.FK_DocumentId == documentId);
         }
 

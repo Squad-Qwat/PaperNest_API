@@ -180,7 +180,7 @@ namespace UnitTesting
                 FK_WorkspaceId = workspace.Id,
                 WorkspaceRole = WorkspaceRole.Member
             };
-            UserRepository.userWorkspaceRepository.Add(existingUserWorkspace);
+            UserWorkspaceRepository.AddUserWorkspace(existingUserWorkspace);
 
             // Act
             var result = _workspaceService.JoinWorkspace(workspace.Id, userId, existingUserWorkspace.WorkspaceRole);
