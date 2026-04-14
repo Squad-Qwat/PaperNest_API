@@ -1,2 +1,5 @@
-﻿// See https://aka.ms/new-console-template for more information
-Console.WriteLine("Hello, World!");
+﻿using View.Pages.Global;
+
+//// Jalankan aplikasi dengan GlobalView sebagai entry point
+GlobalView globalView = new(); // Setara dengan `new GlobalView()`
+globalView.Start();

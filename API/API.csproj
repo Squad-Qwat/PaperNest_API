@@ -7,19 +7,14 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="Helpers\Globals\**" />
+    <Content Remove="Helpers\Globals\**" />
+    <EmbeddedResource Remove="Helpers\Globals\**" />
+    <None Remove="Helpers\Globals\**" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.6.2" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="Controllers\" />
-    <Folder Include="Helpers\Enums\" />
-    <Folder Include="Helpers\Globals\" />
-    <Folder Include="Models\" />
-    <Folder Include="Services\" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <ProjectReference Include="..\UnitTesting\UnitTesting.csproj" />
   </ItemGroup>
 
 </Project>

@@ -1,0 +1,174 @@
+2
+Budi Santoso
+budi@student.ac.id
+budisantoso
+password123
+1
+
+2
+Siti Rahayu
+siti@student.ac.id
+sitirahayu
+password456
+1
+
+2
+Dr. Ahmad Wijaya
+ahmad@lecturer.ac.id
+ahmadwijaya
+securepass789
+2
+
+1
+budi@student.ac.id
+password123
+
+1
+Skripsi Teknik Informatika
+Penelitian tentang sistem manajemen karya tulis ilmiah
+
+2
+1
+2
+Bab 1: Pendahuluan
+Dalam bab ini akan dijelaskan latar belakang penelitian, rumusan masalah, dan tujuan penelitian tentang sistem manajemen karya tulis ilmiah.
+
+5
+2
+1
+Journal of Information Systems
+John Smith
+IEEE Transactions on Software Engineering
+15/05/2023
+
+12345
+
+0
+4
+2
+Versi awal bab pendahuluan untuk direview
+
+0
+0
+
+1
+1
+2
+Bab 2: Tinjauan Pustaka
+Pada bab ini dijelaskan berbagai referensi dan teori yang relevan dengan penelitian.
+
+5
+2
+1
+Software Engineering Principles
+Robert Martin
+Addison-Wesley Professional
+10/06/2018
+
+0
+4
+2
+Versi awal bab tinjauan pustaka untuk direview
+
+0
+0
+
+1
+Skripsi Metode Penelitian
+Penelitian dengan metodologi kualitatif
+
+2
+1
+2
+Bab 1: Metodologi Penelitian
+Bab ini menjelaskan tentang metodologi penelitian kualitatif yang digunakan dalam penelitian ini.
+
+5
+2
+2
+Research Methodology
+James Wilson
+Academic Press
+05/04/2022
+
+54321
+
+0
+4
+2
+Versi pertama bab metodologi
+
+0
+0
+
+1
+Skripsi Analisis Data
+Penelitian dengan fokus pada analisis data kuantitatif
+
+2
+1
+2
+Bab 1: Analisis Data
+Bab ini menjelaskan tentang teknik analisis data kuantitatif yang digunakan dalam penelitian.
+
+5
+2
+3
+Data Analysis Techniques
+Lisa Johnson
+https://data-analysis.edu/techniques
+12/03/2023
+
+0
+4
+2
+Versi pertama bab analisis data
+
+0
+0
+
+9
+
+1
+ahmad@lecturer.ac.id
+securepass789
+
+1
+1
+
+1
+1
+
+2
+1
+1
+Pendahuluan sudah baik, namun perlu diperjelas rumusan masalah dan batasan penelitian. Tambahkan juga signifikansi penelitian.
+
+0
+
+0
+
+0
+
+9
+
+1
+budi@student.ac.id
+password123
+
+2
+1
+
+1
+1
+2
+Dalam bab ini akan dijelaskan latar belakang penelitian, rumusan masalah yang difokuskan pada optimasi sistem manajemen karya tulis ilmiah, dan tujuan penelitian untuk meningkatkan efisiensi proses review. Batasan penelitian mencakup implementasi di lingkungan akademik perguruan tinggi. Signifikansi penelitian ini adalah memberikan kontribusi pada modernisasi proses bimbingan akademik.
+
+4
+2
+Revisi pendahuluan sesuai feedback dosen - menambahkan batasan dan signifikansi penelitian
+
+0
+0
+
+9
