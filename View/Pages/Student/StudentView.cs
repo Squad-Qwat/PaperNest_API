@@ -409,6 +409,12 @@ namespace View.Pages.Student
                 Console.WriteLine("Judul tidak boleh kosong!");
                 return;
             }
+            
+            // Solusi TC-03: Tambahkan validasi batas maksimal judul dokumen
+            // if (title.Length > 200) { Console.WriteLine("Judul tidak boleh lebih dari 200 karakter!"); return; }
+
+            // Solusi TC-05: Tambahkan validasi konten dokumen tidak boleh kosong
+            // if (string.IsNullOrEmpty(content)) { Console.WriteLine("Konten tidak boleh kosong!"); return; }
 
             var document = new Document
             {
@@ -440,59 +446,35 @@ namespace View.Pages.Student
                 // Tambahkan informasi tentang status review terbaru, untuk uji coba sebaiknya dikomentar terlebih dahulu.
                 string reviewInfo;
                 var versions = _documentBodyService.GetDocumentBodiesByDocumentId(document.Id);
+                
                 if (versions == null || !versions.Any())
                 {
-                    Console.WriteLine("Belum ada versi dokumen yang dibuat.");
-                    Console.WriteLine("Silakan buat versi pertama untuk melanjutkan.");
-                    return;
+                    reviewInfo = "\nStatus: [BELUM ADA VERSI] (Pilih menu 'Manajemen Versi Dokumen' untuk membuat versi pertama)";
                 }
-
-                var currentVersion = _documentBodyService.GetCurrentVersion(document.Id);
-                if (currentVersion == null || !currentVersion.IsReviewed)
+                else
                 {
-                    Console.WriteLine("\nVersi saat ini belum direview. Silakan buat versi baru untuk direview oleh dosen Anda.");
-                    return;
+                    var currentVersion = _documentBodyService.GetCurrentVersion(document.Id);
+                    if (currentVersion == null)
+                    {
+                        reviewInfo = "\nStatus: [TIDAK ADA VERSI AKTIF]";
+                    }
+                    else if (!currentVersion.IsReviewed)
+                    {
+                        reviewInfo = "\nStatus: [MENUNGGU REVIEW DOSEN] (Versi terbaru sedang menuggu penilaian)";
+                    }
+                    else
+                    {
+                        var review = _reviewService.GetReviewByDocumentBodyId(currentVersion.Id);
+                        string? statusText = review?.Status switch
+                        {
+                            ReviewStatus.Approved => "DISETUJUI",
+                            ReviewStatus.NeedsRevision => "PERLU REVISI",
+                            ReviewStatus.Done => "SELESAI",
+                            _ => review?.Status.ToString(),
+                        };
+                        reviewInfo = $"\nVersi saat ini: [{statusText}] (Gunakan menu 'Manajemen Versi' untuk detail)";
+                    }
                 }
-                if (currentVersion == null)
-                {
-                    Console.WriteLine("Tidak ada versi dokumen yang ditemukan.");
-                    return;
-                }
-
-                if (!currentVersion.IsReviewed)
-                {
-                    Console.WriteLine(versions?.Count() > 0
-                        ? "Versi saat ini belum direview. Silakan buat versi baru untuk direview oleh dosen Anda."
-                        : "Belum ada versi dokumen yang dibuat.");
-                }
-
-                var review = _reviewService.GetReviewByDocumentBodyId(currentVersion.Id);
-                string? statusText = review?.Status switch
-                {
-                    ReviewStatus.Approved => "DISETUJUI",
-                    ReviewStatus.NeedsRevision => "PERLU REVISI",
-                    ReviewStatus.Done => "SELESAI",
-                    _ => review?.Status.ToString(),
-                };
-
-                /*
-                 *  switch (review.Status)
-                 *  {
-                 *      case ReviewStatus.Approved:
-                 *          statusText = "DISETUJUI";
-                 *          break;
-                 *      case ReviewStatus.NeedsRevision:
-                 *          statusText = "PERLU REVISI";
-                 *          break;
-                 *      case ReviewStatus.Done:
-                 *          statusText = "SELESAI";
-                 *          break;
-                 *      default:
-                 *          statusText = review.Status.ToString();
-                 *          break;
-                 *  } 
-                 */
-                reviewInfo = $"\nVersi saat ini: [{statusText}] (Klik menu 'Lihat Versi Dokumen' untuk detail)";
 
 
                 Console.WriteLine($"\n=== Dokumen: {document.Title} ===");

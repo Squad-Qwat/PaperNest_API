@@ -1,4 +1,4 @@
-﻿using PaperNest_API.Controllers;
+using PaperNest_API.Controllers;
 using Microsoft.AspNetCore.Mvc;
 using View.Pages.Student;
 using API.StateMachines;
@@ -7,6 +7,7 @@ using API.Models;
 using API.Models.DataBinding;
 using Microsoft.AspNetCore.Authentication;
 using View.Pages.Lecturer;
+using System.Text.RegularExpressions;
 
 namespace View.Pages.Global
 {
@@ -254,13 +255,14 @@ namespace View.Pages.Global
                     throw new ArgumentException($"{fieldName} tidak boleh kosong!");
                 }
 
-                /* note: Regex for email validation is commented out to avoid dependency issues
-                if (fieldName == "Email" && !Regex.IsMatch(input, @"^[^@\s]+@[^@\s]+\.[^@\s]+$"))
-                {
-                    throw new ArgumentException("Format email tidak valid!");
-                }
-                */
+                // if (fieldName == "Email" && !Regex.IsMatch(input, @"^[^@\s]+@[^@\s]+\.[^@\s]+$"))
+                // {
+                //     throw new ArgumentException("Format email tidak valid!");
+                // }
+                // Solusi TC-01: Buka komentar kode di atas untuk melakukan validasi format email.
 
+
+                // Solusi TC-02: Tambahkan validasi batas maksimal karakter seperti: if (fieldName == "Password" && input.Length > 20) throw new ArgumentException("...");
                 if (fieldName == "Password" && input.Length < 8)
                 {
                     throw new ArgumentException("Password harus minimal 8 karakter!");

@@ -1,4 +1,4 @@
-﻿using API.Helpers.Enums;
+using API.Helpers.Enums;
 using API.Models;
 using API.Repositories;
 
@@ -59,6 +59,11 @@ namespace API.Services
             {
                 throw new ArgumentException("WorkspaceId tidak boleh kosong", nameof(workspaceId));
             }
+            
+            // Solusi TC-04: Tambahkan pengecekan apakah user sudah tergabung di workspace ini
+            // var existing = UserWorkspaceRepository.UserWorkspace.FirstOrDefault(uw => uw.FK_UserId == userId && uw.FK_WorkspaceId == workspaceId);
+            // if (existing != null) { throw new InvalidOperationException("Anda sudah bergabung di workspace ini."); }
+
             var userWorkspace = new UserWorkspace
             {
                 FK_UserId = userId,
