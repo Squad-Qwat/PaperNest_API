@@ -409,6 +409,12 @@ namespace View.Pages.Student
                 Console.WriteLine("Judul tidak boleh kosong!");
                 return;
             }
+            
+            // Solusi TC-03: Tambahkan validasi batas maksimal judul dokumen
+            // if (title.Length > 200) { Console.WriteLine("Judul tidak boleh lebih dari 200 karakter!"); return; }
+
+            // Solusi TC-05: Tambahkan validasi konten dokumen tidak boleh kosong
+            // if (string.IsNullOrEmpty(content)) { Console.WriteLine("Konten tidak boleh kosong!"); return; }
 
             var document = new Document
             {
