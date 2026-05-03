@@ -234,7 +234,7 @@ namespace View.Pages.Global
                 bool success = _userService.ResetPassword(email!, newPassword!);
                 if (!success)
                 {
-                    Console.WriteLine("Email tidak ditemukan dalam sistem.");
+                    throw new Exception("Email tidak ditemukan dalam sistem.");
                 }
 
                 Console.WriteLine("Password berhasil direset! Silakan login dengan password baru.");

@@ -128,5 +128,5 @@ Another minor fix #4, due to the review logic in the document review, it
 is advisable that the code related to this review from lecturer
 commented out first before testing this part of the code.
 
-Refactor GlobalViews.cs to limit the range of the validation process.
+Refactor GlobalViews.cs to limit the range of the validation process, and... Take care of some logic
 Refactor LecturerView.cs and StudentView.cs to increase code readability  and some logic a little
