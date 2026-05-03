@@ -10,6 +10,7 @@ using View.Pages.Global;
 
 namespace View.Pages.Student
 {
+   
    public class StudentView
    {
        private readonly UserService _userService;
@@ -24,6 +25,8 @@ namespace View.Pages.Student
        private Workspace? _currentWorkspace;
         private readonly GlobalView _globalView;
 
+        private WorkspaceRole userRole;
+
         public StudentView(User currentUser,  AuthStateMachine authState)
        {
             _userService = new UserService();
@@ -37,6 +40,7 @@ namespace View.Pages.Student
             _reviewService = new ReviewService();
             _userWorkspaceService = new UserWorkspaceService();
             _citationService = new CitationService();
+            userRole = _workspaceService.GetUserRoleInWorkspace(_currentUser.Id, _currentWorkspace.Id);
         }
 
         public void Start()
@@ -67,10 +71,10 @@ namespace View.Pages.Student
         {
             Console.WriteLine($"\n=== Menu Utama - Selamat datang, {_currentUser?.Name} ===");
             Console.WriteLine("1. Buat Workspace");
-            Console.WriteLine("2. Lihat Workspace");
-            Console.WriteLine("3. Kelola Workspace");
-            Console.WriteLine("4. Join Workspace");
-            Console.WriteLine("8. Lihat Profil");
+            Console.WriteLine("2. Lihat atau kelola Workspace");
+            // Console.WriteLine("3. Kelola Workspace");
+            Console.WriteLine("3. Join Workspace");
+            Console.WriteLine("4. Lihat Profil");
             Console.WriteLine("9. Logout");
             Console.Write("Pilih menu: ");
 
@@ -84,13 +88,15 @@ namespace View.Pages.Student
                 case "2":
                     ViewWorkspaces();
                     break;
+               /*  
                 case "3":
                     ManageWorkspaces();
-                    break;
-                case "4":
+                    break; 
+                */
+                case "3":
                     JoinWorkspace();
                     break;
-                case "8":
+                case "4":
                     DisplayUserProfile();
                     break;
                 case "9":
@@ -134,6 +140,7 @@ namespace View.Pages.Student
             Console.WriteLine("Berhasil masuk ke workspace.");
 
             _userWorkspaceService.AddUserWorkspaceAsMember(_currentUser.Id, workspaceId);
+            userRole = WorkspaceRole.Member;
         }
 
         private void DisplayUserProfile()
@@ -189,6 +196,8 @@ namespace View.Pages.Student
             Console.WriteLine("Workspace berhasil dibuat!");
             Console.WriteLine($"ID Workspace: {workspace.Id}");
             Console.WriteLine("Simpan ID ini untuk memberikan akses ke dosen Anda.");
+
+           userRole = WorkspaceRole.Owner;
         }
 
         // Method untuk melihat semua workspace
@@ -233,25 +242,27 @@ namespace View.Pages.Student
                 index++;
             }
 
+            // Original line: int.TryParse(Console.ReadLine(), out int choice) && choice > 0 && choice <= workspaces.Count()
             Console.Write("Pilih workspace (nomor) atau 0 untuk kembali: ");
-            if (int.TryParse(Console.ReadLine(), out int choice) && choice > 0 && choice <= workspaces.Count())
-            {
-                _currentWorkspace = workspaces.ElementAt(choice - 1);
-                WorkspaceMenu();
-            }
+            if (!int.TryParse(Console.ReadLine(), out int choice) || choice < 1 || choice > workspaces.Count()){return;}
+
+            _currentWorkspace = workspaces.ElementAt(choice - 1);
+            WorkspaceMenu();
         }
 
-        // Method untuk mengelola workspace
-        private void ManageWorkspaces()
-        {
-            if (_currentUser == null)
+        /* 
+        Method untuk mengelola workspace:
+            private void ManageWorkspaces()
             {
-                Console.WriteLine("Anda harus login terlebih dahulu.");
-                return;
-            }
-
-            ViewWorkspaces();
-        }
+                if (_currentUser == null)
+                {
+                    Console.WriteLine("Anda harus login terlebih dahulu.");
+                    return;
+                }
+                
+                ViewWorkspaces();
+            } 
+        */
 
         private void WorkspaceMenu()
         {
@@ -303,27 +314,22 @@ namespace View.Pages.Student
                         CreateNewDocument();
                         break;
                     case "3":
-                        if (userRole != WorkspaceRole.Member)
-                        {
-                            EditWorkspace();
-                        }
-                        else
+                        if (userRole == WorkspaceRole.Member)
                         {
                             Console.WriteLine("Anda tidak memiliki izin untuk mengedit workspace ini.");
+                            return;
                         }
+
+                        EditWorkspace();
                         break;
                     case "4":
-                        if (userRole != WorkspaceRole.Member)
-                        {
-                            if (DeleteWorkspace())
-                            {
-                                backToMainMenu = true;
-                            }
-                        }
-                        else
+                        if (userRole == WorkspaceRole.Member)
                         {
                             Console.WriteLine("Anda tidak memiliki izin untuk menghapus workspace ini.");
+                            return;
                         }
+
+                        if (DeleteWorkspace()){backToMainMenu = true;}
                         break;
                     case "0":
                         backToMainMenu = true;
@@ -379,12 +385,16 @@ namespace View.Pages.Student
                 index++;
             }
 
+            // Original line: int.TryParse(Console.ReadLine(), out int choice) && choice > 0 && choice <= documents.Count()
             Console.Write("Pilih dokumen (nomor) atau 0 untuk kembali: ");
-            if (int.TryParse(Console.ReadLine(), out int choice) && choice > 0 && choice <= documents.Count())
+            if (!int.TryParse(Console.ReadLine(), out int choice) || choice < 1 || choice > documents.Count())
             {
-                var selectedDocument = documents.ElementAt(choice - 1);
-                DocumentMenu(selectedDocument);
+                if (choice != 0) Console.WriteLine("Pilihan tidak valid.");
+                return;
             }
+
+            var selectedDocument = documents.ElementAt(choice - 1);
+            DocumentMenu(selectedDocument);
         }
 
         // Method untuk membuat dokumen baru
@@ -448,18 +458,17 @@ namespace View.Pages.Student
                 }
 
                 var currentVersion = _documentBodyService.GetCurrentVersion(document.Id);
-                if (currentVersion == null || !currentVersion.IsReviewed)
+                if (currentVersion == null && !currentVersion.IsReviewed)
                 {
                     Console.WriteLine("\nVersi saat ini belum direview. Silakan buat versi baru untuk direview oleh dosen Anda.");
                     return;
                 }
-                if (currentVersion == null)
+                else if (currentVersion == null)
                 {
                     Console.WriteLine("Tidak ada versi dokumen yang ditemukan.");
                     return;
                 }
-
-                if (!currentVersion.IsReviewed)
+                else if (!currentVersion.IsReviewed)
                 {
                     Console.WriteLine(versions?.Count() > 0
                         ? "Versi saat ini belum direview. Silakan buat versi baru untuk direview oleh dosen Anda."
@@ -531,7 +540,6 @@ namespace View.Pages.Student
                         var refreshContentResult = _documentService.GetById(document.Id);
                         if (refreshContentResult != null)
                         {
-
                             document = refreshContentResult;
                         }
                         break;
@@ -810,13 +818,17 @@ namespace View.Pages.Student
                 Console.WriteLine();
                 index++;
             }
-    
+
+            // Original line: int.TryParse(Console.ReadLine(), out int choice) && choice > 0 && choice <= versionsList.Count
             Console.Write("Pilih versi untuk melihat detail (nomor) atau 0 untuk kembali: ");
-            if (int.TryParse(Console.ReadLine(), out int choice) && choice > 0 && choice <= versionsList.Count)
+            if (!int.TryParse(Console.ReadLine(), out int choice) || choice < 1 || choice > versionsList.Count())
             {
-                var selectedVersion = versionsList[choice - 1];
-                ViewVersionDetailWithReview(selectedVersion);
+                if (choice != 0) Console.WriteLine("Pilihan tidak valid.");
+                return;
             }
+
+            var selectedVersion = versionsList[choice - 1];
+            ViewVersionDetailWithReview(selectedVersion);
         }
         
        // Method untuk melihat detail versi dengan review (jika ada)
@@ -1646,7 +1658,7 @@ namespace View.Pages.Student
            }
 
            Console.Write("Pilih sitasi untuk melihat format APA (nomor) atau 0 untuk kembali: ");
-           if (!int.TryParse(Console.ReadLine(), out int choice) || choice < 1 || choice > citations.Count)
+           if (!int.TryParse(Console.ReadLine(), out int choice) || choice < 1 || choice > citations.Count())
            {
                if (choice != 0) Console.WriteLine("Pilihan tidak valid.");
                return;

@@ -266,6 +266,16 @@ namespace View.Pages.Global
                     throw new ArgumentException("Password harus minimal 8 karakter!");
                 }
 
+                if (fieldName == "Password" && input.Length > 12)
+                {
+                    throw new ArgumentException("Password harus maksimal 12 karakter!");
+                }
+
+                if (fieldName == "Username" && input.Length < 5)
+                {
+                    throw new ArgumentException("Username tidak boleh kurang dari 5 karakter!");
+                }
+
                 if (fieldName == "Username" && input.Length > 15)
                 {
                     throw new ArgumentException("Username tidak boleh lebih dari 15 karakter!");
@@ -284,6 +294,11 @@ namespace View.Pages.Global
                 if (fieldName == "Password Baru" && input.Length < 8)
                 {
                     throw new ArgumentException("Password baru harus minimal 8 karakter!");
+                }
+
+                if (fieldName == "Password Baru" && input.Length > 12)
+                {
+                    throw new ArgumentException("Password baru harus maksimal 12 karakter!");
                 }
 
                 return true;

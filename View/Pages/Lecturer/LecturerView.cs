@@ -20,6 +20,8 @@ namespace View.Pages.Lecturer
         private readonly GlobalView _globalView;
         private readonly UserWorkspaceService _userWorkspaceService;
 
+        private WorkspaceRole userRole;
+
         public LecturerView(User currentUser, AuthStateMachine authState)
        {
            _userService = new UserService();
@@ -33,6 +35,7 @@ namespace View.Pages.Lecturer
            _currentWorkspace = null;
             _globalView = new GlobalView();
             _userWorkspaceService = new UserWorkspaceService();
+            userRole = _workspaceService.GetUserRoleInWorkspace(_currentUser.Id, _currentWorkspace.Id);
         }
 
         public void Start()
@@ -199,17 +202,17 @@ namespace View.Pages.Lecturer
             Console.Write("\nApakah Anda yakin ingin bergabung dengan workspace ini? (y/n): ");
             string? confirmation = Console.ReadLine()?.ToLower();
 
-            if (confirmation == "y")
-            {
-                // Bergabung dengan workspace sebagai dosen (Lecturer)
-                _userWorkspaceService.AddUserWorkspaceAsLecturer(_currentUser.Id, workspaceId);
-                Console.WriteLine("\nBerhasil bergabung dengan workspace!");
-                Console.WriteLine("Anda sekarang dapat melihat dokumen dan memberikan review pada workspace ini.");
-            }
-            else
+            if (confirmation != "y")
             {
                 Console.WriteLine("\nBergabung dengan workspace dibatalkan.");
+                return;
             }
+
+            // Bergabung dengan workspace sebagai dosen (Lecturer)
+            _userWorkspaceService.AddUserWorkspaceAsLecturer(_currentUser.Id, workspaceId);
+            Console.WriteLine("\nBerhasil bergabung dengan workspace!");
+            Console.WriteLine("Anda sekarang dapat melihat dokumen dan memberikan review pada workspace ini.");
+            userRole = WorkspaceRole.Lecturer;
         }
 
         private void WorkspaceMenu()
@@ -227,10 +230,6 @@ namespace View.Pages.Lecturer
             }
 
             bool backToMainMenu = false;
-
-            // Cek role pengguna saat ini di workspace ini
-            WorkspaceRole userRole = _workspaceService.GetUserRoleInWorkspace(_currentUser.Id, _currentWorkspace.Id);
-
 
             do
             {
@@ -305,12 +304,16 @@ namespace View.Pages.Lecturer
                 index++;
             }
 
+            // Original line: int.TryParse(Console.ReadLine(), out int choice) && choice > 0 && choice <= documents.Count()
             Console.Write("Pilih dokumen (nomor) atau 0 untuk kembali: ");
-            if (int.TryParse(Console.ReadLine(), out int choice) && choice > 0 && choice <= documents.Count())
+            if (!int.TryParse(Console.ReadLine(), out int choice) || choice < 1 || choice > documents.Count())
             {
-                var selectedDocument = documents.ElementAt(choice - 1);
-                DocumentMenu(selectedDocument);
+                if (choice != 0) Console.WriteLine("Pilihan tidak valid.");
+                return;
             }
+            
+            var selectedDocument = documents.ElementAt(choice - 1);
+            DocumentMenu(selectedDocument);
         }
 
         private void DocumentMenu(Document document)
@@ -493,12 +496,16 @@ namespace View.Pages.Lecturer
                index++;
            }
            
+           // Original line: int.TryParse(Console.ReadLine(), out int choice) && choice > 0 && choice <= documents.Count()
            Console.Write("Pilih versi untuk melihat detail (nomor) atau 0 untuk kembali: ");
-           if (int.TryParse(Console.ReadLine(), out int choice) && choice > 0 && choice <= versionsList.Count)
+           if (int.TryParse(Console.ReadLine(), out int choice) || choice < 1 || choice > versionsList.Count())
            {
-               var selectedVersion = versionsList[choice - 1];
-               ViewVersionDetailWithReview(selectedVersion);
+                if (choice != 0) Console.WriteLine("Pilihan tidak valid.");
+                return;
            }
+
+           var selectedVersion = versionsList[choice - 1];
+           ViewVersionDetailWithReview(selectedVersion);
        }
 
        private void ViewVersionDetailWithReview(DocumentBody version)
@@ -529,10 +536,8 @@ namespace View.Pages.Lecturer
                 // Berikan opsi untuk mereview dokumen
                 Console.Write("\nApakah Anda ingin mereview versi ini? (y/n): ");
                 string? choice = Console.ReadLine()?.ToLower();
-                if (choice == "y")
-                {
-                    ReviewVersion(version);
-                }
+                if (choice != "y"){return;}
+                ReviewVersion(version);
             }
 
             Console.WriteLine("\n=== Hasil Review ===");
@@ -651,13 +656,17 @@ namespace View.Pages.Lecturer
                Console.WriteLine();
                index++;
            }
-    
+
+           // Original line: int.TryParse(Console.ReadLine(), out int choice) && choice > 0 && choice <= documents.Count()
            Console.Write("Pilih versi untuk review (nomor) atau 0 untuk kembali: ");
-           if (int.TryParse(Console.ReadLine(), out int choice) && choice > 0 && choice <= versionsList.Count)
+           if (!int.TryParse(Console.ReadLine(), out int choice) || choice < 1 || choice > versionsList.Count)
            {
-               var selectedVersion = versionsList.ElementAt(choice - 1);
-               ReviewVersion(selectedVersion);
+                if (choice != 0) Console.WriteLine("Pilihan tidak valid.");
+                return;
            }
+
+           var selectedVersion = versionsList.ElementAt(choice - 1);
+            ReviewVersion(selectedVersion);
        }
 
        private void ReviewVersion(DocumentBody version)
